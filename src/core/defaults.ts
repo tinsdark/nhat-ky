@@ -62,7 +62,7 @@ export const DEFAULT_QUICK_ACTIONS: QuickAction[] = [
   qa('qa-breakfast', 'Ăn sáng', '🥐', 3, 'meal', 'cat-breakfast'),
   qa('qa-lunch', 'Ăn trưa', '🍱', 4, 'meal', 'cat-lunch'),
   qa('qa-dinner', 'Ăn tối', '🍜', 5, 'meal', 'cat-dinner'),
-  qa('qa-work', 'Bắt đầu làm', '💻', 6, 'work', 'cat-deep'),
+  qa('qa-work', 'Làm việc', '💻', 6, 'work', 'cat-deep'),
   qa('qa-water', 'Uống nước', '💧', 7, 'water', 'cat-water', { value: 250, unit: 'ml' }),
   qa('qa-coffee', 'Cà phê', '☕', 8, 'meal', 'cat-drink'),
   qa('qa-outdoor', 'Ra ngoài trời', '🌤', 9, 'activity', 'cat-outdoor'),

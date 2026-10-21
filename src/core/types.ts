@@ -12,7 +12,8 @@ export interface SyncFields {
 export type EntryType =
   'sleep' | 'meal' | 'work' | 'habit' | 'exercise' | 'activity' | 'water' | 'note'
 
-export type EntrySource = 'manual' | 'timer' | 'quick'
+/** `quick` = tapped in real time on Hôm nay; `backfill` = written afterwards on Ghi bù, times are estimates. */
+export type EntrySource = 'manual' | 'quick' | 'backfill'
 
 export type Rating = 1 | 2 | 3 | 4 | 5
 

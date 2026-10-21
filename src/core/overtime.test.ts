@@ -1,21 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { atTime } from './date'
 import { DEFAULT_SETTINGS } from './settings'
-import { formatElapsed, isOvertime } from './timer'
+import { isOvertime } from './overtime'
 
 // 2026-11-02 is a Monday, 2026-11-07 a Saturday.
 const mon = (hhmm: string) => atTime('2026-11-02', hhmm)
 const sat = (hhmm: string) => atTime('2026-11-07', hhmm)
 const ot = (a: string, b: string) => isOvertime(a, b, DEFAULT_SETTINGS)
-
-describe('formatElapsed', () => {
-  it('formats HH:mm:ss and clamps negatives', () => {
-    expect(formatElapsed(0)).toBe('00:00:00')
-    expect(formatElapsed(3_723_000)).toBe('01:02:03')
-    expect(formatElapsed(-5)).toBe('00:00:00')
-    expect(formatElapsed(100 * 3_600_000)).toBe('100:00:00')
-  })
-})
 
 describe('isOvertime', () => {
   it('is false inside working hours on a working day', () => {

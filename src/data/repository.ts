@@ -1,5 +1,6 @@
 import { DEFAULT_SETTINGS } from '../core/settings'
 import { toDateKey, toIso } from '../core/date'
+import { isOvertime } from '../core/overtime'
 import type { Day, Defs, Entry, Settings } from '../core/types'
 import { db } from './db'
 
@@ -18,6 +19,24 @@ export type NewEntry = Pick<Entry, 'type' | 'start'> &
       | 'dirty'
     >
   >
+
+/**
+ * Final shape of an entry before it is stored: times always carry the +07:00 offset whatever form the
+ * caller passed (CLAUDE.md rule 7), and work blocks carry `payload.isOvertime`, derived from the
+ * working hours in Settings (SPEC 4.2).
+ */
+function withOvertime(input: Entry, settings: Settings): Entry {
+  const entry = {
+    ...input,
+    start: toIso(new Date(input.start)),
+    end: input.end ? toIso(new Date(input.end)) : null,
+  }
+  if (entry.type !== 'work' || entry.end === null) return entry
+  return {
+    ...entry,
+    payload: { ...entry.payload, isOvertime: isOvertime(entry.start, entry.end, settings) },
+  }
+}
 
 export async function getDeviceId(): Promise<string> {
   return db.transaction('rw', db.meta, async () => {
@@ -68,7 +87,8 @@ export async function saveDefs(defs: Defs): Promise<void> {
 
 export async function createEntry(input: NewEntry): Promise<Entry> {
   const now = toIso()
-  const { dayStartHour } = await getSettings()
+  const settings = await getSettings()
+  const { dayStartHour } = settings
   const entry: Entry = {
     end: null,
     categoryId: '',
@@ -90,8 +110,9 @@ export async function createEntry(input: NewEntry): Promise<Entry> {
     deleted: false,
     dirty: 1,
   }
-  await db.entries.add(entry)
-  return entry
+  const saved = withOvertime(entry, settings)
+  await db.entries.add(saved)
+  return saved
 }
 
 export async function updateEntry(id: string, patch: Partial<NewEntry>): Promise<Entry> {
@@ -104,11 +125,11 @@ export async function updateEntry(id: string, patch: Partial<NewEntry>): Promise
     deviceId: await getDeviceId(),
     dirty: 1,
   }
-  if (patch.start !== undefined) {
-    next.dateKey = toDateKey(next.start, (await getSettings()).dayStartHour)
-  }
-  await db.entries.put(next)
-  return next
+  const settings = await getSettings()
+  if (patch.start !== undefined) next.dateKey = toDateKey(next.start, settings.dayStartHour)
+  const saved = withOvertime(next, settings)
+  await db.entries.put(saved)
+  return saved
 }
 
 export async function softDeleteEntry(id: string): Promise<void> {

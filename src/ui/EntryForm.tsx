@@ -1,7 +1,16 @@
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { addDays, atTime, toDateKey, toHHmm } from '../core/date'
 import { MAX_PHOTOS_PER_ENTRY } from '../core/photo'
-import { autoMealSlot, findOverlaps, shiftHHmm, suggestTitles } from '../core/entryForm'
+import {
+  addMinutes,
+  autoMealSlot,
+  DURATION_CHOICES,
+  findOverlaps,
+  formatDuration,
+  resolveEnd,
+  shiftHHmm,
+  suggestTitles,
+} from '../core/entryForm'
 import type { Category, Entry, EntryType } from '../core/types'
 import { createEntry, getEntriesInRange, updateEntry } from '../data/repository'
 import { PhotoError, photos, pokePhotoQueue, processPhoto } from '../photos'
@@ -59,15 +68,12 @@ export function EntryForm({
   dayStartHour,
   onClose,
   onSaved,
-  onStartTimer,
 }: {
   draft: FormDraft
   categories: Category[]
   dayStartHour: number
   onClose: () => void
   onSaved: (entry: Entry, isNew: boolean) => void
-  /** Offered for new work entries: start a timer with the chosen category and title. */
-  onStartTimer?: (fields: { categoryId: string; title: string }) => void
 }) {
   const [type, setType] = useState(draft.type)
   const [categoryId, setCategoryId] = useState(draft.categoryId)
@@ -136,13 +142,17 @@ export function EntryForm({
   }
 
   const startIso = atTime(draft.dateKey, start, dayStartHour)
-  const endIso = end ? atTime(draft.dateKey, end, dayStartHour) : null
+  const typedEnd = end ? atTime(draft.dateKey, end, dayStartHour) : null
+  const endIso = typedEnd ? resolveEnd(startIso, typedEnd) : null
+  const durationMin = endIso
+    ? Math.round((new Date(endIso).getTime() - new Date(startIso).getTime()) / 60_000)
+    : null
   const overlaps = findOverlaps(history, type, startIso, endIso, draft.id)
 
   const cats = categories.filter((c) => c.entryType === type && !c.archived)
 
   const save = async () => {
-    if (endIso && endIso <= startIso) return setError('Giờ kết thúc phải sau giờ bắt đầu.')
+    if (typedEnd && !endIso) return setError('Khối dài quá 16 giờ, kiểm tra lại giờ kết thúc.')
     const num = value.trim() === '' ? null : Number(value.replace(',', '.'))
     if (num !== null && Number.isNaN(num)) return setError('Giá trị không hợp lệ.')
     const fields = {
@@ -234,6 +244,27 @@ export function EntryForm({
             <input type="time" value={end} onInput={(e) => setEnd(e.currentTarget.value)} />
           </label>
         </div>
+        <div class="field">
+          <span class="lbl">
+            Ước lượng thời lượng{durationMin ? `: ${formatDuration(durationMin)}` : ''}
+          </span>
+          <div class="choice">
+            {DURATION_CHOICES.map((m) => (
+              <button
+                type="button"
+                class={durationMin === m ? 'on' : ''}
+                onClick={() => setEnd(toHHmm(addMinutes(startIso, m)))}
+              >
+                {formatDuration(m)}
+              </button>
+            ))}
+            {end && (
+              <button type="button" onClick={() => setEnd('')}>
+                Không có giờ kết thúc
+              </button>
+            )}
+          </div>
+        </div>
         <div class="row shift">
           {[15, 30, 60].map((m) => (
             <button type="button" class="btn" onClick={() => setStart(shiftHHmm(start, -m))}>
@@ -303,15 +334,6 @@ export function EntryForm({
           <textarea rows={2} value={note} onInput={(e) => setNote(e.currentTarget.value)} />
         </label>
         {error && <p class="error">{error}</p>}
-        {onStartTimer && !draft.id && type === 'work' && (
-          <button
-            type="button"
-            class="btn"
-            onClick={() => onStartTimer({ categoryId, title: title.trim() })}
-          >
-            Bấm giờ ngay
-          </button>
-        )}
         <div class="row">
           <button type="button" class="btn" onClick={close}>
             Huỷ

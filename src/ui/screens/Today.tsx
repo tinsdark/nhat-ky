@@ -20,8 +20,8 @@ import { getRecentSleep, goToSleep, suggestBedtime, wakeUp } from '../../data/sl
 import { shouldAskLastNight } from '../../core/sleep'
 import { ReviewSheet } from '../ReviewSheet'
 import { reviewPrompt } from '../../core/review'
-import { TimerBar } from '../TimerBar'
-import { getRunningTimer, startTimer } from '../../data/timer'
+import { DurationPicker } from '../DurationPicker'
+import { addMinutes } from '../../core/entryForm'
 import { Toast, type ToastData } from '../Toast'
 import { useLive } from '../useLive'
 
@@ -40,7 +40,6 @@ export function Today() {
   const isToday = dateKey === todayKey
   const entries = useLive(() => getEntriesByDateKey(dateKey), [dateKey])
   const day = useLive(() => getDay(dateKey), [dateKey])
-  const timer = useLive(getRunningTimer, [])
   const todayDay = useLive(() => getDay(todayKey), [todayKey])
   const yesterdayKey = addDays(todayKey, -1)
   const yesterdayDay = useLive(() => getDay(yesterdayKey), [yesterdayKey])
@@ -54,6 +53,7 @@ export function Today() {
   const [sleepPrompt, setSleepPrompt] = useState<SleepPromptState | null>(null)
   const [form, setForm] = useState<FormDraft | null>(null)
   const [detail, setDetail] = useState<Entry | null>(null)
+  const [durationFor, setDurationFor] = useState<QuickAction | null>(null)
   const [toast, setToast] = useState<ToastData | null>(null)
 
   if (!settings || !defs || !entries) return null
@@ -87,15 +87,19 @@ export function Today() {
     })
   }
 
-  const beginTimer = async (fields: { categoryId?: string; title?: string }) => {
-    const { entry, stopped } = await startTimer(fields)
-    setForm(null)
-    setToast({
-      id: Date.now(),
-      text: stopped ? 'Đã dừng timer cũ, bật timer mới' : 'Đã bật timer',
-      onEdit: () => setForm(draftFromEntry(entry)),
-      onUndo: () => void softDeleteEntry(entry.id),
+  /** A work block estimated after the fact: ends now, started `minutes` ago. */
+  const logWork = async (a: QuickAction, minutes: number) => {
+    const end = nowIso()
+    const entry = await createEntry({
+      type: 'work',
+      start: addMinutes(end, -minutes),
+      end,
+      categoryId: a.categoryId,
+      title: a.title,
+      source: 'quick',
     })
+    setDurationFor(null)
+    showSaved(entry, true)
   }
 
   const askNight = async () => setSleepPrompt({ mode: 'night', suggestion: await suggestBedtime() })
@@ -122,7 +126,7 @@ export function Today() {
 
   const quickTap = async (a: QuickAction) => {
     if (await sleepTap(a)) return
-    if (a.type === 'work') return beginTimer({ categoryId: a.categoryId, title: a.title })
+    if (a.type === 'work') return setDurationFor(a)
     const entry = await createEntry({
       type: a.type,
       start: nowIso(),
@@ -221,7 +225,6 @@ export function Today() {
           </div>
         )
       )}
-      <TimerBar timer={timer} categories={categories} />
 
       <div class="progress" aria-label={`Đã ghi ${doneCount}/${progress.length} mục cốt lõi`}>
         <div class="bar">
@@ -364,7 +367,17 @@ export function Today() {
           dayStartHour={dayStartHour}
           onClose={() => setForm(null)}
           onSaved={showSaved}
-          onStartTimer={isToday ? (f) => void beginTimer(f) : undefined}
+        />
+      )}
+      {durationFor && (
+        <DurationPicker
+          title={durationFor.name}
+          onPick={(m) => void logWork(durationFor, m)}
+          onMore={() => {
+            setForm({ ...draftFor(durationFor), start: nowIso() })
+            setDurationFor(null)
+          }}
+          onClose={() => setDurationFor(null)}
         />
       )}
       {reviewFor && <ReviewSheet dateKey={reviewFor} onClose={() => setReviewFor(null)} />}

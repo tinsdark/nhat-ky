@@ -779,3 +779,9 @@ details.card summary {
   display: flex;
   align-items: center;
 }
+
+.choice.big button {
+  min-width: 72px;
+  min-height: 56px;
+  font-size: 1rem;
+}

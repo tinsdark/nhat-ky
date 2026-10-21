@@ -79,3 +79,33 @@ export function copyToDay(entry: Entry, targetDateKey: string, dayStartHour: num
     source: 'manual' as const,
   }
 }
+
+/** Longest block the form accepts. */
+export const MAX_BLOCK_HOURS = 16
+
+/** Duration estimates offered as chips, in minutes. */
+export const DURATION_CHOICES = [15, 30, 45, 60, 90, 120, 180, 240]
+
+export function addMinutes(iso: string, minutes: number): string {
+  return new Date(new Date(iso).getTime() + minutes * 60_000).toISOString()
+}
+
+/** "1h30", "45p". */
+export function formatDuration(minutes: number): string {
+  if (minutes < 60) return `${minutes}p`
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return m ? `${h}h${String(m).padStart(2, '0')}` : `${h}h`
+}
+
+/**
+ * The end of a block whose end time was typed as a clock time on the same logical day: an end at or
+ * before the start means the next day (sleep 23:30 → 06:30). Null when that would exceed 16 hours,
+ * which is almost certainly a typo.
+ */
+export function resolveEnd(startIso: string, endIso: string): string | null {
+  const s = new Date(startIso).getTime()
+  let e = new Date(endIso).getTime()
+  if (e <= s) e += 24 * 3_600_000
+  return e - s > MAX_BLOCK_HOURS * 3_600_000 ? null : new Date(e).toISOString()
+}
