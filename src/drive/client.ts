@@ -27,6 +27,8 @@ export interface DriveDeps {
   invalidateToken: () => void
 }
 
+export type DriveClient = ReturnType<typeof createDriveClient>
+
 export function assertWritableName(name: string): void {
   if (!WRITABLE_NAME.test(name)) throw new Error(`Refusing to write Drive file "${name}"`)
 }
