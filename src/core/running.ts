@@ -3,7 +3,13 @@ import type { Entry, EntryType } from './types'
 
 /** Types that last a while, so pressing once records the start and a second press records the end. */
 export function isTimedType(type: EntryType): boolean {
-  return type === 'work' || type === 'activity' || type === 'exercise' || type.startsWith('x-')
+  return (
+    type === 'meal' ||
+    type === 'work' ||
+    type === 'activity' ||
+    type === 'exercise' ||
+    type.startsWith('x-')
+  )
 }
 
 /** A block whose start was recorded and whose end is still waiting for the second press. */

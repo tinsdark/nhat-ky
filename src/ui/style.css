@@ -456,7 +456,10 @@ textarea {
 .sheet {
   width: 100%;
   max-height: 90dvh;
+  overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   display: flex;
   flex-direction: column;
   gap: 10px;
