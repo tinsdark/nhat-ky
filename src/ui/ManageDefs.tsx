@@ -5,6 +5,7 @@ import {
   newCustomType,
   newId,
   nextOrder,
+  quickActionCategory,
   removeQuickAction,
   setArchived,
   typeLabel,
@@ -313,6 +314,9 @@ export function ManageDefs({
   )
 }
 
+/** Select value for "make a new type named like this button". */
+const NEW_TYPE = '__new'
+
 function DefEditor({
   kind,
   item,
@@ -345,17 +349,28 @@ function DefEditor({
       const t = { ...draft, name: str('name').trim() } as unknown as Tag
       return onSave({ ...defs, tags: upsertById(defs.tags, t) })
     }
+    const name = str('name').trim()
     const value = str('value').trim() === '' ? null : Number(str('value').replace(',', '.'))
     if (value !== null && Number.isNaN(value)) return setError('Giá trị không hợp lệ.')
+    // "Loại mới": the button brings its own type, named like the button; categories are added to it afterwards.
+    const created = str('type') === NEW_TYPE ? newCustomType(name, str('icon') || '📌') : null
+    const buttonType = created ? created.id : (str('type') as EntryType)
     const a = {
       ...draft,
-      name: str('name').trim(),
-      title: str('title').trim() || str('name').trim(),
-      value,
+      name,
+      title: name,
+      type: buttonType,
+      categoryId: quickActionCategory(buttonType, str('categoryId'), defs.categories),
+      value: buttonType === 'water' ? value : null,
+      unit: buttonType === 'water' ? str('unit') : '',
     } as unknown as QuickAction
     const problem = validateQuickAction(a, defs.categories)
     if (problem) return setError(problem)
-    onSave({ ...defs, quickActions: upsertById(defs.quickActions, a) })
+    onSave({
+      ...defs,
+      ...(created && { customTypes: [...(defs.customTypes ?? []), created] }),
+      quickActions: upsertById(defs.quickActions, a),
+    })
   }
 
   const type = (draft.type ?? draft.entryType) as EntryType
@@ -412,8 +427,16 @@ function DefEditor({
               {entryTypeOptions(defs).map((t) => (
                 <option value={t.id}>{t.label}</option>
               ))}
+              {kind === 'quick' && <option value={NEW_TYPE}>+ Loại mới (tên như nút)</option>}
             </select>
           </label>
+        )}
+        {kind === 'quick' && (
+          <p class="muted hint">
+            {str('type') === NEW_TYPE
+              ? `Tạo Loại "${str('name').trim() || '…'}". Thêm danh mục cho loại này ở tab Danh mục.`
+              : 'Bấm nút ở Hôm nay sẽ hiện các danh mục của loại này để chọn.'}
+          </p>
         )}
         {kind === 'cat' && (
           <label>
@@ -431,41 +454,21 @@ function DefEditor({
             </select>
           </label>
         )}
-        {kind === 'quick' && (
-          <>
+        {kind === 'quick' && type === 'water' && (
+          <div class="row">
             <label>
-              Danh mục
-              <select
-                value={str('categoryId')}
-                onChange={(e) => set('categoryId', e.currentTarget.value)}
-              >
-                <option value="">—</option>
-                {defs.categories
-                  .filter((c) => c.entryType === type && !c.archived)
-                  .map((c) => (
-                    <option value={c.id}>{c.name}</option>
-                  ))}
-              </select>
+              Giá trị mặc định
+              <input
+                inputMode="decimal"
+                value={str('value')}
+                onInput={(e) => set('value', e.currentTarget.value)}
+              />
             </label>
             <label>
-              Nội dung ghi sẵn
-              <input value={str('title')} onInput={(e) => set('title', e.currentTarget.value)} />
+              Đơn vị
+              <input value={str('unit')} onInput={(e) => set('unit', e.currentTarget.value)} />
             </label>
-            <div class="row">
-              <label>
-                Giá trị mặc định
-                <input
-                  inputMode="decimal"
-                  value={str('value')}
-                  onInput={(e) => set('value', e.currentTarget.value)}
-                />
-              </label>
-              <label>
-                Đơn vị
-                <input value={str('unit')} onInput={(e) => set('unit', e.currentTarget.value)} />
-              </label>
-            </div>
-          </>
+          </div>
         )}
         {error && <p class="error">{error}</p>}
         <div class="row">

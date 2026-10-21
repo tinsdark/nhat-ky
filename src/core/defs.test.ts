@@ -6,6 +6,7 @@ import {
   moveItem,
   newCustomType,
   nextOrder,
+  quickActionCategory,
   removeQuickAction,
   setArchived,
   tagName,
@@ -61,6 +62,14 @@ describe('defs helpers', () => {
     )
     expect(validateQuickAction({ ...lunch, name: ' ' }, defs.categories)).toMatch(/tên/)
     expect(validateQuickAction({ ...lunch, categoryId: '' }, defs.categories)).toBeNull()
+  })
+  it('quickActionCategory keeps a matching category, drops a foreign one, gives water its own', () => {
+    const cats = defs.categories
+    expect(quickActionCategory('meal', 'cat-lunch', cats)).toBe('cat-lunch')
+    expect(quickActionCategory('meal', 'cat-deep', cats)).toBe('')
+    expect(quickActionCategory('work', '', cats)).toBe('')
+    expect(quickActionCategory('water', '', cats)).toBe('cat-water')
+    expect(quickActionCategory('x-new', '', cats)).toBe('')
   })
   it('tagName', () => {
     expect(tagName([{ id: 't1', name: 'OT', color: '' }], 't1')).toBe('OT')
