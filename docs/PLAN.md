@@ -130,7 +130,10 @@ Tham chiếu: repo `tinsdark/so-chi-tieu` (nền kem, thẻ bo tròn 20px, tab �
 - [x] **T6.5 Sửa màn Quản lý danh mục/nút nhanh/tag** dính sát nhau (tab, danh sách, nút "+ mới" không có khoảng cách).
 - [x] **T6.6 Form nút nhanh chỉ chọn Loại.** Nút nhanh chỉ cần Tên, Biểu tượng, Loại (bỏ Danh mục và Nội dung ghi sẵn; Giá trị/Đơn vị chỉ cho loại Uống nước). Có lựa chọn "+ Loại mới (tên như nút)" tạo luôn Loại tự đặt; bấm nút ở Hôm nay hiện đúng các danh mục của loại đó, loại chưa có danh mục thì có gợi ý.
 
-## Sau 1/11 (P4)
+## P7 — Dữ liệu mẫu, UI/UX, báo cáo (Đạt giao tối 21/10, làm qua đêm)
+
+- [x] **T7.1 Bộ sinh dữ liệu theo người dùng mẫu.** `src/dev/persona.ts`: 18 giả định hành vi (H1–H18) là dữ liệu, mô phỏng tháng 10/2026 (ốm 8–9, đi xa 17–18, nước rút 19–23). Nút "Sinh tháng 10/2026" ở Cài đặt → Dữ liệu (chỉ dev), có test.
+
 
 - [ ] Push nhắc nhở (phương án C: Cloudflare Workers + cron).
 - [ ] Gọi Claude API trực tiếp (cách B) — tuỳ gói Claude của Đạt.

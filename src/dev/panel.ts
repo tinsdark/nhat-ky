@@ -3,11 +3,27 @@ import { addDays, toDateKey, toIso } from '../core/date'
 import { db } from '../data/db'
 import { getSettings } from '../data/repository'
 import { FAKE_DEVICE, generateFakeData } from './fakeData'
+import { generatePersonaMonth, OCT_2026 } from './persona'
 
 export async function addFakeData(days: number): Promise<number> {
   const { dayStartHour } = await getSettings()
   const endKey = addDays(toDateKey(Date.now(), dayStartHour), -1)
   const data = generateFakeData({ endKey, days })
+  await db.transaction('rw', db.entries, db.days, async () => {
+    await db.entries.bulkPut(data.entries)
+    await db.days.bulkPut(data.days)
+  })
+  return data.entries.length
+}
+
+/** The scripted month (01–30/10/2026) of the sample office worker, as it stands at 21:40 on the 30th. */
+export async function addPersonaMonth(): Promise<number> {
+  const data = generatePersonaMonth({
+    startKey: '2026-10-01',
+    days: 30,
+    scenario: OCT_2026,
+    nowIso: '2026-10-30T21:40:00+07:00',
+  })
   await db.transaction('rw', db.entries, db.days, async () => {
     await db.entries.bulkPut(data.entries)
     await db.days.bulkPut(data.days)
