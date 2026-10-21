@@ -83,15 +83,15 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
 
 ## Checklist nghiệm thu (trước 1/11)
 
-- [ ] Entry qua nửa đêm gán đúng ngày logic (ngủ 01:30, làm việc 23:00–01:00).
+- [x] Entry qua nửa đêm gán đúng ngày logic (ngủ 01:30, làm việc 23:00–01:00). *(test + Chromium; chưa thử trên điện thoại)*
 - [ ] Ghi offline trên điện thoại, bật mạng, PC thấy trong ≤ 2 phút.
 - [ ] Hai máy cùng sửa một Entry → bản mới hơn thắng, không nhân đôi.
 - [ ] Token hết hạn giữa chừng → không mất dữ liệu, tự sync lại sau khi đăng nhập.
 - [ ] Cài PWA lên màn hình chính, mở offline được.
-- [ ] Streak đúng với lịch T2–T6 và "3 lần/tuần".
-- [ ] Ảnh < 300 KB, giờ Entry = giờ chụp, không có GPS.
-- [ ] Engine tương quan qua bộ dữ liệu giả 60 ngày.
-- [ ] Dashboard < 1 giây với 1 năm dữ liệu giả (~11.000 Entry).
+- [x] Streak đúng với lịch T2–T6 và "3 lần/tuần". *(test Vitest)*
+- [x] Ảnh < 300 KB, giờ Entry = giờ chụp, không có GPS. *(JPEG 5,8 MB có GPS → 138 KB trên Chromium; chưa thử ảnh iPhone/HEIC)*
+- [x] Engine tương quan qua bộ dữ liệu giả 60 ngày. *(8 seed, test Vitest)*
+- [x] Dashboard < 1 giây với 1 năm dữ liệu giả. *(8.186 Entry: ~0,25 giây trên Chromium máy dev; điện thoại chưa đo)*
 - [ ] Đã xoá sạch dữ liệu giả, kể cả trên Drive.
 
 ## Sau 1/11 (P4)

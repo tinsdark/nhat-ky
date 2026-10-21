@@ -63,9 +63,21 @@ Xoá Entry không xoá ảnh ngay: ảnh bị dọn sau 24 giờ nếu không c�
 
 Test: 249 pass, lint và build pass. Chưa chạy trên điện thoại thật: camera/HEIC, tải ảnh lên Drive thật, `navigator.connection`.
 
-## Tiếp theo theo PLAN
+## Đã xong: P3 trừ T3.7 (T3.1–T3.6), cùng nhánh, chưa mở PR
 
-P3: T3.1 sinh dữ liệu giả → T3.2 engine tương quan → T3.3 lời khuyên → T3.4 thí nghiệm → T3.5 backup → T3.6 nút "Hỏi Claude" → T3.7 nghiệm thu.
+- **T3.1** `src/dev/fakeData.ts` (thuần, có seed) + `src/dev/panel.ts` + `src/ui/DevPanel.tsx` (chỉ có ở `npm run dev`, bản build không chứa). "Xoá dữ liệu test" xoá mềm và xoá sạch nội dung (`deviceId = fake-data`) để việc xoá cũng lên Drive nếu file tháng đã được tải.
+- **T3.2** `src/core/correlation/`: Cohen's d + Welch t, nhóm nhị phân / 1/3, hai nửa cùng chiều, loại ngày sick/travel/holiday, lag 1 chỉ bật từ 60 ngày. Thêm hai thứ SPEC không có: ngưỡng |t| ≥ 3,5 (chống báo nhầm khi so hàng trăm cặp) và gộp các yếu tố đi cùng nhau (|r| ≥ 0,7) thành một kết quả. Trên 8 seed 60 ngày: tìm đúng 2 quy luật cài sẵn, tối đa 2 kết quả giả.
+- **T3.3** `src/core/insights.ts` + `src/data/insights.ts`: mẫu câu có số + hành động, xếp hạng, tối đa 3/ngày, Thử / Hữu ích / Không đúng / Ẩn 2 tuần, chạy 1 lần/ngày. Dexie lên v2 (thêm bảng `insights`), sync file `nk_insights.json`.
+- **T3.4** `src/core/experiments.ts` + `src/data/experiments.ts`: "Thử 14 ngày" tạo thói quen tạm "Thử: …"; hết hạn thì so ngày làm đúng với 14 ngày trước đó, hỏi Giữ / Bỏ. Chỉ lời khuyên từ tương quan có hành động mới thử được.
+- **T3.5** `src/backup/`, `src/core/backup.ts`: snapshot `nk_backup_YYYY-MM-DD.json` mỗi Chủ nhật (giữ 8, chạy khi mở app và đã đăng nhập), xuất JSON, xuất CSV theo khoảng ngày và loại, nhập JSON (chỉ lấy bản mới hơn). Chưa có nhập CSV (SPEC ghi "nếu có dữ liệu cũ").
+- **T3.6** `src/core/claudePrompt.ts` + `src/ui/AskClaude.tsx`: prompt chỉ gồm số trung bình 7/30 ngày và các nhận xét của app (test bảo đảm không lọt ghi chú, tiêu đề, ảnh), chép clipboard + mở `claude.ai/new`, ô dán ngược lưu trong `nk_insights.json`.
+
+Test: 303 pass, lint và build pass.
+
+## Còn lại: T3.7 nghiệm thu (cần điện thoại thật và Google thật)
+
+Đã kiểm trên máy dev (đã tick trong PLAN): ngày logic qua nửa đêm, streak, ảnh < 300 KB, engine tương quan, dashboard ~0,25 giây với 8.186 Entry.
+Chưa kiểm: ghi offline rồi sync hai máy, hai máy sửa cùng Entry, token hết hạn giữa chừng, cài PWA và mở offline, ảnh iPhone/HEIC, xoá dữ liệu giả trên Drive, deploy bản 1/11. Điều kiện trước khi thử Drive: xem mục "Chưa kiểm chứng trên thiết bị thật" ở trên.
 
 ## Ghi chú
 
