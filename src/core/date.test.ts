@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addDays, dateKeyRange, toDateKey, weekday } from './date'
+import { addDays, dateKeyRange, toDateKey, toIso, weekday } from './date'
 
 describe('toDateKey', () => {
   it('00:40 Tue belongs to Monday night', () => {
@@ -74,5 +74,13 @@ describe('weekday (Mon = 0 … Sun = 6)', () => {
     expect(weekday('2026-10-20')).toBe(1)
     expect(weekday('2026-10-25')).toBe(6) // Sunday
     expect(weekday('2028-02-29')).toBe(1) // Tuesday
+  })
+})
+
+describe('toIso', () => {
+  it('writes the +07:00 offset and round-trips', () => {
+    const iso = toIso(new Date('2026-10-19T17:40:00Z'))
+    expect(iso).toBe('2026-10-20T00:40:00.000+07:00')
+    expect(new Date(iso).getTime()).toBe(Date.parse('2026-10-19T17:40:00Z'))
   })
 })
