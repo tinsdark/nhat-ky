@@ -925,6 +925,11 @@ details.card summary {
 .fullscreen .content {
   max-width: 480px;
   margin: 0 auto;
+  padding-bottom: 32px;
+}
+/* Tabs, list and the add button each get their own breathing room. */
+.fullscreen .content > * + * {
+  margin-top: 12px;
 }
 .mini {
   display: flex;

@@ -127,6 +127,7 @@ Tham chiếu: repo `tinsdark/so-chi-tieu` (nền kem, thẻ bo tròn 20px, tab �
 - [x] **T6.2 Bắt đầu / Kết thúc.** Việc kéo dài (cả ăn uống): "Bắt đầu" lưu giờ bắt đầu (`payload.running`), thẻ "Đang làm" có nút "Kết thúc" lưu giờ kết thúc; khối quá 16 giờ thì mở form sửa giờ. Bỏ hộp "vừa làm xong bao lâu". `src/core/running.ts` có test.
 - [x] **T6.3 Gọn giao diện điện thoại.** Không tràn ngang ở 360–390px, bỏ dòng "Còn thiếu" lặp với chip, tile nhỏ lại, khoá cuộn ngang trang, hàng tab (Cài đặt, Thống kê) xuống dòng thay vì bị cắt, công tắc luật cảnh báo thẳng hàng phải, lưới giờ deep work không tràn.
 - [x] **T6.4 Nút cập nhật phiên bản mới.** Cài đặt → Ứng dụng → "Về app": "Kiểm tra bản mới" → "Cập nhật và tải lại" khi có bản mới. Đổi `registerType` sang `prompt` (bản mới không tự áp dụng nữa), logic ở `src/pwa.ts`.
+- [x] **T6.5 Sửa màn Quản lý danh mục/nút nhanh/tag** dính sát nhau (tab, danh sách, nút "+ mới" không có khoảng cách).
 
 ## Sau 1/11 (P4)
 
