@@ -187,6 +187,16 @@ export interface InsightStore {
   /** dateKey of the last engine run, so it runs once a day. */
   lastRunDate: string | null
   experiments: Experiment[]
+  /** Answers the user pasted back from Claude ("Hỏi Claude"). */
+  claudeNotes: ClaudeNote[]
+}
+
+export interface ClaudeNote {
+  id: string
+  createdAt: string
+  /** The question asked, and the pasted answer. */
+  question: string
+  text: string
 }
 
 export interface PhotoRecord {

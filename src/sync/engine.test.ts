@@ -442,6 +442,7 @@ describe('insights doc', () => {
       weights: { 'corr:bedtime': 0.5 },
       lastRunDate: '2026-11-02',
       experiments: [],
+      claudeNotes: [],
     }
     await a.db.insights.put({ ...store, key: 'insights', updatedAt: t(1), deviceId: 'A', dirty: 1 })
     await a.engine.run()

@@ -22,8 +22,14 @@ const HISTORY_DAYS = 180
 export async function getInsightStore(): Promise<InsightStore> {
   const row = await db.insights.get('insights')
   if (!row) return emptyStore()
-  const { items, weights, lastRunDate, experiments } = row
-  return { items, weights, lastRunDate, experiments: experiments ?? [] }
+  const { items, weights, lastRunDate, experiments, claudeNotes } = row
+  return {
+    items,
+    weights,
+    lastRunDate,
+    experiments: experiments ?? [],
+    claudeNotes: claudeNotes ?? [],
+  }
 }
 
 export async function saveInsightStore(store: InsightStore): Promise<void> {
@@ -84,4 +90,20 @@ export async function giveFeedback(id: string, action: Feedback): Promise<void> 
   const settings = await getSettings()
   const today = toDateKey(Date.now(), settings.dayStartHour)
   await saveInsightStore(applyFeedback(await getInsightStore(), id, action, today, toIso()))
+}
+
+export async function addClaudeNote(question: string, text: string): Promise<void> {
+  const store = await getInsightStore()
+  await saveInsightStore({
+    ...store,
+    claudeNotes: [
+      { id: crypto.randomUUID(), createdAt: toIso(), question, text },
+      ...store.claudeNotes,
+    ],
+  })
+}
+
+export async function deleteClaudeNote(id: string): Promise<void> {
+  const store = await getInsightStore()
+  await saveInsightStore({ ...store, claudeNotes: store.claudeNotes.filter((n) => n.id !== id) })
 }

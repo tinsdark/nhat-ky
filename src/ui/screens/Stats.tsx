@@ -5,6 +5,7 @@ import { countLoggedDays, readiness } from '../../core/rules'
 import { byWeekday, formatMetric, movingAverage, weekCompare } from '../../core/stats'
 import { getDaysInRange, getDefs, getEntriesInRange, getSettings } from '../../data/repository'
 import { AdviceCards } from '../AdviceCards'
+import { AskClaude } from '../AskClaude'
 import { Experiments } from '../Experiments'
 import { MonthCalendar, TrendChart, WeekdayBars } from '../charts'
 import { useLive } from '../useLive'
@@ -140,6 +141,8 @@ export function Stats() {
       <MonthCalendar month={month} points={monthPoints} />
       <h2 class="sub">Theo thứ trong tuần (90 ngày)</h2>
       <WeekdayBars values={weekdayValues} />
+
+      <AskClaude ctx={ctx} metrics={metrics} today={today} />
     </section>
   )
 }

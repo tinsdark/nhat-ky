@@ -35,7 +35,13 @@ beforeEach(async () => {
     db.settings.clear(),
     db.meta.clear(),
   ])
-  await saveInsightStore({ items: [insight], weights: {}, lastRunDate: null, experiments: [] })
+  await saveInsightStore({
+    items: [insight],
+    weights: {},
+    lastRunDate: null,
+    experiments: [],
+    claudeNotes: [],
+  })
 })
 
 describe('experiment flow', () => {

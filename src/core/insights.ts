@@ -22,6 +22,7 @@ export const emptyStore = (): InsightStore => ({
   weights: {},
   lastRunDate: null,
   experiments: [],
+  claudeNotes: [],
 })
 
 /** Weight bucket of an insight: the rule, or the correlation factor (so "Không đúng" demotes the whole type). */

@@ -759,3 +759,23 @@ h1 {
 .settings select {
   min-height: 44px;
 }
+
+.screen textarea {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.9rem;
+  width: 100%;
+}
+.note-text {
+  white-space: pre-wrap;
+  font-size: 0.85rem;
+}
+details.card summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
