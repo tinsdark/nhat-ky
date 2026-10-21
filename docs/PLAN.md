@@ -128,6 +128,7 @@ Tham chiếu: repo `tinsdark/so-chi-tieu` (nền kem, thẻ bo tròn 20px, tab �
 - [x] **T6.3 Gọn giao diện điện thoại.** Không tràn ngang ở 360–390px, bỏ dòng "Còn thiếu" lặp với chip, tile nhỏ lại, khoá cuộn ngang trang, hàng tab (Cài đặt, Thống kê) xuống dòng thay vì bị cắt, công tắc luật cảnh báo thẳng hàng phải, lưới giờ deep work không tràn.
 - [x] **T6.4 Nút cập nhật phiên bản mới.** Cài đặt → Ứng dụng → "Về app": "Kiểm tra bản mới" → "Cập nhật và tải lại" khi có bản mới. Đổi `registerType` sang `prompt` (bản mới không tự áp dụng nữa), logic ở `src/pwa.ts`.
 - [x] **T6.5 Sửa màn Quản lý danh mục/nút nhanh/tag** dính sát nhau (tab, danh sách, nút "+ mới" không có khoảng cách).
+- [x] **T6.6 Form nút nhanh chỉ chọn Loại.** Nút nhanh chỉ cần Tên, Biểu tượng, Loại (bỏ Danh mục và Nội dung ghi sẵn; Giá trị/Đơn vị chỉ cho loại Uống nước). Có lựa chọn "+ Loại mới (tên như nút)" tạo luôn Loại tự đặt; bấm nút ở Hôm nay hiện đúng các danh mục của loại đó, loại chưa có danh mục thì có gợi ý.
 
 ## Sau 1/11 (P4)
 

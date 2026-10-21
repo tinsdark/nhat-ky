@@ -24,6 +24,12 @@ export function CategoryPicker({
     <div class="sheet-backdrop" onClick={onClose}>
       <div class="sheet" onClick={(e) => e.stopPropagation()}>
         <h2>{title}: làm gì?</h2>
+        {list.length === 0 && (
+          <p class="muted hint">
+            Loại này chưa có danh mục. Thêm ở Sửa → Danh mục (chọn đúng loại), hoặc bấm Khác để ghi
+            ngay.
+          </p>
+        )}
         <div class="quickgrid">
           {list.map((c) => (
             <button type="button" class="quick" onClick={() => onPick(c)}>

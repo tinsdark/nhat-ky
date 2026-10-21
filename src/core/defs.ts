@@ -72,6 +72,21 @@ export const removeQuickAction = (defs: Defs, id: string): Defs => ({
   quickActions: defs.quickActions.filter((q) => q.id !== id),
 })
 
+/**
+ * A shortcut points at a type, not a category: pressing it lists the type's categories. It keeps a
+ * category only when that one still belongs to the type, or for water, which records at once and
+ * needs one.
+ */
+export function quickActionCategory(
+  type: EntryType,
+  categoryId: string,
+  categories: Category[],
+): string {
+  const own = categories.filter((c) => c.entryType === type && !c.archived)
+  if (own.some((c) => c.id === categoryId)) return categoryId
+  return type === 'water' ? (own[0]?.id ?? '') : ''
+}
+
 /** A quick action must point at a category of its own entry type; returns the problem, or null. */
 export function validateQuickAction(a: QuickAction, categories: Category[]): string | null {
   if (a.name.trim() === '') return 'Nhập tên nút.'
