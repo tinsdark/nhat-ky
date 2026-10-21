@@ -125,6 +125,8 @@ Giao diện theo họ Sổ Tiền (giấy kem, thẻ bo 20px, pill chuyển mụ
 - Nút nhanh trên máy đã có dữ liệu vẫn là bộ cũ (Ăn sáng, Ăn trưa, Cà phê…): bấm đều mở bảng chọn danh mục của loại đó, nên trùng nhau; xoá bớt ở Cài đặt → Danh mục → Nút nhanh. Bộ mới chỉ áp cho máy seed mới. Chưa viết migration (cần hỏi Đạt).
 - Chưa kiểm trên điện thoại thật; chưa tái hiện được lỗi "ô đè nhau" (chỉ thấy toast che nút tạm thời) và "lắc" (đã khoá cuộn ngang).
 
+- **T6.4** nút cập nhật bản mới ở Cài đặt → Ứng dụng. Service worker chuyển sang `registerType: 'prompt'`: bản mới chỉ áp dụng khi bấm nút (hoặc khi đóng hết cửa sổ app rồi mở lại). Đã thử trên bản build bằng Chromium (build hai lần, nút nhận ra bản mới, bấm thì tải lại và đổi bundle); chưa thử trên iPhone cài PWA.
+
 ## Việc chờ Đạt quyết (chưa làm)
 
 **(Đã giải quyết bằng T6.1: phím tắt theo Loại, có ô "Khác")** Ghi một việc không có nút nhanh ở Hôm nay. Hiện có 23 danh mục nhưng 9 nút nhanh. Việc không có nút thì ghi bằng: (1) giữ một nút rồi đổi Loại/Danh mục trong form, (2) tab Ghi bù → ô "Việc khác", (3) nhân bản mục trên timeline. Hôm nay **không có** ô "Việc khác" như Ghi bù, nên trên điện thoại hơi bất tiện.
