@@ -21,6 +21,7 @@ import { ReviewSheet } from '../ReviewSheet'
 import { reviewPrompt } from '../../core/review'
 import { dueReminders } from '../../core/reminders'
 import { tickHabit } from '../../data/habits'
+import { CheckinBar, undoCheckin } from '../CheckinBar'
 import { DurationPicker } from '../DurationPicker'
 import { addMinutes } from '../../core/entryForm'
 import { Toast, type ToastData } from '../Toast'
@@ -266,6 +267,18 @@ export function Today() {
           Đây là ngày đã qua: nút bấm nhanh chỉ dùng cho hôm nay. Muốn ghi thêm thì sang tab{' '}
           <a href={`#/backfill?d=${dateKey}&s=12:00`}>Ghi bù</a>.
         </p>
+      )}
+
+      {isToday && (
+        <CheckinBar
+          onSaved={(entry, label) =>
+            setToast({
+              id: Date.now(),
+              text: `Đã ghi: ${label}`,
+              onUndo: () => undoCheckin(entry.id),
+            })
+          }
+        />
       )}
 
       <div class="timeline">

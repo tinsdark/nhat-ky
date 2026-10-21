@@ -79,3 +79,16 @@ export function formatMetric(id: string, unit: string, value: number | null): st
   const short = unit.startsWith('giờ') ? 'giờ' : unit.startsWith('1–') ? '' : unit
   return short ? `${text} ${short}` : text
 }
+
+/** Sum of the non-null values of `metric` over the `days` days ending at `endKey`; null if the window has none. */
+export function windowSum(
+  metric: Metric,
+  ctx: MetricContext,
+  endKey: string,
+  days: number,
+): number | null {
+  const values = dateKeyRange(addDays(endKey, -(days - 1)), endKey)
+    .map((d) => metric.compute(d, ctx))
+    .filter((v): v is number => v !== null)
+  return values.length === 0 ? null : values.reduce((a, b) => a + b, 0)
+}

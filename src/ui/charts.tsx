@@ -242,3 +242,99 @@ export function HourHeatmap({
     </div>
   )
 }
+
+/** Night bars (bedtime → wake) on an 18:00–12:00 axis, quality as dots. `bars` in date order. */
+export function SleepChart({
+  bars,
+  from,
+  days,
+}: {
+  bars: { dateKey: string; startH: number; endH: number; quality: number | null }[]
+  from: string
+  days: number
+}) {
+  const W2 = 340
+  const H2 = 170
+  const top = 14
+  const bottom = 24
+  const span = 18 // 18:00 → 12:00 next day
+  const y = (h: number) => top + (Math.min(h, span) / span) * (H2 - top - bottom)
+  const step = W2 / days
+  const dayIndex = (key: string) =>
+    Math.round((Date.parse(`${key}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000)
+  return (
+    <svg viewBox={`0 0 ${W2} ${H2}`} class="chart" role="img" aria-label="Giờ ngủ 30 ngày">
+      {[0, 6, 12, 18].map((h) => (
+        <g>
+          <line x1="0" x2={W2} y1={y(h)} y2={y(h)} stroke="var(--border)" stroke-width="0.5" />
+          <text x="2" y={y(h) - 2} font-size="8" fill="var(--muted)">
+            {String((18 + h) % 24).padStart(2, '0')}h
+          </text>
+        </g>
+      ))}
+      {bars.map((b) => {
+        const x = dayIndex(b.dateKey) * step
+        return (
+          <g>
+            <rect
+              x={x + 1}
+              y={y(b.startH)}
+              width={Math.max(2, step - 2)}
+              height={Math.max(2, y(b.endH) - y(b.startH))}
+              rx="2"
+              fill="var(--accent)"
+              opacity="0.8"
+            />
+            {b.quality !== null && (
+              <circle
+                cx={x + step / 2}
+                cy={H2 - 10}
+                r="2"
+                fill="var(--warn)"
+                opacity={0.3 + b.quality * 0.14}
+              />
+            )}
+          </g>
+        )
+      })}
+      <text x="2" y={H2 - 1} font-size="8" fill="var(--muted)">
+        chấm vàng = chất lượng ngủ (đậm = tốt)
+      </text>
+    </svg>
+  )
+}
+
+/** Mean energy by hour; hours without check-ins are gaps. */
+export function EnergyLine({ points }: { points: { hour: number; mean: number | null }[] }) {
+  const W3 = 340
+  const H3 = 120
+  const x = (h: number) => 10 + (h / 23) * (W3 - 20)
+  const y = (v: number) => 10 + ((5 - v) / 4) * (H3 - 30)
+  const path = points
+    .filter((p): p is { hour: number; mean: number } => p.mean !== null)
+    .map((p, i) => `${i === 0 ? 'M' : 'L'}${x(p.hour).toFixed(1)},${y(p.mean).toFixed(1)}`)
+    .join(' ')
+  return (
+    <svg
+      viewBox={`0 0 ${W3} ${H3}`}
+      class="chart"
+      role="img"
+      aria-label="Đường năng lượng trong ngày"
+    >
+      {[1, 3, 5].map((v) => (
+        <line x1="10" x2={W3 - 10} y1={y(v)} y2={y(v)} stroke="var(--border)" stroke-width="0.5" />
+      ))}
+      {[0, 6, 12, 18, 23].map((h) => (
+        <text x={x(h)} y={H3 - 4} font-size="9" text-anchor="middle" fill="var(--muted)">
+          {h}h
+        </text>
+      ))}
+      <path d={path} fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" />
+      {points.map((p) =>
+        p.mean === null ? null : (
+          <circle cx={x(p.hour)} cy={y(p.mean)} r="2.5" fill="var(--accent)" />
+        ),
+      )}
+    </svg>
+  )
+}

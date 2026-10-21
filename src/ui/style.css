@@ -967,3 +967,18 @@ table.grid th {
 .hours .hc.empty {
   background: var(--surface);
 }
+
+.checkin {
+  margin-bottom: 16px;
+  gap: 6px;
+}
+.checkin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+.checkin-row .choice button {
+  min-width: 44px;
+}

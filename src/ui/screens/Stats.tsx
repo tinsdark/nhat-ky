@@ -4,17 +4,19 @@ import { allMetrics, createMetricContext } from '../../core/metrics'
 import { getDaysInRange, getDefs, getEntriesInRange, getSettings } from '../../data/repository'
 import { Choice } from '../Choice'
 import { Food } from '../stats/Food'
+import { Health } from '../stats/Health'
 import { Overview } from '../stats/Overview'
 import { Time } from '../stats/Time'
 import { HISTORY_DAYS, type StatsData } from '../stats/shared'
 import { useLive } from '../useLive'
 
-type Tab = 'overview' | 'food' | 'time'
+type Tab = 'overview' | 'food' | 'time' | 'health'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'Tổng quan' },
   { id: 'food', label: 'Ăn uống' },
   { id: 'time', label: 'Thời gian' },
+  { id: 'health', label: 'Sức khoẻ' },
 ]
 
 export function Stats() {
@@ -40,6 +42,7 @@ export function Stats() {
       {tab === 'overview' && <Overview data={data} />}
       {tab === 'food' && <Food data={data} />}
       {tab === 'time' && <Time data={data} />}
+      {tab === 'health' && <Health data={data} />}
     </section>
   )
 }
