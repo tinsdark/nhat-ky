@@ -103,3 +103,22 @@ describe('runBackup', () => {
     expect(files.has('nk_backup_2026-11-01.json')).toBe(true)
   })
 })
+
+describe('importCsv', () => {
+  it('imports rows, creates unknown tags, and skips duplicates on a second import', async () => {
+    const { importCsv } = await import('./importCsv')
+    const csv =
+      'start,type,title,tags,end\n2026-11-02 12:00,meal,Cơm,ăn ngoài,\n2026-11-02 09:00,work,Code,,2026-11-02 11:00\nbad,meal,,,\n'
+    const first = await importCsv(csv)
+    expect(first).toMatchObject({ imported: 2, duplicates: 0, newTags: ['ăn ngoài'] })
+    expect(first.errors).toHaveLength(1)
+    const rows = await db.entries.toArray()
+    const defs = await (await import('../data/repository')).getDefs()
+    const tagId = defs.tags.find((t) => t.name === 'ăn ngoài')!.id
+    expect(rows.find((r) => r.title === 'Cơm')!.tags).toEqual([tagId])
+    expect(rows.find((r) => r.title === 'Code')!.payload.isOvertime).toBeUndefined() // imported as-is
+    const second = await importCsv(csv)
+    expect(second).toMatchObject({ imported: 0, duplicates: 2, newTags: [] })
+    expect(await db.entries.count()).toBe(2)
+  })
+})

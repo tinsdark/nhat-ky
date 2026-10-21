@@ -3,10 +3,14 @@ import { entriesToCsv } from '../core/backup'
 import { addDays, toDateKey } from '../core/date'
 import type { EntryType } from '../core/types'
 import { buildSnapshot, parseSnapshot, restoreSnapshot, SnapshotError } from '../backup'
+import { importCsv } from '../backup/importCsv'
+import { buildZip } from '../backup/zip'
+import { photos } from '../photos'
+import { db } from '../data/db'
 import { getDefs, getEntriesInRange } from '../data/repository'
 
-function download(name: string, text: string, type: string) {
-  const url = URL.createObjectURL(new Blob([text], { type }))
+function download(name: string, data: BlobPart, type: string) {
+  const url = URL.createObjectURL(new Blob([data], { type }))
   const a = document.createElement('a')
   a.href = url
   a.download = name
@@ -42,10 +46,42 @@ export function BackupSection({ dayStartHour }: { dayStartHour: number }) {
     const rows = entries.filter((e) => !type || e.type === type)
     download(
       `nhat-ky-${type || 'tat-ca'}-${from}_${to}.csv`,
-      entriesToCsv(rows, defs.categories),
+      entriesToCsv(rows, defs.categories, defs.tags),
       'text/csv;charset=utf-8',
     )
     setMsg(`Đã xuất ${rows.length} bản ghi CSV.`)
+  }
+  /** JSON plus every photo that live entries point to, in one zip (SPEC 10.4). Photos only on Drive are downloaded first. */
+  const exportZip = async () => {
+    setMsg('Đang gom ảnh…')
+    const snap = await buildSnapshot()
+    const ids = new Set<string>()
+    await db.entries.each((e) => {
+      if (!e.deleted) for (const id of e.photoIds) ids.add(id)
+    })
+    const files = [{ name: 'nhat-ky.json', data: new TextEncoder().encode(JSON.stringify(snap)) }]
+    let missing = 0
+    for (const id of ids) {
+      const blob = await photos.load(id, 'blob').catch(() => null)
+      if (blob)
+        files.push({ name: `photos/${id}.webp`, data: new Uint8Array(await blob.arrayBuffer()) })
+      else missing++
+    }
+    download(`nhat-ky-${today}.zip`, buildZip(files) as BlobPart, 'application/zip')
+    setMsg(
+      `Đã xuất zip: ${files.length - 1} ảnh${missing ? `, ${missing} ảnh không tải được (chỉ còn bản thu nhỏ hoặc đã mất)` : ''}.`,
+    )
+  }
+  const importCsvFile = async (file: File) => {
+    try {
+      const r = await importCsv(await file.text())
+      const bad = r.errors.length
+        ? ` Bỏ qua ${r.errors.length} dòng lỗi (đầu tiên: dòng ${r.errors[0]!.line}, ${r.errors[0]!.reason})`
+        : ''
+      setMsg(`Đã nhập ${r.imported} mục, ${r.duplicates} mục trùng bị bỏ qua.${bad}`)
+    } catch {
+      setMsg('Không đọc được file CSV.')
+    }
   }
   const importJson = async (file: File) => {
     try {
@@ -69,6 +105,22 @@ export function BackupSection({ dayStartHour }: { dayStartHour: number }) {
         <button type="button" class="btn" onClick={() => void exportJson()}>
           Xuất JSON đầy đủ
         </button>
+        <button type="button" class="btn" onClick={() => void exportZip()}>
+          Xuất JSON kèm ảnh (zip)
+        </button>
+        <label class="btn filebtn">
+          Nhập từ CSV (dữ liệu cũ)
+          <input
+            type="file"
+            accept=".csv,text/csv"
+            hidden
+            onChange={(e) => {
+              const f = e.currentTarget.files?.[0]
+              e.currentTarget.value = ''
+              if (f) void importCsvFile(f)
+            }}
+          />
+        </label>
         <label class="btn filebtn">
           Nhập từ JSON (khôi phục)
           <input

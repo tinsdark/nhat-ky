@@ -11,6 +11,7 @@ export const DEFAULT_SETTINGS: Settings = {
   reviewTime: '21:30',
   skipRestDays: false,
   photosWifiOnly: false,
+  photoFullMonths: 0,
   ruleThresholds: {},
   disabledRules: [],
   weeklyBudgets: { deepWorkHours: 15, baHours: 4, socialHours: 7 },

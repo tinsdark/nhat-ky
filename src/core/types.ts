@@ -132,6 +132,8 @@ export interface Settings {
   skipRestDays: boolean
   /** Upload photos only on Wi-Fi (when the browser can tell). */
   photosWifiOnly: boolean
+  /** 0 = keep full-size photos forever; 12 = after 12 months keep only the thumbnail (SPEC 10.3). */
+  photoFullMonths: 0 | 12
   /** Rule threshold overrides, keyed `<ruleId>.<param>`; missing keys use the rule's default. */
   ruleThresholds: Record<string, number>
   /** Rule ids switched off in Settings. */
@@ -222,4 +224,6 @@ export interface PhotoRecord {
   createdAt: string
   /** 1 once both files are on Drive. */
   uploaded: 0 | 1
+  /** True once the full-size file was deliberately removed (older than the keep-full setting). */
+  trimmed?: boolean
 }

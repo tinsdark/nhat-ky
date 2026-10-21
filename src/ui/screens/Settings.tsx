@@ -206,6 +206,15 @@ export function Settings({ onSignedOut }: { onSignedOut: () => void }) {
           value={yesNo(settings.photosWifiOnly)}
           onChange={(v) => v && save({ photosWifiOnly: v === 'yes' })}
         />
+        <Choice
+          label="Giữ ảnh lớn trên Drive và máy"
+          options={[
+            { id: 'forever', label: 'Mãi mãi' },
+            { id: '12', label: '12 tháng (sau đó chỉ giữ ảnh thu nhỏ)' },
+          ]}
+          value={settings.photoFullMonths === 12 ? '12' : 'forever'}
+          onChange={(v) => v && save({ photoFullMonths: v === '12' ? 12 : 0 })}
+        />
         <p class="muted hint">
           Mặc định ngày kết thúc lúc 04:00 sáng hôm sau, nên ngủ lúc 00:40 vẫn tính vào đêm hôm
           trước.
