@@ -12,6 +12,7 @@ import {
   softDeleteEntry,
 } from '../../data/repository'
 import { copyToDay } from '../../core/entryForm'
+import { Thumb } from '../PhotoViews'
 import { EntryDetail } from '../EntryDetail'
 import { draftFromEntry, EntryForm, type FormDraft } from '../EntryForm'
 import { SleepPrompt, type SleepPromptState } from '../SleepPrompt'
@@ -289,6 +290,13 @@ export function Today() {
               {r.entry.value != null && (
                 <span class="muted">
                   {r.entry.value} {r.entry.unit}
+                </span>
+              )}
+              {r.entry.photoIds.length > 0 && (
+                <span class="strip">
+                  {r.entry.photoIds.map((id) => (
+                    <Thumb id={id} size={36} />
+                  ))}
                 </span>
               )}
             </button>

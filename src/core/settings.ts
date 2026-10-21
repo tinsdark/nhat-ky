@@ -10,5 +10,6 @@ export const DEFAULT_SETTINGS: Settings = {
   exerciseTargetMinPerWeek: 150,
   reviewTime: '21:30',
   skipRestDays: false,
+  photosWifiOnly: false,
   theme: 'system',
 }

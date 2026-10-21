@@ -65,7 +65,7 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
 - [x] **T2.1 Metric registry** (Module 7.2, 5.5, 3.4, 4.5). Mỗi chỉ số: `id`, nhãn, đơn vị, `compute(dateKey, ctx) → number | null`. Gồm cả chỉ số đồng hồ sinh hoạt: điểm giữa giấc ngủ, lệch ngày thường/cuối tuần, độ đều giờ ngủ, khung ăn, bữa cuối → ngủ, cà phê cuối → ngủ.
     - Xong khi: test từng chỉ số trên 7 ngày mẫu tính tay; ngày thiếu dữ liệu trả `null`.
 - [x] **T2.2 Dashboard** (Module 7.1). Thẻ tuần (so 7 ngày trước), xu hướng 90 ngày + TB trượt 7 ngày, lịch tháng tô màu, theo thứ trong tuần. Chỗ cho thẻ lời khuyên (điền ở T3.3).
-- [ ] **T2.3 Ảnh** (Module 10). Chọn/chụp ảnh → đọc giờ chụp (EXIF DateTimeOriginal; iPhone có thể là HEIC — nếu trình duyệt không vẽ được HEIC lên canvas thì báo lỗi rõ ràng) → canvas → WebP 0,7, cạnh dài 1280px + thumb 320px → lưu IndexedDB → hàng đợi tải lên Drive `nkp_/nkt_` (tuỳ chọn chỉ Wi-Fi). Tối đa 3 ảnh/Entry. Giờ chụp gợi ý giờ ăn (`timeSource = photo`). Xoá Entry → xoá ảnh. Cache ảnh lớn ≤ 200 MB.
+- [x] **T2.3 Ảnh** (Module 10). Chọn/chụp ảnh → đọc giờ chụp (EXIF DateTimeOriginal; iPhone có thể là HEIC — nếu trình duyệt không vẽ được HEIC lên canvas thì báo lỗi rõ ràng) → canvas → WebP 0,7, cạnh dài 1280px + thumb 320px → lưu IndexedDB → hàng đợi tải lên Drive `nkp_/nkt_` (tuỳ chọn chỉ Wi-Fi). Tối đa 3 ảnh/Entry. Giờ chụp gợi ý giờ ăn (`timeSource = photo`). Xoá Entry → xoá ảnh. Cache ảnh lớn ≤ 200 MB.
     - Xong khi: ảnh lưu < 300 KB, không còn GPS; sync dữ liệu không chờ ảnh.
 - [x] ~~**T2.4**~~ — bỏ (21/10). Giữ số thứ tự để T2.5 không đổi tên.
 - [ ] **T2.5 Luật cảnh báo** (Module 8.2). Định nghĩa luật dạng dữ liệu (điều kiện trên metric, cửa sổ ngày, ưu tiên, mẫu câu, thời gian chờ). Đủ 11 luật mặc định. Ngưỡng sửa trong Cài đặt.

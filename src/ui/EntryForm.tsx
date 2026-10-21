@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'preact/hooks'
-import { addDays, atTime, toHHmm } from '../core/date'
+import { useEffect, useRef, useState } from 'preact/hooks'
+import { addDays, atTime, toDateKey, toHHmm } from '../core/date'
+import { MAX_PHOTOS_PER_ENTRY } from '../core/photo'
 import { autoMealSlot, findOverlaps, shiftHHmm, suggestTitles } from '../core/entryForm'
 import type { Category, Entry, EntryType } from '../core/types'
 import { createEntry, getEntriesInRange, updateEntry } from '../data/repository'
+import { PhotoError, photos, pokePhotoQueue, processPhoto } from '../photos'
 import { PayloadFields, type Payload } from './PayloadFields'
+import { Thumb } from './PhotoViews'
 
 export interface FormDraft {
   /** Set when editing an existing entry. */
@@ -19,6 +22,7 @@ export interface FormDraft {
   start: string
   end: string | null
   payload?: Payload
+  photoIds?: string[]
   source?: Entry['source']
 }
 
@@ -45,6 +49,7 @@ export function draftFromEntry(e: Entry): FormDraft {
     start: e.start,
     end: e.end,
     payload: e.payload,
+    photoIds: e.photoIds,
   }
 }
 
@@ -73,6 +78,11 @@ export function EntryForm({
   const [unit, setUnit] = useState(draft.unit)
   const [note, setNote] = useState(draft.note)
   const [payload, setPayload] = useState<Payload>(draft.payload ?? {})
+  const [photoIds, setPhotoIds] = useState<string[]>(draft.photoIds ?? [])
+  const [busy, setBusy] = useState(false)
+  const [notice, setNotice] = useState('')
+  const added = useRef<string[]>([])
+  const saved = useRef(false)
   const [error, setError] = useState('')
   const [history, setHistory] = useState<Entry[]>([])
   useEffect(() => {
@@ -86,6 +96,44 @@ export function EntryForm({
       else next[key] = v
       return next
     })
+
+  const close = () => {
+    // Photos picked in this form and never saved would be orphans.
+    if (!saved.current) void photos.remove(added.current)
+    onClose()
+  }
+
+  const addPhoto = async (file: File) => {
+    setBusy(true)
+    setError('')
+    setNotice('')
+    try {
+      const { blob, thumb, takenAt } = await processPhoto(file)
+      const id = await photos.add(blob, thumb)
+      added.current.push(id)
+      setPhotoIds((ids) => [...ids, id])
+      // The capture time is the most exact meal time there is.
+      if (type === 'meal' && !draft.id && takenAt) {
+        if (toDateKey(takenAt, dayStartHour) === draft.dateKey) {
+          setStart(toHHmm(takenAt))
+          setField('timeSource', 'photo')
+          setNotice(`Giờ ăn lấy theo giờ chụp ảnh (${toHHmm(takenAt)}).`)
+        } else setNotice('Ảnh chụp vào ngày khác, giờ giữ nguyên.')
+      }
+    } catch (err) {
+      setError(err instanceof PhotoError ? err.message : 'Không thêm được ảnh.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const removePhoto = (id: string) => {
+    setPhotoIds((ids) => ids.filter((x) => x !== id))
+    if (added.current.includes(id)) {
+      added.current = added.current.filter((x) => x !== id)
+      void photos.remove([id])
+    }
+  }
 
   const startIso = atTime(draft.dateKey, start, dayStartHour)
   const endIso = end ? atTime(draft.dateKey, end, dayStartHour) : null
@@ -106,17 +154,24 @@ export function EntryForm({
       note: note.trim(),
       start: startIso,
       end: endIso,
+      photoIds,
       payload:
         type === 'meal' && !payload.mealSlot
           ? { ...payload, mealSlot: autoMealSlot(categoryId, start) }
           : payload,
     }
-    if (draft.id) onSaved(await updateEntry(draft.id, fields), false)
-    else onSaved(await createEntry({ ...fields, source: draft.source ?? 'manual' }), true)
+    const result = draft.id
+      ? await updateEntry(draft.id, fields)
+      : await createEntry({ ...fields, source: draft.source ?? 'manual' })
+    saved.current = true
+    // Photos taken off a saved entry go with it.
+    await photos.remove((draft.photoIds ?? []).filter((id) => !photoIds.includes(id)))
+    if (photoIds.length > 0) pokePhotoQueue()
+    onSaved(result, !draft.id)
   }
 
   return (
-    <div class="sheet-backdrop" onClick={onClose}>
+    <div class="sheet-backdrop" onClick={close}>
       <form
         class="sheet"
         onClick={(e) => e.stopPropagation()}
@@ -205,6 +260,43 @@ export function EntryForm({
             <input value={unit} onInput={(e) => setUnit(e.currentTarget.value)} />
           </label>
         </div>
+        <div class="field">
+          <span class="lbl">
+            Ảnh ({photoIds.length}/{MAX_PHOTOS_PER_ENTRY})
+          </span>
+          <div class="thumbs">
+            {photoIds.map((id) => (
+              <span class="wrap">
+                <Thumb id={id} size={64} />
+                <button
+                  type="button"
+                  class="rm"
+                  aria-label="Bỏ ảnh"
+                  onClick={() => removePhoto(id)}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+            {photoIds.length < MAX_PHOTOS_PER_ENTRY && (
+              <label class="btn addphoto">
+                {busy ? 'Đang xử lý…' : '📷 Thêm ảnh'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  disabled={busy}
+                  onChange={(e) => {
+                    const f = e.currentTarget.files?.[0]
+                    e.currentTarget.value = ''
+                    if (f) void addPhoto(f)
+                  }}
+                />
+              </label>
+            )}
+          </div>
+          {notice && <p class="muted">{notice}</p>}
+        </div>
         <PayloadFields type={type} payload={payload} set={setField} />
         <label>
           Ghi chú
@@ -221,7 +313,7 @@ export function EntryForm({
           </button>
         )}
         <div class="row">
-          <button type="button" class="btn" onClick={onClose}>
+          <button type="button" class="btn" onClick={close}>
             Huỷ
           </button>
           <button type="submit" class="btn btn-primary">

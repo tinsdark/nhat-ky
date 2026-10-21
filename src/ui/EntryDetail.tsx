@@ -1,5 +1,7 @@
+import { useState } from 'preact/hooks'
 import { toHHmm } from '../core/date'
 import type { Category, Entry } from '../core/types'
+import { PhotoViewer, Thumb } from './PhotoViews'
 
 export function EntryDetail({
   entry,
@@ -21,6 +23,7 @@ export function EntryDetail({
   onCopyToToday: () => void
   onClose: () => void
 }) {
+  const [viewing, setViewing] = useState<string | null>(null)
   const category = categories.find((c) => c.id === entry.categoryId)?.name
   return (
     <div class="sheet-backdrop" onClick={onClose}>
@@ -33,6 +36,14 @@ export function EntryDetail({
           {entry.value != null ? ` · ${entry.value} ${entry.unit}` : ''}
         </p>
         {entry.note && <p>{entry.note}</p>}
+        {entry.photoIds.length > 0 && (
+          <div class="thumbs">
+            {entry.photoIds.map((id) => (
+              <Thumb id={id} size={96} onClick={() => setViewing(id)} />
+            ))}
+          </div>
+        )}
+        {viewing && <PhotoViewer id={viewing} onClose={() => setViewing(null)} />}
         <div class="stack">
           <button type="button" class="btn btn-primary" onClick={onEdit}>
             Sửa

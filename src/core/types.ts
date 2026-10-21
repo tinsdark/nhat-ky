@@ -119,6 +119,8 @@ export interface Settings {
   reviewTime: string
   /** Habit streaks and rates skip days typed sick or travel. */
   skipRestDays: boolean
+  /** Upload photos only on Wi-Fi (when the browser can tell). */
+  photosWifiOnly: boolean
   theme: 'light' | 'dark' | 'system'
 }
 
@@ -139,8 +141,9 @@ export interface Insight {
 
 export interface PhotoRecord {
   id: string
-  blob: Blob
-  thumb: Blob
+  /** Full-size file; null once evicted from the local cache (it is still on Drive). */
+  blob: Blob | null
+  thumb: Blob | null
   createdAt: string
   /** 1 once both files are on Drive. */
   uploaded: 0 | 1

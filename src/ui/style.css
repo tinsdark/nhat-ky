@@ -629,3 +629,69 @@ h1 {
   border: 1px dashed var(--border);
   color: var(--muted);
 }
+
+.thumb {
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--surface);
+}
+.thumb.ph {
+  display: inline-block;
+}
+.thumb-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  line-height: 0;
+}
+.thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.thumbs .rm {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--danger);
+  color: var(--bg);
+  line-height: 1;
+}
+.thumbs .wrap {
+  position: relative;
+}
+.viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 0.9);
+}
+.viewer img {
+  max-width: 100%;
+  max-height: 100%;
+}
+.block .strip {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.addphoto {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.sheet .addphoto {
+  flex: none;
+  flex-direction: row;
+  color: var(--fg);
+  font-size: 0.9rem;
+}
