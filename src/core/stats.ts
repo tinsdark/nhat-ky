@@ -75,7 +75,9 @@ export function formatMetric(id: string, unit: string, value: number | null): st
   }
   if (unit === '0–1') return `${Math.round(value * 100)}%`
   if (unit === '0/1') return value >= 0.5 ? 'Có' : 'Không'
-  const text = Number.isInteger(value) ? String(value) : value.toFixed(1).replace('.', ',')
+  const whole = unit === 'ml' || unit === 'phút'
+  const shown = whole ? Math.round(value) : value
+  const text = Number.isInteger(shown) ? String(shown) : shown.toFixed(1).replace('.', ',')
   const short = unit.startsWith('giờ') ? 'giờ' : unit.startsWith('1–') ? '' : unit
   return short ? `${text} ${short}` : text
 }

@@ -1,4 +1,4 @@
-import { findCorrelations, lookback } from '../core/correlation'
+import { findCorrelations, lookback, weekdayFindings } from '../core/correlation'
 import { addDays, toDateKey, toIso } from '../core/date'
 import {
   applyFeedback,
@@ -9,6 +9,7 @@ import {
   markShown,
   mergeInsights,
   ruleCandidates,
+  weekdayCandidates,
   type Feedback,
 } from '../core/insights'
 import { allMetrics, createMetricContext } from '../core/metrics'
@@ -69,11 +70,20 @@ export async function refreshInsights(force = false): Promise<InsightStore> {
     lastShown: lastShownBefore(store, today),
   })
   const found = findCorrelations(ctx, metrics, { from, to })
+  const byWeekday = weekdayFindings(
+    ctx,
+    metrics.filter((m) => ['day_score', 'mood', 'energy'].includes(m.id)),
+    { from, to },
+  )
 
   const now = toIso()
   let next = mergeInsights(
     store,
-    [...ruleCandidates(fired), ...correlationCandidates(found, metrics)],
+    [
+      ...ruleCandidates(fired),
+      ...correlationCandidates(found, metrics),
+      ...weekdayCandidates(byWeekday, metrics),
+    ],
     today,
     now,
   )

@@ -6,6 +6,7 @@ import { byWeekday, formatMetric, movingAverage, weekCompare } from '../../core/
 import { AdviceCards } from '../AdviceCards'
 import { AskClaude } from '../AskClaude'
 import { Experiments } from '../Experiments'
+import { Correlations } from './Correlations'
 import { MonthCalendar, TrendChart, WeekdayBars } from '../charts'
 import type { StatsData } from './shared'
 
@@ -89,6 +90,9 @@ export function Overview({ data }: { data: StatsData }) {
       />
 
       <Experiments ctx={ctx} metrics={metrics} today={today} />
+
+      <h2 class="sub">Cái gì đi kèm ngày tốt / ngày tệ</h2>
+      <Correlations data={data} />
 
       <h2 class="sub">Xu hướng 90 ngày</h2>
       <div class="row">

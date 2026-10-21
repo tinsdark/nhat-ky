@@ -6,17 +6,19 @@ import { Choice } from '../Choice'
 import { Food } from '../stats/Food'
 import { Health } from '../stats/Health'
 import { Overview } from '../stats/Overview'
+import { Report } from '../stats/Report'
 import { Time } from '../stats/Time'
 import { HISTORY_DAYS, type StatsData } from '../stats/shared'
 import { useLive } from '../useLive'
 
-type Tab = 'overview' | 'food' | 'time' | 'health'
+type Tab = 'overview' | 'food' | 'time' | 'health' | 'report'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'Tổng quan' },
   { id: 'food', label: 'Ăn uống' },
   { id: 'time', label: 'Thời gian' },
   { id: 'health', label: 'Sức khoẻ' },
+  { id: 'report', label: 'Báo cáo' },
 ]
 
 export function Stats() {
@@ -38,11 +40,18 @@ export function Stats() {
   return (
     <section class="screen">
       <h1>Thống kê</h1>
-      <Choice label="" options={TABS} value={tab} onChange={(v) => v && setTab(v)} />
+      <Choice
+        label=""
+        className="noprint"
+        options={TABS}
+        value={tab}
+        onChange={(v) => v && setTab(v)}
+      />
       {tab === 'overview' && <Overview data={data} />}
       {tab === 'food' && <Food data={data} />}
       {tab === 'time' && <Time data={data} />}
       {tab === 'health' && <Health data={data} />}
+      {tab === 'report' && <Report data={data} />}
     </section>
   )
 }

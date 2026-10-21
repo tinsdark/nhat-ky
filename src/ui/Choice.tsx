@@ -3,14 +3,16 @@ export function Choice<T extends string | number>({
   options,
   value,
   onChange,
+  className = '',
 }: {
   label: string
+  className?: string
   options: { id: T; label: string }[]
   value: unknown
   onChange: (v: T | undefined) => void
 }) {
   return (
-    <div class="field">
+    <div class={`field ${className}`}>
       <span class="lbl">{label}</span>
       <div class="choice">
         {options.map((o) => (

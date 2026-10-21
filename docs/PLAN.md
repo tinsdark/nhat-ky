@@ -105,7 +105,7 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
 - [x] **T4.7 Màn Ăn uống** (Module 3.3).
 - [x] **T4.8 Màn Thời gian** (Module 4.3).
 - [x] **T4.9 Màn Sức khoẻ + đường năng lượng** (Module 5.4, 5.5).
-- [ ] **T4.10 Tương quan trên Dashboard, theo thứ trong tuần, Báo cáo tuần** (Module 7.1, 7.3, 8.1).
+- [x] **T4.10 Tương quan trên Dashboard, theo thứ trong tuần, Báo cáo tuần** (Module 7.1, 7.3, 8.1).
 - [ ] **T4.11 Nhập CSV, xuất kèm ảnh (zip), dọn ảnh lớn sau 12 tháng** (Module 9.3, 10.3, 10.4).
 - [ ] **T4.12 Khoá app bằng passkey/Face ID** (Module 9.4, tuỳ chọn).
 - [ ] **T4.13 Cập nhật SPEC và HANDOFF** theo các thay đổi trên.

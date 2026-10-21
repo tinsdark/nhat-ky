@@ -982,3 +982,47 @@ table.grid th {
 .checkin-row .choice button {
   min-width: 44px;
 }
+
+ul.plain {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+table.grid.left th,
+table.grid.left td {
+  text-align: left;
+  padding: 6px;
+}
+.print-title {
+  display: none;
+}
+
+@media print {
+  .topbar,
+  .tabbar,
+  .noprint,
+  .toast {
+    display: none !important;
+  }
+  .print-title {
+    display: block;
+    color: #000;
+    font-size: 1.2rem;
+  }
+  :root,
+  body {
+    --bg: #fff;
+    --fg: #000;
+    --muted: #444;
+    --surface: #fff;
+    --border: #999;
+    background: #fff;
+    color: #000;
+  }
+  .content {
+    padding: 0;
+  }
+}
