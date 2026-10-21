@@ -2,13 +2,33 @@
   color-scheme: light dark;
   --bg: #ffffff;
   --fg: #1c1c1e;
+  --muted: #6c6c70;
+  --surface: #f2f2f7;
+  --border: #d8d8de;
+  --accent: #3b4a9e;
+  --on-accent: #ffffff;
+  --danger: #c62828;
+  --ok: #2e7d32;
+  --warn: #ef6c00;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #121214;
     --fg: #f2f2f7;
+    --muted: #9a9aa0;
+    --surface: #1c1c20;
+    --border: #2e2e34;
+    --accent: #7c8cf0;
+    --on-accent: #10132b;
+    --danger: #ef6b6b;
+    --ok: #66bb6a;
+    --warn: #ffa726;
   }
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
@@ -16,4 +36,144 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+}
+
+h1 {
+  font-size: 1.4rem;
+  margin: 0 0 8px;
+}
+
+.muted {
+  color: var(--muted);
+}
+.error {
+  color: var(--danger);
+}
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(8px + env(safe-area-inset-top)) 16px 8px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.content {
+  flex: 1;
+  padding: 16px 16px calc(72px + env(safe-area-inset-bottom));
+}
+.screen,
+.login {
+  max-width: 480px;
+  margin: 0 auto;
+}
+.login {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px;
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.btn {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  font-weight: 500;
+}
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.btn-danger {
+  color: var(--danger);
+}
+.btn:disabled {
+  opacity: 0.6;
+}
+
+.sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 8px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.85rem;
+}
+.sync .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+.sync-synced .dot {
+  background: var(--ok);
+}
+.sync-syncing .dot {
+  background: var(--accent);
+}
+.sync-offline .dot,
+.sync-authRequired .dot {
+  background: var(--warn);
+}
+.sync-error .dot {
+  background: var(--danger);
+}
+.sync-authRequired {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+.tabbar a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  gap: 2px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-decoration: none;
+}
+.tabbar a.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+.tabbar .ico {
+  font-size: 1.2rem;
+  line-height: 1;
 }

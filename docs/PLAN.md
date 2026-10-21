@@ -46,7 +46,7 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
 
 ## P1 — Ghi chép (23–26/10) — SPEC Module 1, 2, 3, 4, 5
 
-- [ ] **T1.1 Khung app.** Thanh tab dưới: Hôm nay · Thói quen · Thống kê · Cài đặt. Chỉ báo sync ở header. Màn đăng nhập lần đầu.
+- [x] **T1.1 Khung app.** Thanh tab dưới: Hôm nay · Thói quen · Thống kê · Cài đặt. Chỉ báo sync ở header. Màn đăng nhập lần đầu.
 - [ ] **T1.2 Dữ liệu mặc định.** Seed lần đầu: danh mục (Module 4.1 + loại ăn uống), 8 nút nhanh (Module 1.1 + "Ra ngoài trời"), 6 thói quen mẫu (bật 3, Module 2.4), settings mặc định (`dayStartHour` 4, giờ làm 8:00–17:30 T2–T6, mục tiêu ngủ 7,5h, nước 2000ml, vận động 150 phút/tuần).
 - [ ] **T1.3 Màn Hôm nay** (Module 1.1, 1.2). Đổi ngày ◀ ▶, thanh "đã ghi x/y mục cốt lõi", lưới nút nhanh (chạm = tạo Entry + toast 5s có Sửa/Hoàn tác; giữ = mở form điền sẵn), timeline dọc theo giờ, khoảng trống > 2h hiện vạch "chưa ghi" chạm để điền, nút + nổi.
     - Xong khi: ghi "Ăn trưa" ≤ 2 chạm; Entry 23:00–01:00 hiện đúng trên timeline ngày logic.
