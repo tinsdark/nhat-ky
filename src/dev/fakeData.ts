@@ -89,7 +89,7 @@ export function generateFakeData(opts: { endKey: string; days: number; seed?: nu
     const early = r.chance(0.5)
     const bedMin = early ? r.int(22 * 60 + 30, 23 * 60 + 25) : r.int(23 * 60 + 35, 24 * 60 + 59)
     const lateCoffee = r.chance(0.4)
-    const quality = clamp(r.pick([2, 3, 4]) - (lateCoffee ? 1 : 0), 1, 5)
+    const quality = clamp(r.pick([3, 4]) - (lateCoffee ? 1 : 0), 1, 5)
     const bedIso = at(d, bedMin % 1440)
     const wakeIso = toIso(Date.parse(bedIso) + (7 * 60 + r.int(-20, 20)) * 60_000)
     add(d, 'sleep', bedIso, wakeIso, {
@@ -182,7 +182,7 @@ export function generateFakeData(opts: { endKey: string; days: number; seed?: nu
     dayRows.push({
       dateKey: d,
       mood: r.int(1, 5) as Day['mood'],
-      energy: clamp(r.pick([2, 3, 4]) + (energyBoost.get(d) ?? 0), 1, 5) as Day['energy'],
+      energy: clamp(r.pick([3, 4]) + (energyBoost.get(d) ?? 0), 1, 5) as Day['energy'],
       stress: r.int(1, 5) as Day['stress'],
       focus: r.int(1, 5) as Day['focus'],
       dayScore: r.int(3, 9),
