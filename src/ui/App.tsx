@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'preact/hooks'
 import { hasSession } from '../auth'
+import { appLock, shouldRelock } from '../lock'
+import { LockScreen } from './LockScreen'
 import { getSettings } from '../data/repository'
 import { useLive } from './useLive'
 import { Login } from './screens/Login'
@@ -38,12 +40,27 @@ export function App() {
     if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme
     else delete document.documentElement.dataset.theme
   }, [settings?.theme])
+  const [locked, setLocked] = useState(() => appLock.isEnabled())
+  useEffect(() => {
+    let hiddenAt: number | null = null
+    const onVis = () => {
+      if (document.visibilityState === 'hidden') hiddenAt = Date.now()
+      else {
+        if (appLock.isEnabled() && shouldRelock(hiddenAt, Date.now())) setLocked(true)
+        hiddenAt = null
+      }
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [])
   const [gate, setGate] = useState(() => !hasSession() && !readSkip())
   useEffect(() => {
     const onHash = () => setTab(parseHash(location.hash))
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
+
+  if (locked) return <LockScreen onUnlocked={() => setLocked(false)} />
 
   if (gate) {
     return (

@@ -5,6 +5,7 @@ import { RULES, resolveThresholds } from '../../core/rules'
 import type { Settings as SettingsData } from '../../core/types'
 import { changeDayStartHour, getSettings, saveSettings } from '../../data/repository'
 import { engine } from '../../sync'
+import { appLock } from '../../lock'
 import { BackupSection } from '../BackupSection'
 import { Choice } from '../Choice'
 import { ManageDefs } from '../ManageDefs'
@@ -45,6 +46,8 @@ function NumberField({
 export function Settings({ onSignedOut }: { onSignedOut: () => void }) {
   const settings = useLive(getSettings, [])
   const [managing, setManaging] = useState(false)
+  const [lockOn, setLockOn] = useState(() => appLock.isEnabled())
+  const [lockMsg, setLockMsg] = useState('')
   const logout = async () => {
     await signOut()
     engine.markAuthRequired()
@@ -219,6 +222,42 @@ export function Settings({ onSignedOut }: { onSignedOut: () => void }) {
           Mặc định ngày kết thúc lúc 04:00 sáng hôm sau, nên ngủ lúc 00:40 vẫn tính vào đêm hôm
           trước.
         </p>
+      </div>
+
+      <h2 class="sub">Khoá app</h2>
+      <div class="form">
+        <Choice
+          label="Khoá bằng Face ID / vân tay / mã máy (chỉ trên máy này)"
+          options={[
+            { id: 'off', label: 'Tắt' },
+            { id: 'on', label: 'Bật' },
+          ]}
+          value={lockOn ? 'on' : 'off'}
+          onChange={async (v) => {
+            if (v === 'on' && !lockOn) {
+              const ok = await appLock.enable()
+              setLockOn(ok)
+              setLockMsg(
+                ok
+                  ? 'Đã bật khoá. App tự khoá lại sau 2 phút không dùng.'
+                  : 'Không bật được: máy không hỗ trợ hoặc đã huỷ.',
+              )
+            }
+            if (v === 'off' && lockOn) {
+              if (await appLock.unlock()) {
+                appLock.disable()
+                setLockOn(false)
+                setLockMsg('Đã tắt khoá.')
+              }
+            }
+          }}
+        />
+        <p class="muted hint">
+          Khoá chỉ chặn người cầm máy mở app, không mã hoá dữ liệu. Không có máy chủ nên không có
+          "quên mã": nếu mất quyền truy cập, xoá dữ liệu trang của app trong trình duyệt rồi đăng
+          nhập lại để sync từ Drive về.
+        </p>
+        {lockMsg && <p class="muted">{lockMsg}</p>}
       </div>
 
       <h2 class="sub">Luật cảnh báo</h2>
