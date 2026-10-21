@@ -9,5 +9,6 @@ export const DEFAULT_SETTINGS: Settings = {
   waterTargetMl: 2000,
   exerciseTargetMinPerWeek: 150,
   reviewTime: '21:30',
+  skipRestDays: false,
   theme: 'system',
 }

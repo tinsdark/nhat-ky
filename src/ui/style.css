@@ -463,3 +463,103 @@ h1 {
   background: var(--accent);
   color: var(--on-accent);
 }
+
+.sub {
+  margin: 20px 0 8px;
+  font-size: 0.9rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+.habits {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.habit {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.habit-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.habit-name {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 44px;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+}
+.habit-name .muted {
+  font-size: 0.8rem;
+}
+.tick {
+  min-width: 56px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  font-weight: 600;
+}
+.tick.on {
+  border-color: var(--ok);
+  background: var(--ok);
+  color: var(--bg);
+}
+.auto {
+  font-size: 0.8rem;
+}
+.block-btn {
+  width: 100%;
+  margin-top: 16px;
+}
+.habit-detail {
+  padding-top: 8px;
+}
+.heat {
+  display: flex;
+  gap: 3px;
+  margin: 8px 0 12px;
+}
+.heat-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.cell {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+.cell.met {
+  background: var(--ok);
+  border-color: var(--ok);
+}
+.cell.partial {
+  background: color-mix(in srgb, var(--ok) 40%, var(--bg));
+}
+.cell.off,
+.cell.rest {
+  background: repeating-linear-gradient(45deg, var(--border) 0 2px, transparent 2px 5px);
+}
+.cell.future {
+  opacity: 0.3;
+}

@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'preact/hooks'
 import type { DayType, Rating } from '../core/types'
-import { getDay, saveDay } from '../data/repository'
+import { isMet, isScheduled, valuesByDate } from '../core/habits'
+import { tickHabit } from '../data/habits'
+import { getDay, getDefs, getEntriesByDateKey, getSettings, saveDay } from '../data/repository'
+import { useLive } from './useLive'
 import { Choice, scale } from './Choice'
 
 const DAY_TYPES: { id: DayType; label: string }[] = [
@@ -32,6 +35,16 @@ export function ReviewSheet({ dateKey, onClose }: { dateKey: string; onClose: ()
       setDayType(d.dayType)
     })
   }, [dateKey])
+
+  const settings = useLive(getSettings, [])
+  const defs = useLive(getDefs, [])
+  const entries = useLive(() => getEntriesByDateKey(dateKey), [dateKey])
+  // Habits due that day and not yet met; linked ones fill themselves from other entries.
+  const pending = (defs?.habits ?? []).filter((h) => {
+    if (h.archived || h.linkedRule || h.direction === 'quit' || !isScheduled(h, dateKey))
+      return false
+    return !isMet(h, valuesByDate(h, entries ?? []).get(dateKey) ?? 0)
+  })
 
   const save = async () => {
     await saveDay(dateKey, {
@@ -82,6 +95,20 @@ export function ReviewSheet({ dateKey, onClose }: { dateKey: string; onClose: ()
           value={dayType}
           onChange={(v) => setDayType(v ?? null)}
         />
+        {pending.length > 0 && (
+          <fieldset class="group">
+            <legend>Thói quen chưa tick</legend>
+            {pending.map((h) => (
+              <button
+                type="button"
+                class="btn"
+                onClick={() => void tickHabit(h, dateKey, settings?.dayStartHour ?? 4)}
+              >
+                ✓ {h.name}
+              </button>
+            ))}
+          </fieldset>
+        )}
         <div class="row">
           <button type="button" class="btn" onClick={onClose}>
             Để sau

@@ -117,6 +117,8 @@ export interface Settings {
   exerciseTargetMinPerWeek: number
   /** HH:mm after which the in-app "rate the day" banner appears. */
   reviewTime: string
+  /** Habit streaks and rates skip days typed sick or travel. */
+  skipRestDays: boolean
   theme: 'light' | 'dark' | 'system'
 }
 

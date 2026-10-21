@@ -2,6 +2,7 @@ import { useEffect, useState } from 'preact/hooks'
 import { hasSession } from '../auth'
 import { Login } from './screens/Login'
 import { Placeholder } from './screens/Placeholder'
+import { Habits } from './screens/Habits'
 import { Settings } from './screens/Settings'
 import { Today } from './screens/Today'
 import { SyncIndicator } from './SyncIndicator'
@@ -58,7 +59,7 @@ export function App() {
       </header>
       <main class="content">
         {tab === 'today' && <Today />}
-        {tab === 'habits' && <Placeholder title="Thói quen" note="Làm ở T1.8." />}
+        {tab === 'habits' && <Habits />}
         {tab === 'stats' && <Placeholder title="Thống kê" note="Làm ở T2.2." />}
         {tab === 'settings' && (
           <Settings
