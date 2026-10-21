@@ -287,6 +287,7 @@ export function Today() {
         <EntryDetail
           entry={detail}
           categories={categories}
+          tags={defs.tags}
           canCopyToToday={!isToday}
           onClose={() => setDetail(null)}
           onEdit={() => {
@@ -319,6 +320,7 @@ export function Today() {
         <EntryForm
           draft={form}
           categories={categories}
+          tags={defs.tags}
           dayStartHour={dayStartHour}
           onClose={() => setForm(null)}
           onSaved={showSaved}

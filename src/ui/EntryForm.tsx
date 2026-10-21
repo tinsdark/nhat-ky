@@ -11,8 +11,9 @@ import {
   shiftHHmm,
   suggestTitles,
 } from '../core/entryForm'
-import type { Category, Entry, EntryType } from '../core/types'
-import { createEntry, getEntriesInRange, updateEntry } from '../data/repository'
+import { newId } from '../core/defs'
+import type { Category, Entry, EntryType, Tag } from '../core/types'
+import { createEntry, getDefs, getEntriesInRange, saveDefs, updateEntry } from '../data/repository'
 import { PhotoError, photos, pokePhotoQueue, processPhoto } from '../photos'
 import { PayloadFields, type Payload } from './PayloadFields'
 import { Thumb } from './PhotoViews'
@@ -31,6 +32,7 @@ export interface FormDraft {
   start: string
   end: string | null
   payload?: Payload
+  tags?: string[]
   photoIds?: string[]
   source?: Entry['source']
 }
@@ -58,6 +60,7 @@ export function draftFromEntry(e: Entry): FormDraft {
     start: e.start,
     end: e.end,
     payload: e.payload,
+    tags: e.tags,
     photoIds: e.photoIds,
   }
 }
@@ -65,12 +68,14 @@ export function draftFromEntry(e: Entry): FormDraft {
 export function EntryForm({
   draft,
   categories,
+  tags,
   dayStartHour,
   onClose,
   onSaved,
 }: {
   draft: FormDraft
   categories: Category[]
+  tags: Tag[]
   dayStartHour: number
   onClose: () => void
   onSaved: (entry: Entry, isNew: boolean) => void
@@ -84,6 +89,8 @@ export function EntryForm({
   const [unit, setUnit] = useState(draft.unit)
   const [note, setNote] = useState(draft.note)
   const [payload, setPayload] = useState<Payload>(draft.payload ?? {})
+  const [tagIds, setTagIds] = useState<string[]>(draft.tags ?? [])
+  const [newTag, setNewTag] = useState('')
   const [photoIds, setPhotoIds] = useState<string[]>(draft.photoIds ?? [])
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState('')
@@ -165,6 +172,7 @@ export function EntryForm({
       start: startIso,
       end: endIso,
       photoIds,
+      tags: tagIds,
       payload:
         type === 'meal' && !payload.mealSlot
           ? { ...payload, mealSlot: autoMealSlot(categoryId, start) }
@@ -327,6 +335,44 @@ export function EntryForm({
             )}
           </div>
           {notice && <p class="muted">{notice}</p>}
+        </div>
+        <div class="field">
+          <span class="lbl">Tag</span>
+          <div class="choice">
+            {tags.map((t) => (
+              <button
+                type="button"
+                class={tagIds.includes(t.id) ? 'on' : ''}
+                onClick={() =>
+                  setTagIds((ids) =>
+                    ids.includes(t.id) ? ids.filter((x) => x !== t.id) : [...ids, t.id],
+                  )
+                }
+              >
+                {t.name}
+              </button>
+            ))}
+            <input
+              class="newtag"
+              placeholder="+ tag mới"
+              value={newTag}
+              onInput={(e) => setNewTag(e.currentTarget.value)}
+              onKeyDown={async (e) => {
+                if (e.key !== 'Enter') return
+                e.preventDefault()
+                const name = newTag.trim()
+                if (!name) return
+                const existing = tags.find((t) => t.name.toLowerCase() === name.toLowerCase())
+                const tag = existing ?? { id: newId('tag'), name, color: '#6c6c70' }
+                if (!existing) {
+                  const defs = await getDefs()
+                  await saveDefs({ ...defs, tags: [...defs.tags, tag] })
+                }
+                setTagIds((ids) => (ids.includes(tag.id) ? ids : [...ids, tag.id]))
+                setNewTag('')
+              }}
+            />
+          </div>
         </div>
         <PayloadFields type={type} payload={payload} set={setField} />
         <label>

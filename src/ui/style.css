@@ -799,3 +799,51 @@ details.card summary {
   color: var(--muted);
   font-size: 0.65rem;
 }
+
+.fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  overflow-y: auto;
+  background: var(--bg);
+}
+.fullscreen .topbar {
+  position: sticky;
+}
+.fullscreen .content {
+  max-width: 480px;
+  margin: 0 auto;
+}
+.mini {
+  display: flex;
+  gap: 4px;
+}
+.mini button {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+.habit.archived {
+  opacity: 0.55;
+}
+.newtag {
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  background: none;
+  color: var(--fg);
+  font: inherit;
+  width: 110px;
+}

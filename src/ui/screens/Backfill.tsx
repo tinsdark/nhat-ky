@@ -197,6 +197,7 @@ export function Backfill() {
         <EntryDetail
           entry={detail}
           categories={defs.categories}
+          tags={defs.tags}
           canCopyToToday={!isToday}
           onClose={() => setDetail(null)}
           onEdit={() => {
@@ -231,6 +232,7 @@ export function Backfill() {
         <EntryForm
           draft={form}
           categories={defs.categories}
+          tags={defs.tags}
           dayStartHour={dayStartHour}
           onClose={() => setForm(null)}
           onSaved={showSaved}

@@ -1,11 +1,13 @@
 import { useState } from 'preact/hooks'
 import { toHHmm } from '../core/date'
-import type { Category, Entry } from '../core/types'
+import { tagName } from '../core/defs'
+import type { Category, Entry, Tag } from '../core/types'
 import { PhotoViewer, Thumb } from './PhotoViews'
 
 export function EntryDetail({
   entry,
   categories,
+  tags,
   canCopyToToday,
   onEdit,
   onDuplicate,
@@ -15,6 +17,7 @@ export function EntryDetail({
 }: {
   entry: Entry
   categories: Category[]
+  tags: Tag[]
   /** Shown when browsing a day other than today. */
   canCopyToToday: boolean
   onEdit: () => void
@@ -35,6 +38,16 @@ export function EntryDetail({
           {category ? ` · ${category}` : ''}
           {entry.value != null ? ` · ${entry.value} ${entry.unit}` : ''}
         </p>
+        {entry.tags.length > 0 && (
+          <div class="chips">
+            {entry.tags
+              .map((id) => tagName(tags, id))
+              .filter(Boolean)
+              .map((n) => (
+                <span class="chip">{n}</span>
+              ))}
+          </div>
+        )}
         {entry.note && <p>{entry.note}</p>}
         {entry.photoIds.length > 0 && (
           <div class="thumbs">

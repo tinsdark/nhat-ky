@@ -1,3 +1,4 @@
+import { useState } from 'preact/hooks'
 import { lazy, Suspense } from 'preact/compat'
 import { signOut } from '../../auth'
 import { RULES, resolveThresholds } from '../../core/rules'
@@ -6,6 +7,7 @@ import { getSettings, saveSettings } from '../../data/repository'
 import { engine } from '../../sync'
 import { BackupSection } from '../BackupSection'
 import { Choice } from '../Choice'
+import { ManageDefs } from '../ManageDefs'
 import { useLive } from '../useLive'
 
 const DevPanel = import.meta.env.DEV ? lazy(() => import('../DevPanel')) : null
@@ -42,6 +44,7 @@ function NumberField({
 
 export function Settings({ onSignedOut }: { onSignedOut: () => void }) {
   const settings = useLive(getSettings, [])
+  const [managing, setManaging] = useState(false)
   const logout = async () => {
     await signOut()
     engine.markAuthRequired()
@@ -99,6 +102,14 @@ export function Settings({ onSignedOut }: { onSignedOut: () => void }) {
           </div>
         </div>
       </div>
+
+      <h2 class="sub">Danh mục, nút nhanh, tag</h2>
+      <div class="form">
+        <button type="button" class="btn" onClick={() => setManaging(true)}>
+          Sửa danh mục, nút nhanh và tag
+        </button>
+      </div>
+      {managing && <ManageDefs onClose={() => setManaging(false)} />}
 
       <h2 class="sub">Mục tiêu</h2>
       <div class="form">
