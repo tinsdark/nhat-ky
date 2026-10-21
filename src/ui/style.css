@@ -749,3 +749,13 @@ h1 {
   font: inherit;
   font-size: 0.8rem;
 }
+
+.filebtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.settings select {
+  min-height: 44px;
+}

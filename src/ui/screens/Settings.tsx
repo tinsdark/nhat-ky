@@ -4,6 +4,7 @@ import { RULES, resolveThresholds } from '../../core/rules'
 import type { Settings as SettingsData } from '../../core/types'
 import { getSettings, saveSettings } from '../../data/repository'
 import { engine } from '../../sync'
+import { BackupSection } from '../BackupSection'
 import { Choice } from '../Choice'
 import { useLive } from '../useLive'
 
@@ -192,6 +193,8 @@ export function Settings({ onSignedOut }: { onSignedOut: () => void }) {
           )
         })}
       </div>
+
+      <BackupSection dayStartHour={settings.dayStartHour} />
 
       {DevPanel && (
         <Suspense fallback={null}>

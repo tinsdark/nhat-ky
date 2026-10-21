@@ -77,7 +77,7 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
     - Xong khi: trên dữ liệu T3.1 tìm ra đúng 2 quy luật cài sẵn và báo ≤ 2 quy luật giả.
 - [x] **T3.3 Lời khuyên** (Module 8.4). Insight → mẫu câu có số + hành động. Xếp hạng, tối đa 3/ngày, nút Thử / Hữu ích / Không đúng / Ẩn 2 tuần. Lưu `nk_insights.json`. Hiện trên Dashboard.
 - [x] **T3.4 Thí nghiệm** (Module 8.5). Tạo từ lời khuyên, thói quen tạm 14 ngày, so sánh trước/sau khi hết hạn.
-- [ ] **T3.5 Backup & xuất** (Module 9.3). Snapshot `nk_backup_YYYY-MM-DD.json` mỗi Chủ nhật, giữ 8 bản. Xuất JSON đầy đủ + CSV theo loại. Nhập từ JSON.
+- [x] **T3.5 Backup & xuất** (Module 9.3). Snapshot `nk_backup_YYYY-MM-DD.json` mỗi Chủ nhật, giữ 8 bản. Xuất JSON đầy đủ + CSV theo loại. Nhập từ JSON.
 - [ ] **T3.6 Nút "Hỏi Claude"** (Module 8.6, cách A). Dựng prompt từ bảng chỉ số 7/30 ngày + insight, không có ghi chú tự do và ảnh. Copy vào clipboard + mở app Claude. Ô dán ngược kết quả để lưu.
 - [ ] **T3.7 Nghiệm thu.** Chạy hết checklist dưới đây trên điện thoại thật, sửa lỗi, xoá dữ liệu giả, deploy bản 1/11.
 
