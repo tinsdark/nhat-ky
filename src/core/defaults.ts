@@ -74,7 +74,7 @@ function habit(
   kind: Habit['kind'],
   target: Habit['target'],
   startDate: string,
-  extra: Partial<Pick<Habit, 'linkedRule' | 'archived'>> = {},
+  extra: Partial<Pick<Habit, 'linkedRule' | 'archived' | 'metricRule'>> = {},
 ): Habit {
   return {
     id,
@@ -105,8 +105,12 @@ export function defaultHabits(startDate: string): Habit[] {
       archived: false,
       linkedRule: { entryType: 'exercise' },
     }),
-    habit('habit-wake7', 'Dậy trước 7h', 'check', { op: '>=', value: 1 }, startDate),
-    habit('habit-sleep2330', 'Ngủ trước 23h30', 'check', { op: '>=', value: 1 }, startDate),
+    habit('habit-wake7', 'Dậy trước 7h', 'check', { op: '>=', value: 1 }, startDate, {
+      metricRule: { metricId: 'wake_time', op: '<=', value: 7, previousNight: true },
+    }),
+    habit('habit-sleep2330', 'Ngủ trước 23h30', 'check', { op: '>=', value: 1 }, startDate, {
+      metricRule: { metricId: 'bedtime', op: '<=', value: 23.5 },
+    }),
     habit(
       'habit-nopreview',
       'Không màn hình 30 phút trước ngủ',

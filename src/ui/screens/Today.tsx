@@ -19,6 +19,8 @@ import { estimatedNote, SleepPrompt } from '../SleepPrompt'
 import { goToSleep, wakeUp } from '../../data/sleep'
 import { ReviewSheet } from '../ReviewSheet'
 import { reviewPrompt } from '../../core/review'
+import { dueReminders } from '../../core/reminders'
+import { tickHabit } from '../../data/habits'
 import { DurationPicker } from '../DurationPicker'
 import { addMinutes } from '../../core/entryForm'
 import { Toast, type ToastData } from '../Toast'
@@ -160,6 +162,15 @@ export function Today() {
     setReviewFor(r.dateKey)
   }
 
+  const reminders = isToday
+    ? dueReminders({
+        habits: defs.habits,
+        todayEntries: ownEntries ?? [],
+        todayKey,
+        now,
+        dayStartHour,
+      })
+    : []
   const progress = coreProgress(entries, day)
   const doneCount = progress.filter((p) => p.done).length
   const rows = buildTimeline(entries, isToday ? { now } : {})
@@ -206,6 +217,22 @@ export function Today() {
           </div>
         </div>
       )}
+      {reminders.map((h) => (
+        <div class="timerbar" key={h.id}>
+          <span>
+            Nhắc {h.reminderTime}: {h.name}
+          </span>
+          <button
+            type="button"
+            class="btn btn-primary"
+            onClick={() =>
+              void tickHabit(h, todayKey, dayStartHour, h.kind === 'duration' ? h.target.value : 1)
+            }
+          >
+            Xong
+          </button>
+        </div>
+      ))}
       {sleepPrompt && <SleepPrompt {...sleepPrompt} onClose={() => setSleepPrompt(null)} />}
 
       <div class="progress" aria-label={`Đã ghi ${doneCount}/${progress.length} mục cốt lõi`}>

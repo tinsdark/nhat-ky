@@ -1,4 +1,5 @@
-import { useState } from 'preact/hooks'
+import { useMemo, useState } from 'preact/hooks'
+import { createMetricContext } from '../../core/metrics'
 import { addDays, toDateKey } from '../../core/date'
 import {
   completionRate,
@@ -6,7 +7,6 @@ import {
   isMet,
   isScheduled,
   streaks,
-  valuesByDate,
   type HabitOptions,
 } from '../../core/habits'
 import type { Habit } from '../../core/types'
@@ -29,7 +29,14 @@ export function Habits() {
   const [editing, setEditing] = useState<Habit | 'new' | null>(null)
   const [open, setOpen] = useState<string | null>(null)
 
-  if (!settings || !defs || !entries || !days) return null
+  const ctx = useMemo(
+    () =>
+      settings && defs && entries && days
+        ? createMetricContext({ entries, days, habits: defs.habits, settings })
+        : null,
+    [settings, defs, entries, days],
+  )
+  if (!settings || !defs || !entries || !days || !ctx) return null
 
   const opts: HabitOptions = {
     skipRestDays: settings.skipRestDays,
@@ -41,12 +48,12 @@ export function Habits() {
   const offToday = active.filter((h) => !isScheduled(h, today))
 
   const row = (h: Habit) => {
-    const values = valuesByDate(h, entries)
+    const values = ctx.habitValues(h)
     const value = values.get(today) ?? 0
     const met = isMet(h, value) && (h.direction === 'quit' || value > 0)
     const st = streaks(h, values, today, opts)
     const unit = h.schedule.kind === 'timesPerWeek' ? 'tuần' : 'ngày'
-    const linked = h.linkedRule !== null
+    const linked = h.linkedRule !== null || !!h.metricRule
     return (
       <li class="habit">
         <div class="habit-main">

@@ -95,6 +95,12 @@ export interface Habit {
   reminderTime: string | null
   /** Auto-count from another entry type, e.g. water. */
   linkedRule: { entryType: EntryType; categoryId?: string } | null
+  /**
+   * Met automatically when a metric passes a test that day, e.g. wake_time ≤ 7. `previousNight` reads the
+   * metric of the day before: a night is filed under the day it starts, so "dậy trước 7h" on day D
+   * is about the night of D−1.
+   */
+  metricRule?: { metricId: string; op: '<=' | '>='; value: number; previousNight?: boolean } | null
   startDate: string
   archived: boolean
 }

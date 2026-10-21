@@ -285,7 +285,7 @@ export const RULES: Rule[] = [
         return []
       const hits: RuleHit[] = []
       for (const h of ctx.habits as Habit[]) {
-        if (h.archived || h.direction === 'quit' || !isScheduled(h, today)) continue
+        if (h.archived || h.metricRule || h.direction === 'quit' || !isScheduled(h, today)) continue
         const vals = ctx.habitValues(h)
         const value = vals.get(today) ?? 0
         if (isMet(h, value)) continue

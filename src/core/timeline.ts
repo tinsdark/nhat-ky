@@ -55,8 +55,15 @@ const MEAL_CATEGORY: Record<string, CoreItem['id']> = {
 /** The "x/y core items recorded" bar: sleep, three meals, work, and the end-of-day rating. */
 export function coreProgress(entries: Entry[], day: Day | undefined): CoreItem[] {
   const has = (pred: (e: Entry) => boolean) => entries.some(pred)
+  // A meal counts by its category, or by the slot the form filled in; drinks are not meals.
   const meal = (id: CoreItem['id']) =>
-    has((e) => e.type === 'meal' && MEAL_CATEGORY[e.categoryId] === id)
+    has(
+      (e) =>
+        e.type === 'meal' &&
+        !e.payload.drink &&
+        e.categoryId !== 'cat-drink' &&
+        (MEAL_CATEGORY[e.categoryId] === id || e.payload.mealSlot === id),
+    )
   return [
     { id: 'sleep', label: 'Ngủ', done: has((e) => e.type === 'sleep') },
     { id: 'breakfast', label: 'Sáng', done: meal('breakfast') },

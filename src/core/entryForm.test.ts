@@ -96,10 +96,13 @@ describe('autoMealSlot', () => {
   it('uses the category first', () => {
     expect(autoMealSlot('cat-lunch', '23:00')).toBe('lunch')
   })
-  it('falls back to late after 22:00 and before 04:00, else snack', () => {
+  it('otherwise follows the hour', () => {
+    expect(autoMealSlot('', '07:30')).toBe('breakfast')
+    expect(autoMealSlot('', '12:34')).toBe('lunch')
+    expect(autoMealSlot('', '16:00')).toBe('snack')
+    expect(autoMealSlot('', '19:00')).toBe('dinner')
     expect(autoMealSlot('cat-drink', '22:30')).toBe('late')
     expect(autoMealSlot('', '01:00')).toBe('late')
-    expect(autoMealSlot('', '15:00')).toBe('snack')
   })
 })
 

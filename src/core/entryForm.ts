@@ -54,12 +54,20 @@ const SLOT_BY_CATEGORY: Record<string, MealSlot> = {
   'cat-snack': 'snack',
 }
 
-/** Slot from the category; otherwise `late` after 22:00 or before 04:00, else a snack. */
+/**
+ * Slot from the category; otherwise from the hour: 04–10 sáng, 10–15 trưa, 15–17:30 phụ, 17:30–22 tối,
+ * and `late` from 22:00 to 04:00 (SPEC 3.2).
+ */
 export function autoMealSlot(categoryId: string, hhmm: string): MealSlot {
   const fromCategory = SLOT_BY_CATEGORY[categoryId]
   if (fromCategory) return fromCategory
-  const hour = Number(hhmm.slice(0, 2))
-  return hour >= 22 || hour < 4 ? 'late' : 'snack'
+  const [h, m] = hhmm.split(':').map(Number) as [number, number]
+  const minutes = h * 60 + m
+  if (minutes >= 22 * 60 || minutes < 4 * 60) return 'late'
+  if (minutes < 10 * 60) return 'breakfast'
+  if (minutes < 15 * 60) return 'lunch'
+  if (minutes < 17 * 60 + 30) return 'snack'
+  return 'dinner'
 }
 
 /** Fields for a copy of `entry` placed on `targetDateKey` at the same clock times. */
