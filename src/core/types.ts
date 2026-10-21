@@ -9,8 +9,11 @@ export interface SyncFields {
   dirty: 0 | 1
 }
 
-export type EntryType =
+export type BuiltinEntryType =
   'sleep' | 'meal' | 'work' | 'habit' | 'exercise' | 'activity' | 'water' | 'note'
+
+/** User-defined types (Defs.customTypes) use ids of the form `x-…`; they share the generic form and no built-in metric. */
+export type EntryType = BuiltinEntryType | `x-${string}`
 
 /** `quick` = tapped in real time on Hôm nay; `backfill` = written afterwards on Ghi bù, times are estimates. */
 export type EntrySource = 'manual' | 'quick' | 'backfill'
@@ -109,7 +112,16 @@ export interface Habit {
   archived: boolean
 }
 
+export interface CustomType {
+  id: `x-${string}`
+  name: string
+  icon: string
+  archived: boolean
+}
+
 export interface Defs {
+  /** Absent in data written before custom types existed. */
+  customTypes?: CustomType[]
   categories: Category[]
   habits: Habit[]
   quickActions: QuickAction[]

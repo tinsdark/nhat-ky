@@ -1,6 +1,7 @@
 import { useState } from 'preact/hooks'
 import { entriesToCsv } from '../core/backup'
 import { addDays, toDateKey } from '../core/date'
+import { entryTypeOptions } from '../core/defs'
 import type { EntryType } from '../core/types'
 import { buildSnapshot, parseSnapshot, restoreSnapshot, SnapshotError } from '../backup'
 import { importCsv } from '../backup/importCsv'
@@ -9,6 +10,7 @@ import { photos } from '../photos'
 import { db } from '../data/db'
 import { getDefs, getEntriesInRange } from '../data/repository'
 import { Section } from './settings/fields'
+import { useLive } from './useLive'
 
 function download(name: string, data: BlobPart, type: string) {
   const url = URL.createObjectURL(new Blob([data], { type }))
@@ -19,7 +21,7 @@ function download(name: string, data: BlobPart, type: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
-const TYPES: { id: EntryType | ''; label: string }[] = [
+const BASE_TYPES: { id: EntryType | ''; label: string }[] = [
   { id: '', label: 'Tất cả loại' },
   { id: 'sleep', label: 'Ngủ' },
   { id: 'meal', label: 'Ăn uống' },
@@ -37,6 +39,9 @@ export function BackupSection({ dayStartHour }: { dayStartHour: number }) {
   const [from, setFrom] = useState(addDays(today, -89))
   const [to, setTo] = useState(today)
   const [msg, setMsg] = useState('')
+  const defs = useLive(getDefs, [])
+  const custom = entryTypeOptions(defs, true).filter((t) => t.id.startsWith('x-'))
+  const types = [...BASE_TYPES, ...custom]
 
   const exportJson = async () => {
     download(`nhat-ky-${today}.json`, JSON.stringify(await buildSnapshot()), 'application/json')
@@ -142,7 +147,7 @@ export function BackupSection({ dayStartHour }: { dayStartHour: number }) {
           <label>
             Loại
             <select value={type} onChange={(e) => setType(e.currentTarget.value as EntryType | '')}>
-              {TYPES.map((t) => (
+              {types.map((t) => (
                 <option value={t.id}>{t.label}</option>
               ))}
             </select>

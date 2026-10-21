@@ -1,22 +1,22 @@
 import { useEffect, useRef, useState } from 'preact/hooks'
 import {
-  ENTRY_TYPES,
+  entryTypeOptions,
   moveItem,
+  newCustomType,
   newId,
   nextOrder,
   removeQuickAction,
   setArchived,
+  typeLabel,
   upsertById,
   validateQuickAction,
 } from '../core/defs'
-import type { Category, Defs, EntryType, QuickAction, Tag } from '../core/types'
+import type { Category, CustomType, Defs, EntryType, QuickAction, Tag } from '../core/types'
 import { getDefs, saveDefs } from '../data/repository'
 import { Choice } from './Choice'
 import { useLive } from './useLive'
 
-type Tab = 'cat' | 'quick' | 'tag'
-
-const typeLabel = (t: EntryType) => ENTRY_TYPES.find((x) => x.id === t)?.label ?? t
+type Tab = 'cat' | 'quick' | 'tag' | 'type'
 
 /** Full-screen editor for categories, quick buttons and tags (SPEC 9.1). */
 export function ManageDefs({
@@ -32,9 +32,10 @@ export function ManageDefs({
   const defs = useLive(getDefs, [])
   const [tab, setTab] = useState<Tab>(initialTab)
   const openedNew = useRef(false)
-  const [editing, setEditing] = useState<{ kind: Tab; item: Category | QuickAction | Tag } | null>(
-    null,
-  )
+  const [editing, setEditing] = useState<{
+    kind: Tab
+    item: Category | QuickAction | Tag | CustomType
+  } | null>(null)
   useEffect(() => {
     if (!startNew || !defs || openedNew.current) return
     openedNew.current = true
@@ -70,6 +71,7 @@ export function ManageDefs({
           options={[
             { id: 'quick', label: 'Nút nhanh' },
             { id: 'cat', label: 'Danh mục' },
+            { id: 'type', label: 'Loại' },
             { id: 'tag', label: 'Tag' },
           ]}
           value={tab}
@@ -92,7 +94,7 @@ export function ManageDefs({
                         <strong>
                           {a.icon} {a.name}
                         </strong>
-                        <span class="muted">{typeLabel(a.type)}</span>
+                        <span class="muted">{typeLabel(defs, a.type)}</span>
                       </button>
                       <div class="mini">
                         <button
@@ -160,7 +162,7 @@ export function ManageDefs({
                           <span class="swatch" style={{ background: c.color }} /> {c.icon} {c.name}
                         </strong>
                         <span class="muted">
-                          {typeLabel(c.entryType)}
+                          {typeLabel(defs, c.entryType)}
                           {c.archived ? ' · đã ẩn' : ''}
                         </span>
                       </button>
@@ -210,6 +212,50 @@ export function ManageDefs({
             </button>
             <p class="muted hint">
               Danh mục đã có dữ liệu không xoá được, chỉ ẩn đi để thống kê cũ không mất tên.
+            </p>
+          </>
+        )}
+
+        {tab === 'type' && (
+          <>
+            <ul class="habits">
+              {entryTypeOptions(null).map((t) => (
+                <li class="habit archived">
+                  <div class="habit-main">
+                    <span class="habit-name">
+                      <strong>{t.label}</strong>
+                      <span class="muted">có sẵn, có form và chỉ số riêng</span>
+                    </span>
+                  </div>
+                </li>
+              ))}
+              {(defs.customTypes ?? []).map((t) => (
+                <li class={t.archived ? 'habit archived' : 'habit'}>
+                  <div class="habit-main">
+                    <button
+                      type="button"
+                      class="habit-name"
+                      onClick={() => setEditing({ kind: 'type', item: t })}
+                    >
+                      <strong>
+                        {t.icon} {t.name}
+                      </strong>
+                      <span class="muted">{t.archived ? 'đã ẩn' : 'tự đặt'}</span>
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              class="btn btn-primary block-btn"
+              onClick={() => setEditing({ kind: 'type', item: newCustomType('', '📌') })}
+            >
+              + Loại mới
+            </button>
+            <p class="muted hint">
+              Loại tự đặt dùng form cơ bản (giờ, giá trị, đơn vị, ghi chú, tag) và không có chỉ số
+              tự động. Loại đã dùng không xoá được, chỉ ẩn đi.
             </p>
           </>
         )}
@@ -275,7 +321,7 @@ function DefEditor({
   onSave,
 }: {
   kind: Tab
-  item: Category | QuickAction | Tag
+  item: Category | QuickAction | Tag | CustomType
   defs: Defs
   onClose: () => void
   onSave: (d: Defs) => void
@@ -290,6 +336,10 @@ function DefEditor({
     if (kind === 'cat') {
       const c = { ...draft, name: str('name').trim() } as unknown as Category
       return onSave({ ...defs, categories: upsertById(defs.categories, c) })
+    }
+    if (kind === 'type') {
+      const t = { ...draft, name: str('name').trim() } as unknown as CustomType
+      return onSave({ ...defs, customTypes: upsertById(defs.customTypes ?? [], t) })
     }
     if (kind === 'tag') {
       const t = { ...draft, name: str('name').trim() } as unknown as Tag
@@ -314,7 +364,9 @@ function DefEditor({
       ? defs.quickActions.some((q) => q.id === item.id)
       : kind === 'cat'
         ? defs.categories.some((c) => c.id === item.id)
-        : defs.tags.some((t) => t.id === item.id)
+        : kind === 'type'
+          ? (defs.customTypes ?? []).some((t) => t.id === item.id)
+          : defs.tags.some((t) => t.id === item.id)
 
   return (
     <div class="sheet-backdrop" onClick={onClose}>
@@ -337,7 +389,7 @@ function DefEditor({
             <input value={str('icon')} onInput={(e) => set('icon', e.currentTarget.value)} />
           </label>
         )}
-        {kind !== 'quick' && (
+        {kind !== 'quick' && kind !== 'type' && (
           <label>
             Màu
             <input
@@ -347,7 +399,7 @@ function DefEditor({
             />
           </label>
         )}
-        {kind !== 'tag' && (
+        {kind !== 'tag' && kind !== 'type' && (
           <label>
             Loại
             <select
@@ -357,7 +409,7 @@ function DefEditor({
                 if (kind === 'quick') set('categoryId', '')
               }}
             >
-              {ENTRY_TYPES.map((t) => (
+              {entryTypeOptions(defs).map((t) => (
                 <option value={t.id}>{t.label}</option>
               ))}
             </select>
@@ -438,6 +490,22 @@ function DefEditor({
               onClick={() => onSave(removeQuickAction(defs, item.id))}
             >
               Xoá
+            </button>
+          )}
+          {kind === 'type' && exists && (
+            <button
+              type="button"
+              class="btn"
+              onClick={() =>
+                onSave({
+                  ...defs,
+                  customTypes: (defs.customTypes ?? []).map((t) =>
+                    t.id === item.id ? { ...t, archived: !(item as CustomType).archived } : t,
+                  ),
+                })
+              }
+            >
+              {(item as CustomType).archived ? 'Hiện lại' : 'Ẩn'}
             </button>
           )}
           {kind === 'tag' && exists && (

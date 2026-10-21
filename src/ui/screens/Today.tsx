@@ -1,20 +1,16 @@
-import { useMemo, useState } from 'preact/hooks'
+import { useState } from 'preact/hooks'
 import { addDays, toDateKey } from '../../core/date'
 import { addMinutes, copyToDay } from '../../core/entryForm'
-import { isMet, isScheduled } from '../../core/habits'
-import { createMetricContext } from '../../core/metrics'
 import { dueReminders } from '../../core/reminders'
 import { reviewPrompt } from '../../core/review'
 import { buildTimeline, coreProgress } from '../../core/timeline'
 import type { Entry, Habit, QuickAction } from '../../core/types'
-import { tickHabit, untickHabit } from '../../data/habits'
+import { tickHabit } from '../../data/habits'
 import {
   createEntry,
   getDay,
-  getDaysInRange,
   getDefs,
   getEntriesByDateKey,
-  getEntriesInRange,
   getSettings,
   restoreEntry,
   softDeleteEntry,
@@ -30,7 +26,6 @@ import { ReviewSheet } from '../ReviewSheet'
 import { estimatedNote, SleepPrompt } from '../SleepPrompt'
 import { CheckinCard } from '../today/CheckinCard'
 import { Hero } from '../today/Hero'
-import { HabitsToday, type HabitState } from '../today/HabitsToday'
 import { QuickGrid } from '../today/QuickGrid'
 import { SleepCard } from '../today/SleepCard'
 import { Timeline } from '../today/Timeline'
@@ -65,14 +60,6 @@ export function Today() {
     async () => (await getEntriesByDateKey(yesterdayKey)).length > 0,
     [yesterdayKey],
   )
-  // Just enough history to know today's habit values (a metric habit may read the night before).
-  const recent = useLive(async () => {
-    const from = addDays(todayKey, -2)
-    return {
-      entries: await getEntriesInRange(from, todayKey),
-      days: await getDaysInRange(from, todayKey),
-    }
-  }, [todayKey])
   const [, setFlagTick] = useState(0) // localStorage flags are not reactive; bump to re-read them
   const [reviewFor, setReviewFor] = useState<string | null>(null)
   const [sleepPrompt, setSleepPrompt] = useState<{ id: string; note?: string } | null>(null)
@@ -81,19 +68,6 @@ export function Today() {
   const [durationFor, setDurationFor] = useState<QuickAction | null>(null)
   const [managing, setManaging] = useState<{ startNew: boolean } | null>(null)
   const [toast, setToast] = useState<ToastData | null>(null)
-
-  const habitCtx = useMemo(
-    () =>
-      settings && defs && recent
-        ? createMetricContext({
-            entries: recent.entries,
-            days: recent.days,
-            habits: defs.habits,
-            settings,
-          })
-        : null,
-    [settings, defs, recent],
-  )
 
   if (!settings || !defs || !entries) return null
 
@@ -182,21 +156,6 @@ export function Today() {
     })
   }
 
-  const habitStates: HabitState[] =
-    isToday && habitCtx
-      ? defs.habits
-          .filter((h) => !h.archived && isScheduled(h, todayKey))
-          .map((h) => {
-            const value = habitCtx.habitValues(h).get(todayKey) ?? 0
-            return {
-              habit: h,
-              value,
-              met: isMet(h, value) && (h.direction === 'quit' || value > 0),
-              auto: !!h.linkedRule || !!h.metricRule,
-            }
-          })
-          .sort((a, b) => Number(a.met) - Number(b.met))
-      : []
   const tick = (h: Habit) =>
     void tickHabit(h, todayKey, dayStartHour, h.kind === 'duration' ? 10 : undefined)
 
@@ -283,11 +242,6 @@ export function Today() {
             onHold={(a) => setForm(draftFor(a))}
             onEdit={() => setManaging({ startNew: false })}
             onAdd={() => setManaging({ startNew: true })}
-          />
-          <HabitsToday
-            states={habitStates}
-            onTick={tick}
-            onUntick={(h) => void untickHabit(h, todayKey)}
           />
           <CheckinCard entries={ownEntries ?? []} onRecord={(k, v) => void recordCheckin(k, v)} />
         </>

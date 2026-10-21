@@ -11,12 +11,13 @@ import {
   shiftHHmm,
   suggestTitles,
 } from '../core/entryForm'
-import { newId } from '../core/defs'
+import { entryTypeOptions, newId } from '../core/defs'
 import type { Category, Entry, EntryType, Tag } from '../core/types'
 import { createEntry, getDefs, getEntriesInRange, saveDefs, updateEntry } from '../data/repository'
 import { PhotoError, photos, pokePhotoQueue, processPhoto } from '../photos'
 import { PayloadFields, type Payload } from './PayloadFields'
 import { Thumb } from './PhotoViews'
+import { useLive } from './useLive'
 
 export interface FormDraft {
   /** Set when editing an existing entry. */
@@ -36,16 +37,6 @@ export interface FormDraft {
   photoIds?: string[]
   source?: Entry['source']
 }
-
-const TYPES: { id: EntryType; label: string }[] = [
-  { id: 'sleep', label: 'Ngủ' },
-  { id: 'meal', label: 'Ăn uống' },
-  { id: 'work', label: 'Làm việc' },
-  { id: 'activity', label: 'Hoạt động' },
-  { id: 'exercise', label: 'Vận động' },
-  { id: 'water', label: 'Uống nước' },
-  { id: 'note', label: 'Check-in / ghi chú' },
-]
 
 export function draftFromEntry(e: Entry): FormDraft {
   return {
@@ -80,6 +71,10 @@ export function EntryForm({
   onClose: () => void
   onSaved: (entry: Entry, isNew: boolean) => void
 }) {
+  const defs = useLive(getDefs, [])
+  const typeOptions = entryTypeOptions(defs, true).filter(
+    (t) => !defs?.customTypes?.some((c) => c.id === t.id && c.archived) || t.id === draft.type,
+  )
   const [type, setType] = useState(draft.type)
   const [categoryId, setCategoryId] = useState(draft.categoryId)
   const [title, setTitle] = useState(draft.title)
@@ -208,7 +203,7 @@ export function EntryForm({
               setCategoryId('')
             }}
           >
-            {TYPES.map((t) => (
+            {typeOptions.map((t) => (
               <option value={t.id}>{t.label}</option>
             ))}
           </select>
