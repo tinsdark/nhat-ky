@@ -4,10 +4,9 @@ import { Icon } from '../Icon'
 const R = 26
 const C = 2 * Math.PI * R
 
-/** Today's overview: a ring with x/y core items recorded, what is missing, and the six items as chips. */
+/** Today's overview: a ring with x/y core items recorded and the six items as chips (a missing one is a plain chip). */
 export function Hero({ items, isToday }: { items: CoreItem[]; isToday: boolean }) {
   const done = items.filter((i) => i.done).length
-  const missing = items.filter((i) => !i.done).map((i) => i.label)
   return (
     <section class="panel hero" aria-label={`Đã ghi ${done}/${items.length} mục cốt lõi`}>
       <div class="hero-top">
@@ -39,13 +38,9 @@ export function Hero({ items, isToday }: { items: CoreItem[]; isToday: boolean }
           <strong class="hero-title">
             {done === items.length ? 'Đã ghi đủ' : `Đã ghi ${done}/${items.length} mục cốt lõi`}
           </strong>
-          <span class="muted">
-            {done === items.length
-              ? isToday
-                ? 'Hôm nay đủ cả rồi.'
-                : 'Ngày này ghi đủ cả.'
-              : `Còn thiếu: ${missing.join(', ')}`}
-          </span>
+          {done === items.length && (
+            <span class="muted">{isToday ? 'Hôm nay đủ cả rồi.' : 'Ngày này ghi đủ cả.'}</span>
+          )}
         </div>
       </div>
       <div class="coreitems">

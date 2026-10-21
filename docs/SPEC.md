@@ -139,7 +139,7 @@ Không xoá cứng định nghĩa đã có dữ liệu; chỉ `archived` để t
 
 - Trên cùng: ngày logic, nút ◀ ▶ đổi ngày, thanh tiến độ "đã ghi x/y mục cốt lõi" (ngủ, 3 bữa, làm việc, chấm ngày).
 - Lưới **nút nhanh** 2×4 (tuỳ chỉnh được): Thức dậy, Đi ngủ, Ăn sáng, Ăn trưa, Ăn tối, Bắt đầu làm, Uống nước, Cà phê.
-- **Không có timer** (đổi 21/10: Đạt không bật được liên tục). Việc làm được ghi bằng thời gian ước lượng: chạm "Làm việc" → chọn "vừa làm xong bao lâu" (15p … 4h); khối kết thúc bây giờ và bắt đầu cách đây đúng khoảng đó.
+- **Không đếm giờ trên màn hình** (đổi 21/10, sửa lại 21/10 lần 2). Việc làm ghi bằng hai lần bấm: "Bắt đầu" lưu giờ bắt đầu, "Kết thúc" ở thẻ "Đang làm" lưu giờ kết thúc. Có thể điền sẵn giờ kết thúc/thời lượng ước lượng trong form để ghi trọn một lần.
 - **Check-in nhanh**: chạm 1–5 cho năng lượng hoặc tâm trạng ngay lúc đó (Module 5.3).
 - **Timeline dọc** theo giờ: mỗi Entry là một khối, khối kéo dài có chiều cao theo thời lượng, màu theo danh mục. Khoảng trống > 2 tiếng chưa ghi gì hiện vạch mờ "chưa ghi" để bấm điền.
 - Nút **+** nổi góc dưới: mở form đầy đủ.
@@ -258,7 +258,7 @@ Giờ bữa đầu, giờ bữa cuối, **khung ăn** (bữa đầu → bữa cu
 
 ## Module 4 — Công việc & quản lý thời gian
 
-Ghi thời gian làm việc theo khối (ước lượng thời lượng; không dùng timer) để biết mày thực sự dùng giờ vào đâu, giờ nào tập trung nhất, và OT bao nhiêu. Không thay thế Jira hay task tool của công ty.
+Ghi thời gian làm việc theo khối (bấm Bắt đầu / Kết thúc, hoặc ước lượng thời lượng; không có đồng hồ chạy) để biết mày thực sự dùng giờ vào đâu, giờ nào tập trung nhất, và OT bao nhiêu. Không thay thế Jira hay task tool của công ty.
 
 **4.1 Danh mục mặc định (sửa được)**
 

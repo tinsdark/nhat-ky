@@ -85,7 +85,11 @@ body {
   font-family: 'Be Vietnam Pro', system-ui, sans-serif;
   font-size: 15px;
   line-height: 1.45;
-  overscroll-behavior-y: none;
+  overscroll-behavior: none;
+}
+html,
+body {
+  overflow-x: hidden;
 }
 
 h1 {
@@ -1271,8 +1275,8 @@ table.grid.left td {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 6px;
-  min-height: 92px;
+  gap: 4px;
+  min-height: 84px;
   padding: 10px 6px;
   border: 1px solid var(--border);
   border-radius: 18px;
@@ -1809,4 +1813,62 @@ form.sheet > .row:last-child {
 }
 .screen .pills {
   margin-bottom: 12px;
+}
+
+/* ---- shortcut flow: chosen category header, running blocks ------------ */
+.formhead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.formhead > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+.formhead .ico,
+.running-info .ico {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface);
+  font-size: 1.2rem;
+}
+.running-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.running-row + .running-row {
+  margin-top: 10px;
+}
+.running-info {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+.running-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 0.85rem;
+}
+.running-text b {
+  font-size: 0.95rem;
+}
+.running-row .btn {
+  flex: none;
+  min-height: 44px;
 }

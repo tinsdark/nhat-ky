@@ -64,7 +64,7 @@ export function Timeline({
                       {[
                         r.minutes > 0 ? formatDuration(r.minutes) : null,
                         r.entry.value != null ? `${r.entry.value} ${r.entry.unit}`.trim() : null,
-                        nameOf(categories, r.entry) && r.entry.title
+                        nameOf(categories, r.entry) && r.entry.title !== nameOf(categories, r.entry)
                           ? nameOf(categories, r.entry)
                           : null,
                         ...r.entry.tags.map((id) => tagName(tags, id)),

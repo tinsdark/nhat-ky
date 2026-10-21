@@ -9,9 +9,9 @@ import {
   formatDuration,
   resolveEnd,
   shiftHHmm,
-  suggestTitles,
 } from '../core/entryForm'
-import { entryTypeOptions, newId } from '../core/defs'
+import { entryTypeOptions, newId, typeLabel } from '../core/defs'
+import { isTimedType, startRunning, stopRunning } from '../core/running'
 import type { Category, Entry, EntryType, Tag } from '../core/types'
 import { createEntry, getDefs, getEntriesInRange, saveDefs, updateEntry } from '../data/repository'
 import { PhotoError, photos, pokePhotoQueue, processPhoto } from '../photos'
@@ -77,7 +77,7 @@ export function EntryForm({
   )
   const [type, setType] = useState(draft.type)
   const [categoryId, setCategoryId] = useState(draft.categoryId)
-  const [title, setTitle] = useState(draft.title)
+  const [pickCategory, setPickCategory] = useState(!draft.categoryId)
   const [start, setStart] = useState(toHHmm(draft.start))
   const [end, setEnd] = useState(draft.end ? toHHmm(draft.end) : '')
   const [value, setValue] = useState(draft.value?.toString() ?? '')
@@ -152,6 +152,12 @@ export function EntryForm({
   const overlaps = findOverlaps(history, type, startIso, endIso, draft.id)
 
   const cats = categories.filter((c) => c.entryType === type && !c.archived)
+  const category = categories.find((c) => c.id === categoryId)
+  // The title follows the category; an old entry keeps the title it was given.
+  const keepTitle = draft.title !== '' && type === draft.type && categoryId === draft.categoryId
+  const title = keepTitle ? draft.title : (category?.name ?? typeLabel(defs, type))
+  // Pressing a shortcut on Hôm nay starts a block: without an end time it waits for "Kết thúc".
+  const startsBlock = !draft.id && draft.source === 'quick' && isTimedType(type) && !endIso
 
   const save = async () => {
     if (typedEnd && !endIso) return setError('Khối dài quá 16 giờ, kiểm tra lại giờ kết thúc.')
@@ -160,7 +166,7 @@ export function EntryForm({
     const fields = {
       type,
       categoryId,
-      title: title.trim(),
+      title,
       value: num,
       unit: unit.trim(),
       note: note.trim(),
@@ -171,7 +177,9 @@ export function EntryForm({
       payload:
         type === 'meal' && !payload.mealSlot
           ? { ...payload, mealSlot: autoMealSlot(categoryId, start) }
-          : payload,
+          : startsBlock
+            ? startRunning(payload)
+            : stopRunning(payload),
     }
     const result = draft.id
       ? await updateEntry(draft.id, fields)
@@ -194,44 +202,46 @@ export function EntryForm({
         }}
       >
         <h2>{draft.id ? 'Sửa' : 'Ghi mới'}</h2>
-        <label>
-          Loại
-          <select
-            value={type}
-            onChange={(e) => {
-              setType(e.currentTarget.value as EntryType)
-              setCategoryId('')
-            }}
-          >
-            {typeOptions.map((t) => (
-              <option value={t.id}>{t.label}</option>
-            ))}
-          </select>
-        </label>
-        {cats.length > 0 && (
-          <label>
-            Danh mục
-            <select value={categoryId} onChange={(e) => setCategoryId(e.currentTarget.value)}>
-              <option value="">—</option>
-              {cats.map((c) => (
-                <option value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          </label>
+        {pickCategory ? (
+          <>
+            <label>
+              Loại
+              <select
+                value={type}
+                onChange={(e) => {
+                  setType(e.currentTarget.value as EntryType)
+                  setCategoryId('')
+                }}
+              >
+                {typeOptions.map((t) => (
+                  <option value={t.id}>{t.label}</option>
+                ))}
+              </select>
+            </label>
+            {cats.length > 0 && (
+              <label>
+                Danh mục
+                <select value={categoryId} onChange={(e) => setCategoryId(e.currentTarget.value)}>
+                  <option value="">—</option>
+                  {cats.map((c) => (
+                    <option value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </>
+        ) : (
+          <div class="formhead">
+            <span class="ico">{category?.icon}</span>
+            <span>
+              <b>{category?.name}</b>
+              <span class="muted"> · {typeLabel(defs, type)}</span>
+            </span>
+            <button type="button" class="btn small" onClick={() => setPickCategory(true)}>
+              Đổi
+            </button>
+          </div>
         )}
-        <label>
-          Nội dung
-          <input
-            list="title-suggestions"
-            value={title}
-            onInput={(e) => setTitle(e.currentTarget.value)}
-          />
-          <datalist id="title-suggestions">
-            {suggestTitles(history, type).map((t) => (
-              <option value={t} />
-            ))}
-          </datalist>
-        </label>
         <div class="row">
           <label>
             Bắt đầu
@@ -268,6 +278,11 @@ export function EntryForm({
             )}
           </div>
         </div>
+        {startsBlock && (
+          <p class="muted hint">
+            Để trống giờ kết thúc: việc chạy tiếp, bấm "Kết thúc" ở Hôm nay khi xong.
+          </p>
+        )}
         <div class="row shift">
           {[15, 30, 60].map((m) => (
             <button type="button" class="btn" onClick={() => setStart(shiftHHmm(start, -m))}>
@@ -385,7 +400,7 @@ export function EntryForm({
             Huỷ
           </button>
           <button type="submit" class="btn btn-primary">
-            Lưu
+            {startsBlock ? 'Bắt đầu' : 'Lưu'}
           </button>
         </div>
       </form>

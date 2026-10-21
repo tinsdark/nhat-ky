@@ -57,16 +57,15 @@ function qa(
   return { id, name, icon, order, type, categoryId, title: name, value: null, unit: '', ...extra }
 }
 
+/** Shortcuts point at a type; pressing one lists that type's categories (water and sleep record at once). */
 export const DEFAULT_QUICK_ACTIONS: QuickAction[] = [
   qa('qa-wake', 'Thức dậy', '☀️', 1, 'sleep', 'cat-sleep'),
   qa('qa-sleep', 'Đi ngủ', '🌙', 2, 'sleep', 'cat-sleep'),
-  qa('qa-breakfast', 'Ăn sáng', '🥐', 3, 'meal', 'cat-breakfast'),
-  qa('qa-lunch', 'Ăn trưa', '🍱', 4, 'meal', 'cat-lunch'),
-  qa('qa-dinner', 'Ăn tối', '🍜', 5, 'meal', 'cat-dinner'),
-  qa('qa-work', 'Làm việc', '💻', 6, 'work', 'cat-deep'),
+  qa('qa-meal', 'Ăn uống', '🍜', 3, 'meal', ''),
+  qa('qa-work', 'Làm việc', '💻', 4, 'work', ''),
+  qa('qa-activity', 'Hoạt động', '🌤', 5, 'activity', ''),
+  qa('qa-exercise', 'Vận động', '🏃', 6, 'exercise', ''),
   qa('qa-water', 'Uống nước', '💧', 7, 'water', 'cat-water', { value: 250, unit: 'ml' }),
-  qa('qa-coffee', 'Cà phê', '☕', 8, 'meal', 'cat-drink'),
-  qa('qa-outdoor', 'Ra ngoài trời', '🌤', 9, 'activity', 'cat-outdoor'),
 ]
 
 function habit(

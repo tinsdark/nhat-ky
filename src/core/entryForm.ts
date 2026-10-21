@@ -1,23 +1,6 @@
 import { atTime, toHHmm } from './date'
 import type { Entry, EntryType } from './types'
 
-/** Titles used before for this entry type, most frequent first (ties: most recently used first). */
-export function suggestTitles(history: Entry[], type: EntryType, limit = 8): string[] {
-  const stats = new Map<string, { count: number; last: string }>()
-  for (const e of history) {
-    const title = e.title.trim()
-    if (e.type !== type || e.deleted || title === '') continue
-    const s = stats.get(title) ?? { count: 0, last: '' }
-    s.count += 1
-    if (e.start > s.last) s.last = e.start
-    stats.set(title, s)
-  }
-  return [...stats.entries()]
-    .sort((a, b) => b[1].count - a[1].count || b[1].last.localeCompare(a[1].last))
-    .slice(0, limit)
-    .map(([title]) => title)
-}
-
 /** Moves `HH:mm` by `deltaMin` minutes, wrapping around midnight. */
 export function shiftHHmm(hhmm: string, deltaMin: number): string {
   const [h, m] = hhmm.split(':').map(Number) as [number, number]

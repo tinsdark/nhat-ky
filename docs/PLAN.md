@@ -121,6 +121,12 @@ Tham chiếu: repo `tinsdark/so-chi-tieu` (nền kem, thẻ bo tròn 20px, tab �
 - [x] **T5.5 Cài đặt chia mục** (Danh mục · Mục tiêu · Cảnh báo · Hiển thị · Dữ liệu · Ứng dụng).
 - [x] **T5.6 Thống kê** thanh tab con dạng viên thuốc, thẻ tổng quan, thẻ số liệu, biểu đồ cùng bảng màu.
 
+## P6 — Phím tắt theo Loại, Bắt đầu/Kết thúc (Đạt yêu cầu 21/10)
+
+- [x] **T6.1 Phím tắt trỏ vào Loại.** Bấm phím tắt hiện lưới ô danh mục của loại đó, chọn xong mở "Ghi mới" đã có loại + danh mục; form bỏ ô Loại/Danh mục/Nội dung (nội dung = tên danh mục, nút "Đổi" khi cần). Uống nước và ngủ vẫn ghi ngay. Ghi bù dùng cùng bảng chọn. Nút mặc định mới: Ăn uống, Làm việc, Hoạt động, Vận động, Uống nước.
+- [x] **T6.2 Bắt đầu / Kết thúc.** Việc kéo dài: "Bắt đầu" lưu giờ bắt đầu (`payload.running`), thẻ "Đang làm" có nút "Kết thúc" lưu giờ kết thúc; khối quá 16 giờ thì mở form sửa giờ. Bỏ hộp "vừa làm xong bao lâu". `src/core/running.ts` có test.
+- [x] **T6.3 Gọn giao diện điện thoại.** Không tràn ngang ở 360–390px, bỏ dòng "Còn thiếu" lặp với chip, tile nhỏ lại, khoá cuộn ngang trang.
+
 ## Sau 1/11 (P4)
 
 - [ ] Push nhắc nhở (phương án C: Cloudflare Workers + cron).
