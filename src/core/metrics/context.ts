@@ -24,6 +24,8 @@ export interface MetricContext {
   habits: Habit[]
   /** Live entries of a logical day. */
   entriesOf(dateKey: string): Entry[]
+  /** Every dateKey that has at least one entry, sorted. */
+  dateKeys(): string[]
   day(dateKey: string): Day | undefined
   /** True when anything was recorded that day. A day with nothing is "not logged": metrics return null, not 0. */
   logged(dateKey: string): boolean
@@ -73,6 +75,7 @@ export function createMetricContext(input: MetricInput): MetricContext {
     settings: input.settings,
     habits: input.habits,
     entriesOf,
+    dateKeys: () => [...byDate.keys()].sort(),
     day: (dateKey) => days.get(dateKey),
     logged: (dateKey) => entriesOf(dateKey).length > 0,
     nightSleep(dateKey) {

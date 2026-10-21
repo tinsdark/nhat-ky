@@ -905,3 +905,65 @@ table.grid th {
   background: var(--danger);
   color: var(--bg);
 }
+
+.donut-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.donut {
+  width: 110px;
+  flex: none;
+}
+.legend-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.legend-list.inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.bar {
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 4px;
+  background: var(--bg);
+  overflow: hidden;
+}
+.bar div {
+  height: 100%;
+  background: var(--accent);
+}
+.bar.over div {
+  background: var(--danger);
+}
+.row-card {
+  flex-direction: row;
+  justify-content: space-between;
+}
+.hours {
+  display: grid;
+  grid-template-columns: 22px repeat(24, 1fr);
+  gap: 2px;
+  margin-top: 8px;
+}
+.hours .hl {
+  font-size: 0.6rem;
+  color: var(--muted);
+  text-align: center;
+}
+.hours .hc {
+  aspect-ratio: 1;
+  border-radius: 2px;
+}
+.hours .hc.empty {
+  background: var(--surface);
+}

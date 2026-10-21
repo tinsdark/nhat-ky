@@ -374,7 +374,12 @@ export function EntryForm({
             />
           </div>
         </div>
-        <PayloadFields type={type} payload={payload} set={setField} />
+        <PayloadFields
+          type={type}
+          payload={payload}
+          set={setField}
+          projects={projectNames(history)}
+        />
         <label>
           Ghi chú
           <textarea rows={2} value={note} onInput={(e) => setNote(e.currentTarget.value)} />
@@ -391,4 +396,17 @@ export function EntryForm({
       </form>
     </div>
   )
+}
+
+const DEFAULT_PROJECTS = ['CyberApp Golden', 'QLBX', 'Nhật ký']
+
+/** Project names for the suggestion list: the ones used before (most used first), then the defaults. */
+function projectNames(history: Entry[]): string[] {
+  const count = new Map<string, number>()
+  for (const e of history) {
+    const p = e.payload.project
+    if (typeof p === 'string' && p.trim()) count.set(p.trim(), (count.get(p.trim()) ?? 0) + 1)
+  }
+  const used = [...count.entries()].sort((a, b) => b[1] - a[1]).map(([name]) => name)
+  return [...used, ...DEFAULT_PROJECTS.filter((p) => !count.has(p))]
 }

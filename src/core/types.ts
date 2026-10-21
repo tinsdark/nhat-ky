@@ -52,10 +52,14 @@ export interface Day extends SyncFields {
   note: string
 }
 
+export type CategoryGroup = 'work' | 'growth' | 'personal'
+
 export interface Category {
   id: string
   name: string
   entryType: EntryType
+  /** Time group for the Thời gian screen (SPEC 4.1). Default: work for work categories, else personal. */
+  group?: CategoryGroup
   color: string
   icon: string
   order: number

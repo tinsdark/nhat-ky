@@ -127,3 +127,118 @@ export function MonthCalendar({ month, points }: { month: string; points: Point[
     </div>
   )
 }
+
+const GROUP_COLORS = ['var(--accent)', 'var(--ok)', 'var(--warn)']
+
+/** Ring split by value; `values` in the same order as `colors`. */
+export function Donut({ values, colors = GROUP_COLORS }: { values: number[]; colors?: string[] }) {
+  const total = values.reduce((a, b) => a + b, 0)
+  const R = 42
+  const C = 2 * Math.PI * R
+  let offset = 0
+  return (
+    <svg viewBox="0 0 120 120" class="donut" role="img" aria-label="Tỷ lệ giờ theo nhóm">
+      <circle cx="60" cy="60" r={R} fill="none" stroke="var(--surface)" stroke-width="16" />
+      {total > 0 &&
+        values.map((v, i) => {
+          const len = (v / total) * C
+          const el = (
+            <circle
+              cx="60"
+              cy="60"
+              r={R}
+              fill="none"
+              stroke={colors[i]}
+              stroke-width="16"
+              stroke-dasharray={`${len} ${C - len}`}
+              stroke-dashoffset={-offset}
+              transform="rotate(-90 60 60)"
+            />
+          )
+          offset += len
+          return el
+        })}
+    </svg>
+  )
+}
+
+/** One stacked column per day. */
+export function StackedColumns({
+  days,
+  labels,
+}: {
+  days: { values: number[] }[]
+  labels: string[]
+}) {
+  const max = Math.max(1, ...days.map((d) => d.values.reduce((a, b) => a + b, 0)))
+  const step = 280 / days.length
+  return (
+    <svg viewBox="0 0 280 130" class="chart" role="img" aria-label="Giờ theo ngày và nhóm">
+      {days.map((d, i) => {
+        let y = 100
+        return (
+          <g>
+            {d.values.map((v, k) => {
+              const h = (v / max) * 90
+              y -= h
+              return h > 0 ? (
+                <rect x={i * step + 6} y={y} width={step - 12} height={h} fill={GROUP_COLORS[k]} />
+              ) : null
+            })}
+            <text
+              x={i * step + step / 2}
+              y="118"
+              text-anchor="middle"
+              font-size="11"
+              fill="var(--muted)"
+            >
+              {labels[i]}
+            </text>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
+/** 7 weekday rows × 24 hour columns; darker = more. Hour labels every 6h. */
+export function HourHeatmap({
+  minutes,
+  focus,
+}: {
+  minutes: number[][]
+  focus?: (number | null)[][]
+}) {
+  const max = Math.max(1, ...minutes.flat())
+  const labels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+  return (
+    <div class="hours" role="img" aria-label="Giờ deep work theo thứ và giờ">
+      <span />
+      {Array.from({ length: 24 }, (_, h) => (
+        <span class="hl">{h % 6 === 0 ? h : ''}</span>
+      ))}
+      {minutes.map((row, wd) => (
+        <>
+          <span class="hl">{labels[wd]}</span>
+          {row.map((m, h) => {
+            const f = focus?.[wd]?.[h]
+            return (
+              <span
+                class={m === 0 ? 'hc empty' : 'hc'}
+                title={`${labels[wd]} ${h}h: ${Math.round(m)} phút${f ? `, tập trung ${f.toFixed(1)}` : ''}`}
+                style={
+                  m === 0
+                    ? undefined
+                    : {
+                        background: `color-mix(in srgb, var(--accent) ${Math.round(20 + 80 * (m / max))}%, var(--bg))`,
+                        outline: f && f >= 4 ? '1px solid var(--ok)' : undefined,
+                      }
+                }
+              />
+            )
+          })}
+        </>
+      ))}
+    </div>
+  )
+}

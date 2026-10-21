@@ -335,6 +335,22 @@ function DefEditor({
             </select>
           </label>
         )}
+        {kind === 'cat' && (
+          <label>
+            Nhóm thời gian
+            <select
+              value={str('group') || 'auto'}
+              onChange={(e) =>
+                set('group', e.currentTarget.value === 'auto' ? undefined : e.currentTarget.value)
+              }
+            >
+              <option value="auto">Tự động theo loại</option>
+              <option value="work">Công việc chính</option>
+              <option value="growth">Phát triển bản thân</option>
+              <option value="personal">Cá nhân</option>
+            </select>
+          </label>
+        )}
         {kind === 'quick' && (
           <>
             <label>
