@@ -1,7 +1,9 @@
-import { useState } from 'preact/hooks'
-import { atTime, toHHmm } from '../core/date'
+import { useEffect, useState } from 'preact/hooks'
+import { addDays, atTime, toHHmm } from '../core/date'
+import { autoMealSlot, findOverlaps, shiftHHmm, suggestTitles } from '../core/entryForm'
 import type { Category, Entry, EntryType } from '../core/types'
-import { createEntry, updateEntry } from '../data/repository'
+import { createEntry, getEntriesInRange, updateEntry } from '../data/repository'
+import { PayloadFields, type Payload } from './PayloadFields'
 
 export interface FormDraft {
   /** Set when editing an existing entry. */
@@ -16,6 +18,7 @@ export interface FormDraft {
   /** ISO. */
   start: string
   end: string | null
+  payload?: Payload
   source?: Entry['source']
 }
 
@@ -26,7 +29,7 @@ const TYPES: { id: EntryType; label: string }[] = [
   { id: 'activity', label: 'Hoạt động' },
   { id: 'exercise', label: 'Vận động' },
   { id: 'water', label: 'Uống nước' },
-  { id: 'note', label: 'Ghi chú' },
+  { id: 'note', label: 'Check-in / ghi chú' },
 ]
 
 export function draftFromEntry(e: Entry): FormDraft {
@@ -41,6 +44,7 @@ export function draftFromEntry(e: Entry): FormDraft {
     note: e.note,
     start: e.start,
     end: e.end,
+    payload: e.payload,
   }
 }
 
@@ -68,13 +72,28 @@ export function EntryForm({
   const [value, setValue] = useState(draft.value?.toString() ?? '')
   const [unit, setUnit] = useState(draft.unit)
   const [note, setNote] = useState(draft.note)
+  const [payload, setPayload] = useState<Payload>(draft.payload ?? {})
   const [error, setError] = useState('')
+  const [history, setHistory] = useState<Entry[]>([])
+  useEffect(() => {
+    void getEntriesInRange(addDays(draft.dateKey, -60), draft.dateKey).then(setHistory)
+  }, [draft.dateKey])
+
+  const setField = (key: string, v: unknown) =>
+    setPayload((p) => {
+      const next = { ...p }
+      if (v === undefined) delete next[key]
+      else next[key] = v
+      return next
+    })
+
+  const startIso = atTime(draft.dateKey, start, dayStartHour)
+  const endIso = end ? atTime(draft.dateKey, end, dayStartHour) : null
+  const overlaps = findOverlaps(history, type, startIso, endIso, draft.id)
 
   const cats = categories.filter((c) => c.entryType === type && !c.archived)
 
   const save = async () => {
-    const startIso = atTime(draft.dateKey, start, dayStartHour)
-    const endIso = end ? atTime(draft.dateKey, end, dayStartHour) : null
     if (endIso && endIso <= startIso) return setError('Giờ kết thúc phải sau giờ bắt đầu.')
     const num = value.trim() === '' ? null : Number(value.replace(',', '.'))
     if (num !== null && Number.isNaN(num)) return setError('Giá trị không hợp lệ.')
@@ -87,6 +106,10 @@ export function EntryForm({
       note: note.trim(),
       start: startIso,
       end: endIso,
+      payload:
+        type === 'meal' && !payload.mealSlot
+          ? { ...payload, mealSlot: autoMealSlot(categoryId, start) }
+          : payload,
     }
     if (draft.id) onSaved(await updateEntry(draft.id, fields), false)
     else onSaved(await createEntry({ ...fields, source: draft.source ?? 'manual' }), true)
@@ -130,7 +153,16 @@ export function EntryForm({
         )}
         <label>
           Nội dung
-          <input value={title} onInput={(e) => setTitle(e.currentTarget.value)} />
+          <input
+            list="title-suggestions"
+            value={title}
+            onInput={(e) => setTitle(e.currentTarget.value)}
+          />
+          <datalist id="title-suggestions">
+            {suggestTitles(history, type).map((t) => (
+              <option value={t} />
+            ))}
+          </datalist>
         </label>
         <div class="row">
           <label>
@@ -147,6 +179,18 @@ export function EntryForm({
             <input type="time" value={end} onInput={(e) => setEnd(e.currentTarget.value)} />
           </label>
         </div>
+        <div class="row shift">
+          {[15, 30, 60].map((m) => (
+            <button type="button" class="btn" onClick={() => setStart(shiftHHmm(start, -m))}>
+              Bắt đầu −{m === 60 ? '1h' : `${m}p`}
+            </button>
+          ))}
+        </div>
+        {overlaps.length > 0 && (
+          <p class="warn">
+            Trùng giờ với: {overlaps.map((o) => o.title || o.type).join(', ')} (vẫn lưu được).
+          </p>
+        )}
         <div class="row">
           <label>
             Giá trị
@@ -161,6 +205,7 @@ export function EntryForm({
             <input value={unit} onInput={(e) => setUnit(e.currentTarget.value)} />
           </label>
         </div>
+        <PayloadFields type={type} payload={payload} set={setField} />
         <label>
           Ghi chú
           <textarea rows={2} value={note} onInput={(e) => setNote(e.currentTarget.value)} />

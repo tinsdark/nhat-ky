@@ -411,3 +411,55 @@ h1 {
   color: var(--muted);
   padding: 0 10px;
 }
+
+.row.shift .btn {
+  min-height: 44px;
+  padding: 0 4px;
+  font-size: 0.75rem;
+}
+.warn {
+  margin: 0;
+  color: var(--warn);
+  font-size: 0.85rem;
+}
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.group legend {
+  padding: 0 6px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.field .lbl {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.choice button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.85rem;
+}
+.choice button.on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
