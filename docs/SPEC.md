@@ -6,7 +6,7 @@ Oct 21, 2026 · @Tien Dat
 
 App tên **Nhật ký** — webapp cá nhân theo dõi **đồng hồ sinh hoạt**: giờ ngủ, giờ ăn, giờ làm, thói quen, năng lượng và tâm trạng trong ngày; từ đó tìm quy luật và đưa lời khuyên cho **sức khoẻ, công việc, tinh thần**. Không theo dõi tiền. Dùng chủ yếu trên điện thoại.
 
-Dựng cùng kiến trúc với Sổ Tiền (app riêng của Đạt) nhưng tách dữ liệu hoàn toàn: Nhật ký không đọc, không ghi gì của Sổ Tiền.
+Dữ liệu nằm trong Drive của chính mày, không phụ thuộc app nào khác.
 
 **Mục tiêu đo được**
 
@@ -38,16 +38,16 @@ Local-first: UI chỉ đọc/ghi IndexedDB trên máy, nên mở app tức thì 
 
 &#91;embedded content: kiến trúc · local-first, Drive làm kho đồng bộ\]
 
-**appDataFolder của Drive bị cô lập theo OAuth Client ID.** Nhật ký dùng lại Client ID đang có cho tiện (không phải tạo OAuth client mới). Sổ Tiền dùng scope `drive.file` và file trong Drive thường, không dùng appDataFolder, nên hai app không thấy dữ liệu của nhau.
+**appDataFolder của Drive bị cô lập theo OAuth Client ID**: file của Nhật ký nằm trong appDataFolder của OAuth client trong `src/config.ts`, ẩn khỏi Drive thường.
 
 | Lớp | Chọn | Lý do |
 | --- | --- | --- |
-| Host | GitHub Pages, repo riêng `nhat-ky` | Miễn phí, giống Sổ Tiền, chung origin `*.github.io` |
+| Host | GitHub Pages, repo riêng `nhat-ky` | Miễn phí, origin `*.github.io` |
 | Đăng nhập | Google Identity Services (token client) | Không cần backend; scope `drive.appdata` |
 | Lưu trữ đám mây | Drive `appDataFolder` | Ẩn khỏi Drive thường, không bị xoá nhầm, free 15GB |
 | Lưu trữ máy | IndexedDB qua thư viện Dexie | Truy vấn theo index ngày/loại, chứa được vài năm dữ liệu |
 | UI | Vite + TypeScript + Preact | Tái dùng component, theme, font Be Vietnam Pro |
-| Biểu đồ | SVG tự vẽ như Sổ Tiền, hoặc Chart.js nếu cần heatmap | Nhẹ, không phụ thuộc |
+| Biểu đồ | SVG tự vẽ, hoặc Chart.js nếu cần heatmap | Nhẹ, không phụ thuộc |
 | Offline + cài đặt | PWA: manifest + service worker | Cài lên màn hình chính điện thoại |
 
 **Xử lý token hết hạn.** Access token Google chỉ sống khoảng 1 giờ và SPA thuần không có refresh token. Cách làm: khi gọi Drive bị lỗi 401, gọi lại token client với `prompt: ''` để xin token mới im lặng; nếu không được mới hiện nút "Đăng nhập lại". Trong lúc chờ, dữ liệu vẫn ghi vào IndexedDB, không mất gì.
@@ -339,7 +339,7 @@ Ba thứ này là biến "đầu ra" chính của phân tích: hầu hết lời
 
 ## Module 6 — (đã bỏ)
 
-Bỏ ngày 21/10: Sổ Tiền chỉ ghi giờ thanh toán chứ không ghi giờ ăn, nên không dùng làm nguồn. Giờ ăn lấy từ nhập tay, nút nhanh và giờ chụp ảnh (Module 10). Nhật ký không đọc, không ghi dữ liệu của Sổ Tiền. Giữ số Module để không lệch tham chiếu.
+Đã bỏ: không lấy giờ ăn từ app ngoài. Giờ ăn lấy từ nhập tay, nút nhanh và giờ chụp ảnh (Module 10). Giữ số Module để không lệch tham chiếu.
 
 ## Module 7 — Thống kê & Dashboard
 
@@ -486,7 +486,7 @@ Webapp tĩnh **không tự bắn thông báo đúng giờ khi app đang đóng**
 - Dữ liệu chỉ nằm trên máy và Drive của mày; không có server trung gian.
 - Scope tối thiểu `drive.appdata` (+ `calendar.events` chỉ khi sau này cần, bản đầu không dùng).
 - OAuth consent screen để chế độ Testing, thêm email mày vào test user → không cần Google duyệt app.
-- Khoá app bằng passkey/Face ID như Sổ Tiền (tuỳ chọn). Lưu ý vụ Sổ Tiền bị hiện prompt passkey "github.io" trước khi vào app — nên xử lý cùng lúc cho cả hai app.
+- Khoá app bằng passkey/Face ID (tuỳ chọn).
 - Ghi chú tự do không bao giờ gửi đi đâu ở V1; V2 gửi AI chỉ gửi số liệu tổng hợp.
 
 ## Module 10 — Ảnh
@@ -562,7 +562,6 @@ Mốc: **21–31/10 build đủ P0–P3 và test bằng dữ liệu giả; từ 
 | Chủ đề | Quyết định |
 | --- | --- |
 | Hướng app | Đồng hồ sinh hoạt → lời khuyên sức khoẻ, công việc, tinh thần. Không liên quan tiền |
-| Sổ Tiền | Tách riêng (đổi 21/10: Sổ Tiền chỉ có giờ thanh toán, không phải giờ ăn). Chỉ dùng lại Client ID cho tiện |
 | Thiết bị | Chủ yếu điện thoại |
 | Nhắc nhở | Phương án A trước, ổn thì lên C |
 | Ảnh | Có, nén + tách file (Module 10) |
@@ -573,7 +572,6 @@ Mốc: **21–31/10 build đủ P0–P3 và test bằng dữ liệu giả; từ 
 **Còn cần trả lời**
 
 - [ ] **1. Điện thoại iPhone hay Android?** Ảnh hưởng cách cài PWA, push ở phương án C, và đọc giờ chụp ảnh (iPhone hay lưu ảnh dạng HEIC).
-- [x] ~~**2. Repo `so-chi-tieu`**~~ — không còn tích hợp.
 - [ ] **3. Giờ cắt ngày 04:00** — xem ví dụ ở Data model, ổn chưa?
 - [ ] **4. Giờ làm chuẩn** 8:00–17:30, T2–T6 đúng không? Thứ 7 có đi làm không?
 - [ ] **5. Thêm chỉ số nào nữa không**: cân nặng, thời gian dùng điện thoại, ra ngoài trời buổi sáng, đọc sách?

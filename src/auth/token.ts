@@ -1,6 +1,6 @@
 // Token lifecycle, independent of Google Identity Services so it can be unit-tested.
-// The access token is kept in memory and mirrored to localStorage with its expiry (same trade-off as
-// Sổ Tiền): reopening the app within ~1h needs no Google call, which matters on iOS home-screen apps
+// The access token is kept in memory and mirrored to localStorage with its expiry: reopening the
+// app within ~1h needs no Google call, which matters on iOS home-screen apps
 // where silent popups are often blocked. The token only grants drive.appdata and lives <= 1h.
 
 export class AuthRequiredError extends Error {
