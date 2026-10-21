@@ -867,3 +867,41 @@ details.card summary {
   font: inherit;
   width: 110px;
 }
+
+.cards.three {
+  grid-template-columns: repeat(3, 1fr);
+}
+.card.done {
+  border-color: var(--ok);
+}
+.card.wide {
+  grid-column: 1 / -1;
+}
+table.grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  text-align: center;
+}
+table.grid th,
+table.grid td {
+  padding: 6px 2px;
+  border: 1px solid var(--border);
+}
+table.grid th {
+  color: var(--muted);
+  font-weight: 500;
+}
+.cell-ok {
+  background: color-mix(in srgb, var(--ok) 25%, var(--bg));
+}
+.cell-missed {
+  background: var(--bg);
+}
+.cell-unknown {
+  background: repeating-linear-gradient(45deg, var(--border) 0 2px, transparent 2px 5px);
+}
+.cell-late {
+  background: var(--danger);
+  color: var(--bg);
+}

@@ -102,7 +102,7 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
 - [x] **T4.4 Quản lý danh mục, tag, nút nhanh** (Module 9.1), gắn tag vào Entry.
 - [x] **T4.5 Cài đặt còn thiếu** (Module 9.1, 4.4): giao diện sáng/tối, bật/tắt từng luật, giờ cắt ngày, ngân sách tuần (deep work, học BA, mạng xã hội) + thanh tiến độ + luật "Học BA hụt".
 - [x] **T4.6 Thói quen tự tính + nhắc.** Thói quen lấy từ chỉ số (dậy trước 7h, ngủ trước 23h30), nhắc theo `reminderTime` trong app, bữa ăn tính vào mục cốt lõi theo bữa.
-- [ ] **T4.7 Màn Ăn uống** (Module 3.3).
+- [x] **T4.7 Màn Ăn uống** (Module 3.3).
 - [ ] **T4.8 Màn Thời gian** (Module 4.3).
 - [ ] **T4.9 Màn Sức khoẻ + đường năng lượng** (Module 5.4, 5.5).
 - [ ] **T4.10 Tương quan trên Dashboard, theo thứ trong tuần, Báo cáo tuần** (Module 7.1, 7.3, 8.1).
