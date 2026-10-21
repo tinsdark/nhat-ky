@@ -94,39 +94,52 @@ export function Overview({ data }: { data: StatsData }) {
       <h2 class="sub">Cái gì đi kèm ngày tốt / ngày tệ</h2>
       <Correlations data={data} />
 
-      <h2 class="sub">Xu hướng 90 ngày</h2>
-      <div class="row">
-        {select(trendA, setTrendA)}
-        {select(trendB, setTrendB, true)}
-      </div>
-      <TrendChart series={trend} />
-      <p class="muted legend">Chấm = từng ngày, đường = trung bình trượt 7 ngày.</p>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Xu hướng 90 ngày</h2>
+        </div>
+        <div class="row">
+          {select(trendA, setTrendA)}
+          {select(trendB, setTrendB, true)}
+        </div>
+        <TrendChart series={trend} />
+        <p class="muted legend">Chấm = từng ngày, đường = trung bình trượt 7 ngày.</p>
+      </section>
 
-      <h2 class="sub">Theo chỉ số</h2>
-      {select(viewId, setViewId)}
-      <div class="datenav">
-        <button
-          type="button"
-          aria-label="Tháng trước"
-          onClick={() => setMonth(shiftMonth(month, -1))}
-        >
-          ◀
-        </button>
-        <strong>
-          Tháng {month.slice(5)}/{month.slice(0, 4)}
-        </strong>
-        <button
-          type="button"
-          aria-label="Tháng sau"
-          disabled={month >= today.slice(0, 7)}
-          onClick={() => setMonth(shiftMonth(month, 1))}
-        >
-          ▶
-        </button>
-      </div>
-      <MonthCalendar month={month} points={monthPoints} />
-      <h2 class="sub">Theo thứ trong tuần (90 ngày)</h2>
-      <WeekdayBars values={weekdayValues} />
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Theo chỉ số</h2>
+        </div>
+        {select(viewId, setViewId)}
+        <div class="datenav">
+          <button
+            type="button"
+            aria-label="Tháng trước"
+            onClick={() => setMonth(shiftMonth(month, -1))}
+          >
+            ◀
+          </button>
+          <strong>
+            Tháng {month.slice(5)}/{month.slice(0, 4)}
+          </strong>
+          <button
+            type="button"
+            aria-label="Tháng sau"
+            disabled={month >= today.slice(0, 7)}
+            onClick={() => setMonth(shiftMonth(month, 1))}
+          >
+            ▶
+          </button>
+        </div>
+        <MonthCalendar month={month} points={monthPoints} />
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Theo thứ trong tuần (90 ngày)</h2>
+        </div>
+        <WeekdayBars values={weekdayValues} />
+      </section>
 
       <AskClaude ctx={ctx} metrics={metrics} today={today} />
     </div>

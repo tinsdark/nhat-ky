@@ -107,3 +107,7 @@ Chưa kiểm: ghi offline rồi sync hai máy, hai máy sửa cùng Entry, token
 
 - `Workflow`, `Agent` chỉ dùng khi Đạt yêu cầu rõ.
 - Bộ kiểm soát quyền của Claude Code từng chặn commit sửa luật bảo mật trong `CLAUDE.md` cho đến khi Đạt cho phép lệnh Bash trong cài đặt quyền. Nếu bị chặn lại thì dừng và báo, đừng tìm đường lách.
+
+## P5 — Làm lại giao diện (T5.1–T5.6)
+
+Giao diện theo họ Sổ Tiền (giấy kem, thẻ bo 20px, pill chuyển mục, tab bar icon), màu nhấn xanh lá `#2f5d50`. Mọi màu qua token CSS ở đầu `src/ui/style.css`. Repo tham chiếu (chỉ đọc): `tinsdark/so-chi-tieu`. Cài đặt chia 6 mục (`src/ui/settings/`), nút dev nằm ở mục "Dữ liệu". Chưa kiểm trên điện thoại thật.

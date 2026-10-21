@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks'
 import { addFakeData, clearFakeData } from '../dev/panel'
+import { Section } from './settings/fields'
 
 /** Only reachable in `npm run dev`; the production build never includes it. */
 export default function DevPanel() {
@@ -9,9 +10,12 @@ export default function DevPanel() {
     setMsg(`${label}: ${await job()} bản ghi`)
   }
   return (
-    <>
-      <h2 class="sub">Dev: dữ liệu test</h2>
-      <div class="stack">
+    <Section
+      title="Dev: dữ liệu test"
+      tint="warn"
+      hint="Chỉ có khi chạy npm run dev. Bản deploy không chứa phần này."
+    >
+      <div class="btnlist">
         <button
           type="button"
           class="btn"
@@ -33,8 +37,8 @@ export default function DevPanel() {
         >
           Xoá dữ liệu test
         </button>
-        {msg && <p class="muted">{msg}</p>}
       </div>
-    </>
+      {msg && <p class="muted">{msg}</p>}
+    </Section>
   )
 }

@@ -3,10 +3,11 @@ import { defineConfig } from 'vite'
 import preact from '@preact/preset-vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const THEME_COLOR = '#3b4a9e'
+const THEME_COLOR = '#2f5d50'
 
 export default defineConfig({
   base: '/nhat-ky/',
+  define: { __BUILD_TIME__: JSON.stringify(new Date().toISOString()) },
   plugins: [
     preact(),
     VitePWA({
@@ -21,7 +22,7 @@ export default defineConfig({
         scope: '/nhat-ky/',
         display: 'standalone',
         theme_color: THEME_COLOR,
-        background_color: '#ffffff',
+        background_color: '#f7f0de',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },

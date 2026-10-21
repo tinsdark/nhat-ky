@@ -2,7 +2,7 @@ import { useMemo, useState } from 'preact/hooks'
 import { addDays, toDateKey } from '../../core/date'
 import { allMetrics, createMetricContext } from '../../core/metrics'
 import { getDaysInRange, getDefs, getEntriesInRange, getSettings } from '../../data/repository'
-import { Choice } from '../Choice'
+import { Pills } from '../Pills'
 import { Food } from '../stats/Food'
 import { Health } from '../stats/Health'
 import { Overview } from '../stats/Overview'
@@ -40,13 +40,7 @@ export function Stats() {
   return (
     <section class="screen">
       <h1>Thống kê</h1>
-      <Choice
-        label=""
-        className="noprint"
-        options={TABS}
-        value={tab}
-        onChange={(v) => v && setTab(v)}
-      />
+      <Pills className="noprint" options={TABS} value={tab} onChange={setTab} />
       {tab === 'overview' && <Overview data={data} />}
       {tab === 'food' && <Food data={data} />}
       {tab === 'time' && <Time data={data} />}

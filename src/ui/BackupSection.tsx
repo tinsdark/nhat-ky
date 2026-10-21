@@ -8,6 +8,7 @@ import { buildZip } from '../backup/zip'
 import { photos } from '../photos'
 import { db } from '../data/db'
 import { getDefs, getEntriesInRange } from '../data/repository'
+import { Section } from './settings/fields'
 
 function download(name: string, data: BlobPart, type: string) {
   const url = URL.createObjectURL(new Blob([data], { type }))
@@ -96,67 +97,77 @@ export function BackupSection({ dayStartHour }: { dayStartHour: number }) {
 
   return (
     <>
-      <h2 class="sub">Sao lưu và xuất dữ liệu</h2>
-      <div class="form">
-        <p class="muted hint">
-          Mỗi Chủ nhật app tự tạo bản sao lưu trên Drive (giữ 8 bản gần nhất, không kèm ảnh) khi mày
-          mở app và đã đăng nhập.
-        </p>
-        <button type="button" class="btn" onClick={() => void exportJson()}>
-          Xuất JSON đầy đủ
-        </button>
-        <button type="button" class="btn" onClick={() => void exportZip()}>
-          Xuất JSON kèm ảnh (zip)
-        </button>
-        <label class="btn filebtn">
-          Nhập từ CSV (dữ liệu cũ)
-          <input
-            type="file"
-            accept=".csv,text/csv"
-            hidden
-            onChange={(e) => {
-              const f = e.currentTarget.files?.[0]
-              e.currentTarget.value = ''
-              if (f) void importCsvFile(f)
-            }}
-          />
-        </label>
-        <label class="btn filebtn">
-          Nhập từ JSON (khôi phục)
-          <input
-            type="file"
-            accept="application/json,.json"
-            hidden
-            onChange={(e) => {
-              const f = e.currentTarget.files?.[0]
-              e.currentTarget.value = ''
-              if (f) void importJson(f)
-            }}
-          />
-        </label>
-        <div class="row">
-          <label>
-            Từ ngày
-            <input type="date" value={from} onChange={(e) => setFrom(e.currentTarget.value)} />
-          </label>
-          <label>
-            Đến ngày
-            <input type="date" value={to} onChange={(e) => setTo(e.currentTarget.value)} />
+      <Section
+        title="Sao lưu"
+        hint="Mỗi Chủ nhật app tự tạo bản sao lưu trên Drive (giữ 8 bản gần nhất, không kèm ảnh) khi mày mở app và đã đăng nhập."
+      >
+        <div class="btnlist">
+          <button type="button" class="btn" onClick={() => void exportJson()}>
+            Xuất JSON đầy đủ
+          </button>
+          <button type="button" class="btn" onClick={() => void exportZip()}>
+            Xuất JSON kèm ảnh (zip)
+          </button>
+          <label class="btn filebtn">
+            Khôi phục từ JSON
+            <input
+              type="file"
+              accept="application/json,.json"
+              hidden
+              onChange={(e) => {
+                const f = e.currentTarget.files?.[0]
+                e.currentTarget.value = ''
+                if (f) void importJson(f)
+              }}
+            />
           </label>
         </div>
-        <label>
-          Loại
-          <select value={type} onChange={(e) => setType(e.currentTarget.value as EntryType | '')}>
-            {TYPES.map((t) => (
-              <option value={t.id}>{t.label}</option>
-            ))}
-          </select>
-        </label>
-        <button type="button" class="btn" onClick={() => void exportCsv()}>
-          Xuất CSV
-        </button>
-        {msg && <p class="muted">{msg}</p>}
-      </div>
+      </Section>
+
+      <Section
+        title="Xuất và nhập CSV"
+        hint="CSV mở được bằng Excel. Nhập CSV bỏ qua các dòng trùng với dữ liệu đang có."
+      >
+        <div class="form">
+          <div class="row">
+            <label>
+              Từ ngày
+              <input type="date" value={from} onChange={(e) => setFrom(e.currentTarget.value)} />
+            </label>
+            <label>
+              Đến ngày
+              <input type="date" value={to} onChange={(e) => setTo(e.currentTarget.value)} />
+            </label>
+          </div>
+          <label>
+            Loại
+            <select value={type} onChange={(e) => setType(e.currentTarget.value as EntryType | '')}>
+              {TYPES.map((t) => (
+                <option value={t.id}>{t.label}</option>
+              ))}
+            </select>
+          </label>
+          <div class="btnlist">
+            <button type="button" class="btn" onClick={() => void exportCsv()}>
+              Xuất CSV
+            </button>
+            <label class="btn filebtn">
+              Nhập từ CSV
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                hidden
+                onChange={(e) => {
+                  const f = e.currentTarget.files?.[0]
+                  e.currentTarget.value = ''
+                  if (f) void importCsvFile(f)
+                }}
+              />
+            </label>
+          </div>
+        </div>
+      </Section>
+      {msg && <p class="notice-line">{msg}</p>}
     </>
   )
 }
