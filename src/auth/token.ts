@@ -53,7 +53,8 @@ export function createAuth({ request, revoke, storage, now = Date.now }: AuthDep
   const isFresh = () => token !== null && now() < expiresAt - REFRESH_MARGIN_MS
 
   const saved = {
-    save: () => safe(() => storage?.setItem(TOKEN_KEY, JSON.stringify({ t: token, exp: expiresAt }))),
+    save: () =>
+      safe(() => storage?.setItem(TOKEN_KEY, JSON.stringify({ t: token, exp: expiresAt }))),
     clear: () => safe(() => storage?.removeItem(TOKEN_KEY)),
   }
 
