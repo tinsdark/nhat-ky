@@ -17,22 +17,26 @@ export function Timeline({
   tags,
   dateKey,
   onOpen,
+  title = 'Đã ghi trong ngày',
+  emptyText = 'Chưa ghi gì. Chạm một nút ở trên để bắt đầu.',
 }: {
   rows: TimelineRow[]
   categories: Category[]
   tags: Tag[]
   dateKey: string
   onOpen: (e: Entry) => void
+  title?: string
+  emptyText?: string
 }) {
   const count = rows.filter((r) => r.kind === 'entry').length
   return (
     <section class="panel">
       <div class="panel-head">
-        <h2>Đã ghi trong ngày</h2>
+        <h2>{title}</h2>
         <span class="muted">{count} mục</span>
       </div>
       {rows.length === 0 ? (
-        <p class="muted empty">Chưa ghi gì. Chạm một nút ở trên để bắt đầu.</p>
+        <p class="muted empty">{emptyText}</p>
       ) : (
         <ul class="rows tl">
           {rows.map((r) =>

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'preact/hooks'
 import { backfillDefaults, roundHHmm } from '../../core/backfill'
-import { addDays, atTime, toDateKey, toHHmm, weekday } from '../../core/date'
+import { addDays, atTime, toDateKey, toHHmm } from '../../core/date'
 import { addMinutes, copyToDay } from '../../core/entryForm'
+import { buildTimeline, coreProgress } from '../../core/timeline'
 import type { Entry, QuickAction } from '../../core/types'
 import {
   createEntry,
@@ -11,13 +12,15 @@ import {
   restoreEntry,
   softDeleteEntry,
 } from '../../data/repository'
+import { DateNav } from '../DateNav'
 import { EntryDetail } from '../EntryDetail'
+import { Icon } from '../Icon'
 import { draftFromEntry, EntryForm, type FormDraft } from '../EntryForm'
 import { parseHashQuery } from '../route'
+import { Timeline } from '../today/Timeline'
 import { Toast, type ToastData } from '../Toast'
 import { useLive } from '../useLive'
 
-const WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
 /** Sleep has two quick buttons on Hôm nay; here one "Ngủ đêm" preset replaces both. */
 const SLEEP_ACTIONS = new Set(['qa-sleep', 'qa-wake'])
 
@@ -109,89 +112,102 @@ export function Backfill() {
     .sort((a, b) => a.order - b.order)
     .filter((a) => !SLEEP_ACTIONS.has(a.id))
   const written = entries.filter((e) => e.source === 'backfill')
-  const [dd, mm] = dateKey.slice(5).split('-').reverse()
+  // What the day still lacks, so those tiles can say "chưa có".
+  const missing = new Set(
+    coreProgress(entries, undefined)
+      .filter((i) => !i.done)
+      .map((i) => i.id),
+  )
+  const lacks = (a: QuickAction) =>
+    (a.categoryId === 'cat-breakfast' && missing.has('breakfast')) ||
+    (a.categoryId === 'cat-lunch' && missing.has('lunch')) ||
+    (a.categoryId === 'cat-dinner' && missing.has('dinner')) ||
+    (a.type === 'work' && missing.has('work'))
 
   return (
     <section class="screen">
       <h1>Ghi bù</h1>
-      <p class="muted hint">
-        Ghi những việc đã làm xong mà chưa kịp bấm. Giờ ở đây chỉ là ước lượng, nên các mục này được
-        đánh dấu "ghi bù" và tách khỏi tab Hôm nay.
-      </p>
+      <p class="muted lead">Ghi những việc đã làm xong mà chưa kịp bấm ở Hôm nay.</p>
 
-      <div class="datenav">
-        <button
-          type="button"
-          aria-label="Ngày trước"
-          onClick={() => setDateKey(addDays(dateKey, -1))}
-        >
-          ◀
-        </button>
-        <div>
-          <strong>
-            {WEEKDAYS[weekday(dateKey)]}, {dd}/{mm}
-          </strong>
-          {isToday && <span class="muted"> · Hôm nay</span>}
+      <DateNav dateKey={dateKey} todayKey={todayKey} onChange={setDateKey} />
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Chọn việc đã làm</h2>
         </div>
-        <button
-          type="button"
-          aria-label="Ngày sau"
-          disabled={isToday}
-          onClick={() => setDateKey(addDays(dateKey, 1))}
-        >
-          ▶
-        </button>
-      </div>
-
-      <div class="quickgrid">
-        <button
-          type="button"
-          class="quick"
-          onClick={() =>
-            setForm(
-              draftFor(
-                { type: 'sleep', categoryId: 'cat-sleep', title: 'Ngủ đêm', value: null, unit: '' },
-                addDays(dateKey, -1),
-              ),
-            )
-          }
-        >
-          <span class="ico">🌙</span>
-          Ngủ đêm qua
-        </button>
-        {presets.map((a) => (
-          <button type="button" class="quick" onClick={() => setForm(draftFor(a))}>
-            <span class="ico">{a.icon}</span>
-            {a.name}
-          </button>
-        ))}
-        <button
-          type="button"
-          class="quick"
-          onClick={() =>
-            setForm(
-              draftFor({ type: 'activity', categoryId: '', title: '', value: null, unit: '' }),
-            )
-          }
-        >
-          <span class="ico">＋</span>
-          Khác
-        </button>
-      </div>
-
-      <h2 class="sub">Đã ghi bù ngày này</h2>
-      {written.length === 0 && <p class="muted">Chưa có mục ghi bù nào.</p>}
-      <div class="timeline">
-        {written.map((e) => (
-          <button type="button" class="block" onClick={() => setDetail(e)}>
-            <span class="time">
-              {toHHmm(e.start)}
-              {e.end ? `–${toHHmm(e.end)}` : ''}
+        <div class="quickgrid">
+          <button
+            type="button"
+            class={missing.has('sleep') ? 'quick suggest' : 'quick'}
+            onClick={() =>
+              setForm(
+                draftFor(
+                  {
+                    type: 'sleep',
+                    categoryId: 'cat-sleep',
+                    title: 'Ngủ đêm',
+                    value: null,
+                    unit: '',
+                  },
+                  addDays(dateKey, -1),
+                ),
+              )
+            }
+          >
+            <span class="ico">
+              <Icon name="moon" size={24} />
             </span>
-            <span>{e.title || e.type}</span>
+            Ngủ đêm qua
+            {missing.has('sleep') && <span class="need">chưa có</span>}
           </button>
-        ))}
-      </div>
+          {presets.map((a) => (
+            <button
+              type="button"
+              class={lacks(a) ? 'quick suggest' : 'quick'}
+              onClick={() => setForm(draftFor(a))}
+            >
+              <span
+                class="ico"
+                style={{
+                  background: `color-mix(in srgb, ${defs.categories.find((c) => c.id === a.categoryId)?.color ?? 'var(--border)'} 22%, var(--card))`,
+                }}
+              >
+                {a.icon}
+              </span>
+              {a.name}
+              {lacks(a) && <span class="need">chưa có</span>}
+            </button>
+          ))}
+          <button
+            type="button"
+            class="quick add"
+            onClick={() =>
+              setForm(
+                draftFor({ type: 'activity', categoryId: '', title: '', value: null, unit: '' }),
+              )
+            }
+          >
+            <span class="ico">
+              <Icon name="plus" size={22} />
+            </span>
+            Việc khác
+          </button>
+        </div>
+        <p class="muted hint">
+          Giờ có sẵn là giờ thường ngày của mục đó (ví dụ ăn trưa 12:00); chỉnh lại hoặc chọn thời
+          lượng ước lượng rồi bấm Lưu. Các mục ở đây được đánh dấu "ghi bù".
+        </p>
+      </section>
+
+      <Timeline
+        rows={buildTimeline(written, { gapMinutes: Infinity })}
+        categories={defs.categories}
+        tags={defs.tags}
+        dateKey={dateKey}
+        onOpen={setDetail}
+        title="Đã ghi bù ngày này"
+        emptyText="Chưa có mục ghi bù nào cho ngày này."
+      />
 
       {detail && (
         <EntryDetail

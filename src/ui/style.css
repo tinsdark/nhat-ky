@@ -1460,3 +1460,58 @@ table.grid.left td {
 .sleep-actions .btn {
   justify-content: center;
 }
+
+/* ---- Ghi bù ------------------------------------------------------- */
+.lead {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+}
+.quick.suggest {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.quick .need {
+  margin-top: -2px;
+  color: var(--accent);
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+.panel > .hint {
+  margin: 10px 0 0;
+  font-size: 0.75rem;
+}
+
+/* Form fields must shrink with their row instead of overflowing it. */
+.sheet input,
+.sheet select,
+.sheet textarea {
+  min-width: 0;
+  width: 100%;
+}
+.sheet .row > label {
+  min-width: 0;
+}
+.sheet select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 20px) 50%,
+    calc(100% - 14px) 50%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 34px;
+}
+
+.screen .sheet textarea {
+  background: var(--input-bg);
+}
+/* Save / cancel stay in reach however long the form is. */
+.sheet > form > .row:last-child,
+form.sheet > .row:last-child {
+  position: sticky;
+  bottom: calc(-1 * env(safe-area-inset-bottom));
+  padding: 10px 0 4px;
+  background: var(--card);
+}
