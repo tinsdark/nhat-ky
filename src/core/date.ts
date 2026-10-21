@@ -46,3 +46,20 @@ export function toIso(ts: number | Date = Date.now()): string {
   const ms = new Date(ts).getTime()
   return new Date(ms + VN_OFFSET_MS).toISOString().replace('Z', '+07:00')
 }
+
+/** ISO timestamp of `HH:mm` on a logical day. Hours before `dayStartHour` fall on the next calendar day. */
+export function atTime(
+  dateKey: string,
+  hhmm: string,
+  dayStartHour = DEFAULT_DAY_START_HOUR,
+): string {
+  const [h, m] = hhmm.split(':').map(Number) as [number, number]
+  const dayOffset = h < dayStartHour ? 1 : 0
+  const ms = dateKeyToMs(dateKey) + dayOffset * DAY_MS + (h * 60 + m) * 60_000 - VN_OFFSET_MS
+  return toIso(ms)
+}
+
+/** `HH:mm` (Vietnam time) of a timestamp. */
+export function toHHmm(ts: string | number | Date): string {
+  return toIso(new Date(ts)).slice(11, 16)
+}

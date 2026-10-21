@@ -3,6 +3,7 @@ import { hasSession } from '../auth'
 import { Login } from './screens/Login'
 import { Placeholder } from './screens/Placeholder'
 import { Settings } from './screens/Settings'
+import { Today } from './screens/Today'
 import { SyncIndicator } from './SyncIndicator'
 import { parseHash, TABS } from './route'
 
@@ -56,7 +57,7 @@ export function App() {
         <SyncIndicator onLogin={() => setGate(true)} />
       </header>
       <main class="content">
-        {tab === 'today' && <Placeholder title="Hôm nay" note="Làm ở T1.3." />}
+        {tab === 'today' && <Today />}
         {tab === 'habits' && <Placeholder title="Thói quen" note="Làm ở T1.8." />}
         {tab === 'stats' && <Placeholder title="Thống kê" note="Làm ở T2.2." />}
         {tab === 'settings' && (

@@ -177,3 +177,203 @@ h1 {
   font-size: 1.2rem;
   line-height: 1;
 }
+
+.datenav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.datenav button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--fg);
+  font-size: 1rem;
+}
+.datenav button:disabled {
+  opacity: 0.3;
+}
+
+.progress .bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface);
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.progress .bar div {
+  height: 100%;
+  background: var(--accent);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 16px;
+}
+.chip {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.chip.done {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.quickgrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.quick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 64px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.8rem;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+.quick .ico {
+  font-size: 1.3rem;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 0;
+  border-left: 4px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+}
+.block .time {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.gap {
+  min-height: 44px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(72px + env(safe-area-inset-bottom));
+  width: 56px;
+  height: 56px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 1.8rem;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.3);
+}
+
+.toast {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: calc(136px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px 4px 16px;
+  border-radius: 10px;
+  background: var(--fg);
+  color: var(--bg);
+  z-index: 3;
+}
+.toast span {
+  flex: 1;
+}
+.toast button {
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+}
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  align-items: flex-end;
+  background: rgb(0 0 0 / 0.45);
+}
+.sheet {
+  width: 100%;
+  max-height: 90dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  border-radius: 16px 16px 0 0;
+  background: var(--bg);
+}
+.sheet h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+.sheet label {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.sheet input,
+.sheet select,
+.sheet textarea {
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  font-size: 1rem;
+}
+.row {
+  display: flex;
+  gap: 10px;
+}
+.row .btn {
+  flex: 1;
+}

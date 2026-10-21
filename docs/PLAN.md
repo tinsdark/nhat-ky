@@ -48,7 +48,7 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
 
 - [x] **T1.1 Khung app.** Thanh tab dưới: Hôm nay · Thói quen · Thống kê · Cài đặt. Chỉ báo sync ở header. Màn đăng nhập lần đầu.
 - [x] **T1.2 Dữ liệu mặc định.** Seed lần đầu: danh mục (Module 4.1 + loại ăn uống), 8 nút nhanh (Module 1.1 + "Ra ngoài trời"), 6 thói quen mẫu (bật 3, Module 2.4), settings mặc định (`dayStartHour` 4, giờ làm 8:00–17:30 T2–T6, mục tiêu ngủ 7,5h, nước 2000ml, vận động 150 phút/tuần).
-- [ ] **T1.3 Màn Hôm nay** (Module 1.1, 1.2). Đổi ngày ◀ ▶, thanh "đã ghi x/y mục cốt lõi", lưới nút nhanh (chạm = tạo Entry + toast 5s có Sửa/Hoàn tác; giữ = mở form điền sẵn), timeline dọc theo giờ, khoảng trống > 2h hiện vạch "chưa ghi" chạm để điền, nút + nổi.
+- [x] **T1.3 Màn Hôm nay** (Module 1.1, 1.2). Đổi ngày ◀ ▶, thanh "đã ghi x/y mục cốt lõi", lưới nút nhanh (chạm = tạo Entry + toast 5s có Sửa/Hoàn tác; giữ = mở form điền sẵn), timeline dọc theo giờ, khoảng trống > 2h hiện vạch "chưa ghi" chạm để điền, nút + nổi.
     - Xong khi: ghi "Ăn trưa" ≤ 2 chạm; Entry 23:00–01:00 hiện đúng trên timeline ngày logic.
 - [ ] **T1.4 Timer** (Module 1.2, 4). Một timer chạy tại một thời điểm, lưu trạng thái trong IndexedDB (reload/đóng app không mất). Bật timer mới tự dừng timer cũ. Dừng → hỏi focus 1–5 (bỏ qua được). Nút +1 bị ngắt. Tự set `isOvertime` theo giờ làm chuẩn.
 - [ ] **T1.5 Form đầy đủ** (Module 1.3). Trường chung + payload theo loại: sleep, meal (Module 3.2, chưa có ảnh), work/activity (4.2), exercise (5.2), water, check-in năng lượng/tâm trạng (5.3). Gợi ý title theo tần suất từ lịch sử. Nút giờ −15p/−30p/−1h. Validate `end > start`, cảnh báo trùng giờ.
