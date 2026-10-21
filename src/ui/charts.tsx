@@ -1,0 +1,129 @@
+import { weekday } from '../core/date'
+import type { Point } from '../core/stats'
+
+const W = 340
+const H = 140
+const PAD = 6
+
+function scale(values: number[]): (v: number) => number {
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const span = max - min || 1
+  return (v) => H - PAD - ((v - min) / span) * (H - 2 * PAD)
+}
+
+/** Raw days as dots, trailing average as a line. Each series is scaled to its own min–max. */
+export function TrendChart({
+  series,
+}: {
+  series: { raw: Point[]; avg: Point[]; color: string; label: string }[]
+}) {
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Xu hướng 90 ngày">
+      {series.map((s) => {
+        const n = s.raw.length
+        const x = (i: number) => PAD + (i / Math.max(1, n - 1)) * (W - 2 * PAD)
+        const present = s.raw.map((p) => p.value).filter((v): v is number => v !== null)
+        if (present.length === 0) return null
+        const y = scale(present)
+        const line = s.avg
+          .map((p, i) => (p.value === null ? null : `${x(i).toFixed(1)},${y(p.value).toFixed(1)}`))
+          .filter(Boolean)
+          .join(' ')
+        return (
+          <g>
+            {s.raw.map((p, i) =>
+              p.value === null ? null : (
+                <circle cx={x(i)} cy={y(p.value)} r="1.6" fill={s.color} opacity="0.35" />
+              ),
+            )}
+            <polyline
+              points={line}
+              fill="none"
+              stroke={s.color}
+              stroke-width="2"
+              stroke-linejoin="round"
+            />
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
+/** Seven bars, Monday first. */
+export function WeekdayBars({ values }: { values: (number | null)[] }) {
+  const labels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+  const present = values.filter((v): v is number => v !== null)
+  const max = present.length ? Math.max(...present, 0) : 1
+  const min = Math.min(...present, 0)
+  const span = max - min || 1
+  return (
+    <svg viewBox="0 0 280 120" class="chart" role="img" aria-label="Trung bình theo thứ trong tuần">
+      {values.map((v, i) => {
+        const h = v === null ? 0 : ((v - min) / span) * 80
+        return (
+          <g>
+            <rect
+              x={i * 40 + 8}
+              y={90 - h}
+              width="24"
+              height={Math.max(h, v === null ? 0 : 2)}
+              rx="3"
+              fill="var(--accent)"
+            />
+            <text x={i * 40 + 20} y="108" text-anchor="middle" font-size="11" fill="var(--muted)">
+              {labels[i]}
+            </text>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
+/** Month grid, Monday first; each day shaded by value within the month's min–max. */
+export function MonthCalendar({ month, points }: { month: string; points: Point[] }) {
+  const byKey = new Map(points.map((p) => [p.dateKey, p.value]))
+  const inMonth = points
+    .filter((p) => p.dateKey.startsWith(month) && p.value !== null)
+    .map((p) => p.value as number)
+  const min = Math.min(...inMonth)
+  const max = Math.max(...inMonth)
+  const span = max - min || 1
+  const first = `${month}-01`
+  const lead = weekday(first)
+  const last = new Date(
+    Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0),
+  ).getUTCDate()
+  const cells: (string | null)[] = [
+    ...Array(lead).fill(null),
+    ...Array.from({ length: last }, (_, i) => `${month}-${String(i + 1).padStart(2, '0')}`),
+  ]
+  return (
+    <div class="month">
+      {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((l) => (
+        <span class="mh">{l}</span>
+      ))}
+      {cells.map((k) => {
+        if (!k) return <span />
+        const v = byKey.get(k) ?? null
+        const t = v === null ? 0 : 0.2 + 0.8 * ((v - min) / span)
+        return (
+          <span
+            class={v === null ? 'md empty' : 'md'}
+            style={
+              v === null
+                ? undefined
+                : {
+                    background: `color-mix(in srgb, var(--accent) ${Math.round(t * 100)}%, var(--bg))`,
+                  }
+            }
+          >
+            {Number(k.slice(8))}
+          </span>
+        )
+      })}
+    </div>
+  )
+}

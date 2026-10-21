@@ -115,28 +115,95 @@ export interface Settings {
   sleepTargetHours: number
   waterTargetMl: number
   exerciseTargetMinPerWeek: number
+  /** HH:mm after which the in-app "rate the day" banner appears. */
+  reviewTime: string
+  /** Habit streaks and rates skip days typed sick or travel. */
+  skipRestDays: boolean
+  /** Upload photos only on Wi-Fi (when the browser can tell). */
+  photosWifiOnly: boolean
+  /** Rule threshold overrides, keyed `<ruleId>.<param>`; missing keys use the rule's default. */
+  ruleThresholds: Record<string, number>
   theme: 'light' | 'dark' | 'system'
 }
 
 export type InsightStatus = 'new' | 'seen' | 'trying' | 'helpful' | 'wrong' | 'hidden'
 
 export interface Insight {
+  /** Stable per `kind`: the same finding keeps its card and its feedback from day to day. */
   id: string
   source: 'rule' | 'correlation'
-  /** Rule id or correlation key; used to down-weight rejected insight kinds. */
+  /** `rule:<key>` or `corr:<factor>><outcome>:<lag>`; the weight key is derived from it. */
   kind: string
   text: string
   confidence: 'weak' | 'medium' | 'strong' | null
   status: InsightStatus
+  /** Hidden until this dateKey (exclusive end); null when visible. */
   hiddenUntil: string | null
+  /** What to try, when the finding is actionable (also the experiment's name); null = information only. */
+  action: string | null
+  /** Ranking score before feedback weights. */
+  score: number
+  /** Last day the engine produced it / last day it was shown among the daily picks. */
+  lastSeenDate: string | null
+  lastShownDate: string | null
   createdAt: string
   updatedAt: string
 }
 
+export type ExperimentStatus = 'running' | 'finished' | 'kept' | 'dropped'
+
+export interface ExperimentResult {
+  /** Days the habit was ticked inside the window, and baseline days before it. */
+  nTest: number
+  nBase: number
+  testMean: number | null
+  baseMean: number | null
+  /** Cohen's d of test minus baseline; null when too few days. */
+  d: number | null
+  verdict: 'better' | 'worse' | 'same' | 'insufficient'
+}
+
+/** A 14-day trial of one change, run through a temporary habit (SPEC 8.5). */
+export interface Experiment {
+  id: string
+  insightId: string
+  /** What is being changed and what is measured; lag 1 = outcome of the day after. */
+  factorId: string
+  outcomeId: string
+  lag: 0 | 1
+  title: string
+  habitId: string
+  startDate: string
+  endDate: string
+  status: ExperimentStatus
+  result: ExperimentResult | null
+}
+
+/** Everything the advice engine keeps (synced as one file, `nk_insights.json`). */
+export interface InsightStore {
+  items: Insight[]
+  /** Per insight type (rule id, or `corr:<factor>`): below 1 after "Không đúng", above 1 after "Hữu ích". */
+  weights: Record<string, number>
+  /** dateKey of the last engine run, so it runs once a day. */
+  lastRunDate: string | null
+  experiments: Experiment[]
+  /** Answers the user pasted back from Claude ("Hỏi Claude"). */
+  claudeNotes: ClaudeNote[]
+}
+
+export interface ClaudeNote {
+  id: string
+  createdAt: string
+  /** The question asked, and the pasted answer. */
+  question: string
+  text: string
+}
+
 export interface PhotoRecord {
   id: string
-  blob: Blob
-  thumb: Blob
+  /** Full-size file; null once evicted from the local cache (it is still on Drive). */
+  blob: Blob | null
+  thumb: Blob | null
   createdAt: string
   /** 1 once both files are on Drive. */
   uploaded: 0 | 1

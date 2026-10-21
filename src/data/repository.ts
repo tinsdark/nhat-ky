@@ -34,7 +34,8 @@ export async function getSettings(): Promise<Settings> {
   if (!row) return { ...DEFAULT_SETTINGS }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { key, updatedAt, deviceId, dirty, ...settings } = row
-  return settings
+  // Fills fields added after this row was written (e.g. by another device on an older version).
+  return { ...DEFAULT_SETTINGS, ...settings }
 }
 
 export async function saveSettings(patch: Partial<Settings>): Promise<void> {
@@ -116,6 +117,19 @@ export async function softDeleteEntry(id: string): Promise<void> {
   await db.entries.put({
     ...current,
     deleted: true,
+    updatedAt: toIso(),
+    deviceId: await getDeviceId(),
+    dirty: 1,
+  })
+}
+
+/** Undo for softDeleteEntry. */
+export async function restoreEntry(id: string): Promise<void> {
+  const current = await db.entries.get(id)
+  if (!current) throw new Error(`Entry not found: ${id}`)
+  await db.entries.put({
+    ...current,
+    deleted: false,
     updatedAt: toIso(),
     deviceId: await getDeviceId(),
     dirty: 1,
