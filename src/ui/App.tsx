@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'preact/hooks'
 import { hasSession } from '../auth'
 import { Login } from './screens/Login'
-import { Placeholder } from './screens/Placeholder'
 import { Habits } from './screens/Habits'
+import { Stats } from './screens/Stats'
 import { Settings } from './screens/Settings'
 import { Today } from './screens/Today'
 import { SyncIndicator } from './SyncIndicator'
@@ -60,7 +60,7 @@ export function App() {
       <main class="content">
         {tab === 'today' && <Today />}
         {tab === 'habits' && <Habits />}
-        {tab === 'stats' && <Placeholder title="Thống kê" note="Làm ở T2.2." />}
+        {tab === 'stats' && <Stats />}
         {tab === 'settings' && (
           <Settings
             onSignedOut={() => {

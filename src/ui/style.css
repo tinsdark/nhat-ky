@@ -563,3 +563,69 @@ h1 {
 .cell.future {
   opacity: 0.3;
 }
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.card strong {
+  font-size: 1.2rem;
+}
+.card .muted {
+  font-size: 0.78rem;
+}
+.advice {
+  font-size: 0.9rem;
+}
+.chart {
+  width: 100%;
+  height: auto;
+  margin-top: 8px;
+}
+.legend {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+}
+.screen select {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  width: 100%;
+}
+.month {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.month .mh {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+.month .md {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+.month .md.empty {
+  border: 1px dashed var(--border);
+  color: var(--muted);
+}
