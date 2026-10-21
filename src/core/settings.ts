@@ -8,6 +8,5 @@ export const DEFAULT_SETTINGS: Settings = {
   sleepTargetHours: 7.5,
   waterTargetMl: 2000,
   exerciseTargetMinPerWeek: 150,
-  sotien: { enabled: false, categoryMap: {} },
   theme: 'system',
 }

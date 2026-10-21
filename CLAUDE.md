@@ -28,9 +28,9 @@ Không thêm dependency mới ngoài danh sách trên mà không hỏi Đạt.
 1. **Local-first.** UI chỉ đọc/ghi IndexedDB qua lớp `src/data/`. Không component nào gọi Drive trực tiếp.
 2. **Sync engine** (`src/sync/`) đẩy/kéo IndexedDB ↔ Google Drive `appDataFolder`. Merge từng bản ghi theo `updatedAt`; xoá là xoá mềm (`deleted: true`).
 3. **Đăng nhập**: Google Identity Services token client, scope duy nhất `https://www.googleapis.com/auth/drive.appdata`. Token giữ trong bộ nhớ và lưu kèm giờ hết hạn vào localStorage (khoá `nk_tok_v1`, sống ≤ 1 giờ, scope chỉ `drive.appdata`) để mở lại app trong ~1 giờ vào thẳng, như Sổ Tiền; đăng xuất thì xoá. Lỗi 401 → xin token im lặng (`prompt: ''`), thất bại mới hiện nút "Đăng nhập lại". Dữ liệu vẫn ghi local trong lúc chờ.
-4. **Client ID dùng chung với app Sổ Tiền** (để đọc giờ ăn uống). Client ID để trong `src/config.ts` — public, không phải secret. Không có secret nào trong repo.
-5. **File trên Drive**: mọi file của Nhật ký có tiền tố `nk_` (`nkp_`/`nkt_` cho ảnh). **Tuyệt đối không ghi, sửa, xoá file của Sổ Tiền** — chỉ đọc.
-6. **Không tiền**: khi đọc giao dịch Sổ Tiền, bỏ số tiền ngay tại adapter, không đưa vào bất kỳ type, IndexedDB hay file nào của Nhật ký.
+4. **Client ID dùng lại cái đang có** (cùng project Google với Sổ Tiền cho tiện; hai app không đọc, không ghi dữ liệu của nhau). Client ID để trong `src/config.ts` — public, không phải secret. Không có secret nào trong repo.
+5. **File trên Drive**: mọi file của Nhật ký có tiền tố `nk_` (`nkp_`/`nkt_` cho ảnh). Không đụng file của app khác.
+6. **Không tiền**: app không theo dõi và không lưu số tiền dưới bất kỳ hình thức nào.
 7. **Ngày logic**: một ngày kết thúc lúc `dayStartHour` (mặc định 04:00) sáng hôm sau. Mọi Entry có `dateKey` tính bằng **một hàm duy nhất** `toDateKey(ts, dayStartHour)` trong `src/core/date.ts`. Không tự cắt ngày ở chỗ khác. Múi giờ: Asia/Ho_Chi_Minh (UTC+7). Lưu thời gian dạng ISO có offset.
 8. **Không lưu số liệu dẫn xuất.** Tổng, trung bình, streak, chỉ số đều tính lại từ Entry + Day qua metric registry (`src/core/metrics/`).
 9. **`null` ≠ 0.** Ngày không ghi → metric trả `null`; phân tích bỏ qua `null`.
@@ -53,7 +53,6 @@ src/
   drive/               # Drive REST client (appDataFolder)
   sync/                # sync engine
   photos/              # nén ảnh, hàng đợi tải
-  sotien/              # adapter đọc Sổ Tiền (chỉ đọc)
   ui/                  # screens + components (Preact)
   dev/                 # sinh dữ liệu giả — chỉ chạy ở dev
 ```
@@ -91,6 +90,5 @@ src/
 
 ## Phải hỏi Đạt, không được đoán
 
-- Cấu trúc file/giao dịch của Sổ Tiền: chỉ dựa vào source repo `so-chi-tieu` khi Đạt cung cấp. Chưa có thì làm adapter theo interface + dữ liệu mock, đánh dấu TODO.
 - Bất kỳ thay đổi nào với schema dữ liệu đã có dữ liệu thật (sau 1/11): phải có migration và hỏi trước.
 - Thêm dependency, thêm scope OAuth, đổi cấu trúc file trên Drive.
