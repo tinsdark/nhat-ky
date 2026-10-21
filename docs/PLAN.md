@@ -53,7 +53,7 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
 - [x] **T1.4 Timer** (Module 1.2, 4). Một timer chạy tại một thời điểm, lưu trạng thái trong IndexedDB (reload/đóng app không mất). Bật timer mới tự dừng timer cũ. Dừng → hỏi focus 1–5 (bỏ qua được). Nút +1 bị ngắt. Tự set `isOvertime` theo giờ làm chuẩn.
 - [x] **T1.5 Form đầy đủ** (Module 1.3). Trường chung + payload theo loại: sleep, meal (Module 3.2, chưa có ảnh), work/activity (4.2), exercise (5.2), water, check-in năng lượng/tâm trạng (5.3). Gợi ý title theo tần suất từ lịch sử. Nút giờ −15p/−30p/−1h. Validate `end > start`, cảnh báo trùng giờ.
 - [x] **T1.6 Giấc ngủ** (Module 5.1). "Đi ngủ" tạo Entry mở; "Thức dậy" đóng Entry đang mở + hỏi chất lượng. Sáng hôm sau không có giấc ngủ đêm qua → hỏi giờ ngủ, gợi ý = TB 7 ngày. Ngủ trưa `payload.nap`.
-- [ ] **T1.7 Chấm cuối ngày** (Module 1.4). Màn chấm Day: 4 thanh 1–5, điểm ngày 1–10, highlight, loại ngày, thói quen chưa tick. Banner trong app sau 21:30; sáng hôm sau hỏi lại một lần.
+- [x] **T1.7 Chấm cuối ngày** (Module 1.4). Màn chấm Day: 4 thanh 1–5, điểm ngày 1–10, highlight, loại ngày, thói quen chưa tick. Banner trong app sau 21:30; sáng hôm sau hỏi lại một lần.
 - [ ] **T1.8 Thói quen** (Module 2). CRUD định nghĩa, tick/+1, `linkedRule` cho nước uống. `src/core/habits.ts`: đạt ngày, streak (ngày không có lịch không đứt; lịch x lần/tuần tính theo tuần; tuỳ chọn bỏ qua ngày sick/travel), tỷ lệ 7/30/90 ngày. Heatmap 12 tuần.
     - Xong khi: test streak với lịch T2–T6, "3 lần/tuần", thói quen `quit`.
 - [ ] **T1.9 Sửa/xoá** (Module 1.5). Chạm khối → chi tiết → Sửa / Nhân bản / Xoá (mềm, có Hoàn tác). Chép khối từ hôm qua.

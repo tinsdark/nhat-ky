@@ -115,6 +115,8 @@ export interface Settings {
   sleepTargetHours: number
   waterTargetMl: number
   exerciseTargetMinPerWeek: number
+  /** HH:mm after which the in-app "rate the day" banner appears. */
+  reviewTime: string
   theme: 'light' | 'dark' | 'system'
 }
 

@@ -14,6 +14,8 @@ import { draftFromEntry, EntryForm, type FormDraft } from '../EntryForm'
 import { SleepPrompt, type SleepPromptState } from '../SleepPrompt'
 import { getRecentSleep, goToSleep, suggestBedtime, wakeUp } from '../../data/sleep'
 import { shouldAskLastNight } from '../../core/sleep'
+import { ReviewSheet } from '../ReviewSheet'
+import { reviewPrompt } from '../../core/review'
 import { TimerBar } from '../TimerBar'
 import { getRunningTimer, startTimer } from '../../data/timer'
 import { Toast, type ToastData } from '../Toast'
@@ -35,6 +37,15 @@ export function Today() {
   const entries = useLive(() => getEntriesByDateKey(dateKey), [dateKey])
   const day = useLive(() => getDay(dateKey), [dateKey])
   const timer = useLive(getRunningTimer, [])
+  const todayDay = useLive(() => getDay(todayKey), [todayKey])
+  const yesterdayKey = addDays(todayKey, -1)
+  const yesterdayDay = useLive(() => getDay(yesterdayKey), [yesterdayKey])
+  const yesterdayHasEntries = useLive(
+    async () => (await getEntriesByDateKey(yesterdayKey)).length > 0,
+    [yesterdayKey],
+  )
+  const [, setFlagTick] = useState(0) // localStorage flags are not reactive; bump to re-read them
+  const [reviewFor, setReviewFor] = useState<string | null>(null)
   const recentSleep = useLive(getRecentSleep, [])
   const [sleepPrompt, setSleepPrompt] = useState<SleepPromptState | null>(null)
   const [form, setForm] = useState<FormDraft | null>(null)
@@ -119,6 +130,24 @@ export function Today() {
     showSaved(entry, true)
   }
 
+  const review = reviewPrompt({
+    now,
+    dayStartHour,
+    reviewTime: settings.reviewTime,
+    today: todayDay,
+    yesterday: yesterdayDay,
+    yesterdayHasEntries: yesterdayHasEntries ?? false,
+    yesterdayAsked: flagged(reviewKey(yesterdayKey)),
+  })
+  const markAsked = (key: string) => {
+    setFlag(reviewKey(key))
+    setFlagTick((n) => n + 1)
+  }
+  const openReview = (r: { dateKey: string; kind: string }) => {
+    if (r.kind === 'yesterday') markAsked(r.dateKey)
+    setReviewFor(r.dateKey)
+  }
+
   const progress = coreProgress(entries, day)
   const doneCount = progress.filter((p) => p.done).length
   const rows = buildTimeline(entries, isToday ? { now } : {})
@@ -150,6 +179,21 @@ export function Today() {
         </button>
       </div>
 
+      {review && !reviewFor && (
+        <div class="timerbar">
+          <span>{review.kind === 'tonight' ? 'Chấm ngày hôm nay' : 'Hôm qua chưa chấm ngày'}</span>
+          <div class="actions">
+            {review.kind === 'yesterday' && (
+              <button type="button" class="btn" onClick={() => markAsked(review.dateKey)}>
+                Bỏ qua
+              </button>
+            )}
+            <button type="button" class="btn btn-primary" onClick={() => openReview(review)}>
+              Chấm
+            </button>
+          </div>
+        </div>
+      )}
       {sleepPrompt ? (
         <SleepPrompt
           state={sleepPrompt}
@@ -279,26 +323,30 @@ export function Today() {
           onStartTimer={isToday ? (f) => void beginTimer(f) : undefined}
         />
       )}
+      {reviewFor && <ReviewSheet dateKey={reviewFor} onClose={() => setReviewFor(null)} />}
       {toast && <Toast toast={toast} onClose={() => setToast(null)} />}
     </section>
   )
 }
 
 const askKey = (dateKey: string) => `nk_sleepAsk_${dateKey}`
-function askDismissed(dateKey: string): boolean {
+const reviewKey = (dateKey: string) => `nk_reviewAsked_${dateKey}`
+function flagged(key: string): boolean {
   try {
-    return localStorage.getItem(askKey(dateKey)) === '1'
+    return localStorage.getItem(key) === '1'
   } catch {
     return false
   }
 }
-function dismissAsk(dateKey: string): void {
+function setFlag(key: string): void {
   try {
-    localStorage.setItem(askKey(dateKey), '1')
+    localStorage.setItem(key, '1')
   } catch {
     // storage unavailable: the prompt may show again on reload
   }
 }
+const askDismissed = (dateKey: string) => flagged(askKey(dateKey))
+const dismissAsk = (dateKey: string) => setFlag(askKey(dateKey))
 
 function colorOf(categories: Category[], e: Entry): string {
   return categories.find((c) => c.id === e.categoryId)?.color ?? 'var(--border)'

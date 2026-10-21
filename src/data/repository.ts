@@ -34,7 +34,8 @@ export async function getSettings(): Promise<Settings> {
   if (!row) return { ...DEFAULT_SETTINGS }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { key, updatedAt, deviceId, dirty, ...settings } = row
-  return settings
+  // Fills fields added after this row was written (e.g. by another device on an older version).
+  return { ...DEFAULT_SETTINGS, ...settings }
 }
 
 export async function saveSettings(patch: Partial<Settings>): Promise<void> {
