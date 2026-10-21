@@ -129,16 +129,32 @@ export interface Settings {
 export type InsightStatus = 'new' | 'seen' | 'trying' | 'helpful' | 'wrong' | 'hidden'
 
 export interface Insight {
+  /** Stable per `kind`: the same finding keeps its card and its feedback from day to day. */
   id: string
   source: 'rule' | 'correlation'
-  /** Rule id or correlation key; used to down-weight rejected insight kinds. */
+  /** `rule:<key>` or `corr:<factor>><outcome>:<lag>`; the weight key is derived from it. */
   kind: string
   text: string
   confidence: 'weak' | 'medium' | 'strong' | null
   status: InsightStatus
+  /** Hidden until this dateKey (exclusive end); null when visible. */
   hiddenUntil: string | null
+  /** Ranking score before feedback weights. */
+  score: number
+  /** Last day the engine produced it / last day it was shown among the daily picks. */
+  lastSeenDate: string | null
+  lastShownDate: string | null
   createdAt: string
   updatedAt: string
+}
+
+/** Everything the advice engine keeps (synced as one file, `nk_insights.json`). */
+export interface InsightStore {
+  items: Insight[]
+  /** Per insight type (rule id, or `corr:<factor>`): below 1 after "Không đúng", above 1 after "Hữu ích". */
+  weights: Record<string, number>
+  /** dateKey of the last engine run, so it runs once a day. */
+  lastRunDate: string | null
 }
 
 export interface PhotoRecord {

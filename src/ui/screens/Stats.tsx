@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'preact/hooks'
 import { addDays, toDateKey } from '../../core/date'
 import { allMetrics, computeSeries, createMetricContext, type Metric } from '../../core/metrics'
-import { countLoggedDays, evaluateRules, readiness } from '../../core/rules'
+import { countLoggedDays, readiness } from '../../core/rules'
 import { byWeekday, formatMetric, movingAverage, weekCompare } from '../../core/stats'
 import { getDaysInRange, getDefs, getEntriesInRange, getSettings } from '../../data/repository'
+import { AdviceCards } from '../AdviceCards'
 import { MonthCalendar, TrendChart, WeekdayBars } from '../charts'
 import { useLive } from '../useLive'
 
@@ -40,12 +41,6 @@ export function Stats() {
   if (!ctx || !defs) return null
 
   const logged = countLoggedDays(ctx, today)
-  const advice = evaluateRules({
-    ctx,
-    today,
-    now: Date.now(),
-    overrides: ctx.settings.ruleThresholds,
-  }).slice(0, 3)
   const metrics = allMetrics(defs.habits)
   const byId = new Map(metrics.map((m) => [m.id, m]))
   const get = (id: string) => byId.get(id)
@@ -101,22 +96,13 @@ export function Stats() {
       </div>
 
       <h2 class="sub">Lời khuyên nổi bật</h2>
-      {advice.length > 0 ? (
-        <div class="stack tight">
-          {advice.map((a) => (
-            <div class={`card advice p${a.priority}`}>
-              <strong>{a.label}</strong>
-              <span>{a.text}</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div class="card advice muted">
-          {readiness(logged) === 'describe'
+      <AdviceCards
+        emptyText={
+          readiness(logged) === 'describe'
             ? `Cần thêm ${7 - logged} ngày ghi chép để có lời khuyên (đã có ${logged}/7).`
-            : 'Tuần này chưa có gì đáng nhắc.'}
-        </div>
-      )}
+            : 'Hôm nay chưa có gì đáng nhắc.'
+        }
+      />
 
       <h2 class="sub">Xu hướng 90 ngày</h2>
       <div class="row">

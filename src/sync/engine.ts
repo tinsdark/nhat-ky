@@ -202,6 +202,12 @@ export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive
       'settings',
       remoteFiles.get('nk_settings.json') ?? null,
     )
+    await syncDoc(
+      'nk_insights.json',
+      db.insights,
+      'insights',
+      remoteFiles.get('nk_insights.json') ?? null,
+    )
   }
 
   async function once(): Promise<boolean> {
