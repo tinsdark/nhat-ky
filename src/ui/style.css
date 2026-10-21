@@ -334,24 +334,20 @@ textarea {
   font-size: 1rem;
 }
 
-/* Pills: section tabs, one row, sideways scroll */
+/* Pills: section tabs; they wrap onto a second row on a narrow phone so none is cut off */
 .pills {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   padding: 4px;
   margin-bottom: 14px;
-  overflow-x: auto;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 24px;
   background: var(--card);
   box-shadow: var(--shadow);
-  scrollbar-width: none;
-}
-.pills::-webkit-scrollbar {
-  display: none;
 }
 .pills button {
-  flex: none;
+  flex: 1 1 auto;
   min-height: 40px;
   padding: 0 14px;
   border: 0;
@@ -1047,7 +1043,7 @@ table.grid th {
 }
 .hours {
   display: grid;
-  grid-template-columns: 22px repeat(24, 1fr);
+  grid-template-columns: 22px repeat(24, minmax(0, 1fr));
   gap: 2px;
   margin-top: 8px;
 }
@@ -1751,6 +1747,10 @@ form.sheet > .row:last-child {
 }
 .ruleline:first-child {
   border-top: 0;
+}
+.ruleline > details {
+  flex: 1;
+  min-width: 0;
 }
 .thresholds {
   display: flex;
