@@ -24,5 +24,6 @@ export const {
   invalidateToken,
   restoreSession,
   isSignedIn,
+  hasSession,
   onAuthRequired,
 } = auth

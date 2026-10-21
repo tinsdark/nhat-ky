@@ -143,6 +143,9 @@ export function createAuth({ request, revoke, storage, now = Date.now }: AuthDep
 
     isSignedIn: isFresh,
 
+    /** True if this device has signed in before (a silent refresh may succeed). */
+    hasSession: (): boolean => flag.get(),
+
     /** Called when silent refresh fails and the UI must show "Đăng nhập lại". Returns an unsubscribe. */
     onAuthRequired(cb: () => void): () => void {
       listeners.add(cb)
