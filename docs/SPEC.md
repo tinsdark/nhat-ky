@@ -6,7 +6,7 @@ Oct 21, 2026 · @Tien Dat
 
 App tên **Nhật ký** — webapp cá nhân theo dõi **đồng hồ sinh hoạt**: giờ ngủ, giờ ăn, giờ làm, thói quen, năng lượng và tâm trạng trong ngày; từ đó tìm quy luật và đưa lời khuyên cho **sức khoẻ, công việc, tinh thần**. Không theo dõi tiền. Dùng chủ yếu trên điện thoại.
 
-Dựng cùng kiến trúc và dùng chung Client ID với Sổ Tiền để thành một hệ sinh thái: Sổ Tiền chỉ cung cấp cho Nhật ký **mốc giờ ăn uống** (bữa ăn, đi cà phê...), không cung cấp số tiền hay khoản chi khác.
+Dựng cùng kiến trúc với Sổ Tiền (app riêng của Đạt) nhưng tách dữ liệu hoàn toàn: Nhật ký không đọc, không ghi gì của Sổ Tiền.
 
 **Mục tiêu đo được**
 
@@ -17,7 +17,7 @@ Dựng cùng kiến trúc và dùng chung Client ID với Sổ Tiền để thà
 
 **Ngoài phạm vi V1**
 
-- Không theo dõi, không phân tích tiền. Số tiền từ Sổ Tiền bị bỏ ngay khi đọc.
+- Không theo dõi, không phân tích tiền.
 - Không nhiều người dùng, không chia sẻ, không mạng xã hội.
 - Không tích hợp đồng hồ/thiết bị đeo, Google Fit, Apple Health.
 - Không gọi AI ở bản đầu (để giai đoạn sau, xem 8.6).
@@ -38,7 +38,7 @@ Local-first: UI chỉ đọc/ghi IndexedDB trên máy, nên mở app tức thì 
 
 &#91;embedded content: kiến trúc · local-first, Drive làm kho đồng bộ\]
 
-Điểm mấu chốt cho việc nối với Sổ Tiền: **appDataFolder của Drive bị cô lập theo OAuth Client ID**, app khác Client ID không thấy dữ liệu của nhau. Vì Nhật ký và Sổ Tiền cùng nằm trên domain github.io của mày, Nhật ký dùng chung Client ID của Sổ Tiền (đã chốt) nên đọc được file của Sổ Tiền.
+**appDataFolder của Drive bị cô lập theo OAuth Client ID.** Nhật ký dùng lại Client ID đang có cho tiện (không phải tạo OAuth client mới). Sổ Tiền dùng scope `drive.file` và file trong Drive thường, không dùng appDataFolder, nên hai app không thấy dữ liệu của nhau.
 
 | Lớp | Chọn | Lý do |
 | --- | --- | --- |
@@ -46,7 +46,7 @@ Local-first: UI chỉ đọc/ghi IndexedDB trên máy, nên mở app tức thì 
 | Đăng nhập | Google Identity Services (token client) | Không cần backend; scope `drive.appdata` |
 | Lưu trữ đám mây | Drive `appDataFolder` | Ẩn khỏi Drive thường, không bị xoá nhầm, free 15GB |
 | Lưu trữ máy | IndexedDB qua thư viện Dexie | Truy vấn theo index ngày/loại, chứa được vài năm dữ liệu |
-| UI | Vite + TypeScript + Preact (mặc định); nếu source Sổ Tiền khác thì chỉ đồng bộ phần đăng nhập/Drive, không đổi stack | Tái dùng component, theme, font Be Vietnam Pro |
+| UI | Vite + TypeScript + Preact | Tái dùng component, theme, font Be Vietnam Pro |
 | Biểu đồ | SVG tự vẽ như Sổ Tiền, hoặc Chart.js nếu cần heatmap | Nhẹ, không phụ thuộc |
 | Offline + cài đặt | PWA: manifest + service worker | Cài lên màn hình chính điện thoại |
 
@@ -81,13 +81,13 @@ Giấc ngủ là sự kiện vắt qua 2 ngày: **giờ đi ngủ gắn với đ
 
 | File | Nội dung | Kích thước ước tính |
 | --- | --- | --- |
-| `nk_settings.json` | Cài đặt, `dayStartHour`, ánh xạ danh mục Sổ Tiền | < 5 KB |
+| `nk_settings.json` | Cài đặt, `dayStartHour` | < 5 KB |
 | `nk_defs.json` | Danh mục, thói quen, tag, nút nhanh, ngưỡng luật | < 50 KB |
 | `nk_2026-11.json` | Toàn bộ Entry + Day của tháng 11/2026 (chỉ chứa id ảnh, không chứa ảnh) | \~30 entry/ngày → 100–200 KB/tháng |
 | `nk_insights.json` | Lời khuyên đã sinh, trạng thái (đã xem/bỏ qua/đang thử) | < 50 KB |
 | `nkp_<photoId>.webp` / `nkt_<photoId>.webp` | Ảnh gốc đã nén / ảnh thu nhỏ, mỗi ảnh một file (Module 10) | \~200 KB / \~20 KB mỗi ảnh |
 
-Tiền tố `nk_` để không đụng file của Sổ Tiền trong cùng appDataFolder.
+Tiền tố `nk_` để file của Nhật ký luôn nhận ra được trong appDataFolder.
 
 **Entry**
 
@@ -104,8 +104,7 @@ Tiền tố `nk_` để không đụng file của Sổ Tiền trong cùng appDat
 | `rating` | 1–5 / null | Tuỳ loại: chất lượng ngủ, độ tập trung, độ ngon |
 | `tags` | string\[\] | "cà phê", "ăn ngoài", "OT". Ảnh: mảng \`photoIds\` (tối đa 3) |
 | `payload` | object | Trường riêng theo loại, mô tả ở từng module |
-| `source` | enum | `manual`, `timer`, `quick`, `sotien` |
-| `sotienRef` | string / null | id giao dịch Sổ Tiền nếu giờ ăn lấy từ đó (không lưu số tiền) |
+| `source` | enum | `manual`, `timer`, `quick` |
 | `note` | string |  |
 | `createdAt`, `updatedAt`, `deviceId`, `deleted` |  | Phục vụ sync |
 
@@ -233,13 +232,12 @@ Ghi bữa ăn theo kiểu "lúc nào, cái gì, ở đâu, ăn xong thấy sao" 
 | `drink` | `coffee` / `tea` / `milktea` / `alcohol` / `soft` + số lượng |
 | `afterFeel` | Sau ăn: tỉnh táo / bình thường / buồn ngủ / khó chịu (hỏi lại sau 1h, tuỳ chọn) |
 | `photoIds` | Tối đa 3 ảnh món ăn (Module 10) |
-| `timeSource` | `manual` / `photo` (lấy giờ chụp ảnh) / `sotien` (lấy giờ giao dịch) |
+| `timeSource` | `manual` / `photo` (lấy giờ chụp ảnh) |
 
-**Lấy giờ ăn tự động** — 3 nguồn, ưu tiên từ trên xuống:
+**Lấy giờ ăn tự động** — 2 nguồn, ưu tiên từ trên xuống:
 
 1. Giờ chụp ảnh món ăn (đọc từ thông tin ảnh) — sát giờ ăn nhất.
-2. Giờ giao dịch Ăn uống/Cà phê bên Sổ Tiền (Module 6) — app tạo khối "chờ xác nhận".
-3. Giờ bấm nút nhanh.
+2. Giờ bấm nút nhanh.
 
 **3.3 Màn hình Ăn uống**
 
@@ -339,35 +337,9 @@ Ba thứ này là biến "đầu ra" chính của phân tích: hầu hết lời
 
 **Tiêu chí xong:** ghi trọn một giấc ngủ chỉ bằng 2 lần bấm (tối + sáng); giấc ngủ qua nửa đêm gán đúng ngày logic.
 
-## Module 6 — Nhận mốc giờ ăn uống từ Sổ Tiền
+## Module 6 — (đã bỏ)
 
-Sổ Tiền chỉ cung cấp một thứ: **mốc giờ ăn uống** (bữa ăn, đi cà phê, trà sữa...). Đọc một chiều, Nhật ký không ghi gì sang Sổ Tiền, không giữ số tiền, không đọc các khoản chi khác.
-
-**6.1 Điều kiện kỹ thuật**
-
-- Dùng chung OAuth Client ID với Sổ Tiền (đã chốt).
-- Cần đọc source repo `so-chi-tieu` để biết: tên/vị trí file trên Drive, scope đang dùng, cấu trúc giao dịch, danh mục lưu thế nào.
-- **Điểm phải kiểm đầu tiên: giao dịch bên Sổ Tiền có lưu giờ không.** Nếu chỉ có ngày thì không dùng được cho đồng hồ sinh hoạt — khi đó cần sửa nhỏ Sổ Tiền: lưu thêm thời điểm tạo giao dịch (mặc định = lúc bấm lưu, sửa được).
-
-**6.2 Cách lấy dữ liệu**
-
-1. Cài đặt: ánh xạ danh mục Sổ Tiền sang loại bên Nhật ký (Ăn uống → bữa ăn, Cà phê → `drink: coffee`, Trà sữa → `drink: milktea`...). Danh mục không ánh xạ thì bỏ qua.
-2. Khi sync, đọc file Sổ Tiền của tháng đang xem (chỉ đọc), lọc theo danh mục đã ánh xạ, chỉ giữ: id giao dịch, thời điểm, danh mục, ghi chú (làm gợi ý tên món). **Số tiền bị bỏ ngay, không lưu vào IndexedDB.**
-3. Đã có Entry bữa ăn lệch ≤ 90 phút → chỉ gắn `sotienRef`, không tạo mới.
-4. Chưa có → hiện khối **"chờ xác nhận"** (viền đứt) trên timeline. Chạm để xác nhận, chỉnh giờ, hoặc bỏ.
-5. Xác nhận xong mới thành Entry thật, `timeSource = sotien`.
-
-**6.3 Vì sao không tự tạo Entry 100%**
-
-- Giờ trả tiền khác giờ ăn: trả trước khi ăn, hoặc chuyển khoản cho bạn sau bữa vài tiếng.
-- Một lần trả có thể gộp nhiều bữa, hoặc trả hộ người khác.
-- Ăn ở nhà, được mời thì không có giao dịch → vẫn cần nút nhanh của Nhật ký.
-
-**6.4 Quy ước hệ sinh thái**
-
-Chung Client ID, mỗi app một tiền tố file riêng (Nhật ký dùng `nk_`), **app chỉ ghi file của chính mình, chỉ đọc file của app khác**. Quy ước này giúp thêm app thứ ba sau này mà không app nào ghi đè dữ liệu của app nào.
-
-**Tiêu chí xong:** mở ngày bất kỳ thấy đúng các mốc ăn uống từ Sổ Tiền dạng "chờ xác nhận"; ghép với bữa đã ghi không tạo trùng; không có số tiền nào trong dữ liệu Nhật ký.
+Bỏ ngày 21/10: Sổ Tiền chỉ ghi giờ thanh toán chứ không ghi giờ ăn, nên không dùng làm nguồn. Giờ ăn lấy từ nhập tay, nút nhanh và giờ chụp ảnh (Module 10). Nhật ký không đọc, không ghi dữ liệu của Sổ Tiền. Giữ số Module để không lệch tham chiếu.
 
 ## Module 7 — Thống kê & Dashboard
 
@@ -488,7 +460,6 @@ Với cả hai cách: chỉ gửi **số liệu tổng hợp**, không gửi ghi
 - Giờ cắt ngày logic (mặc định 04:00), giờ làm việc chuẩn (để tính OT), mục tiêu ngủ, nước, vận động.
 - Quản lý danh mục, tag, nút nhanh (kéo thả sắp xếp), thói quen.
 - Ngưỡng các luật cảnh báo, bật/tắt từng luật.
-- Nối Sổ Tiền: bật/tắt, ánh xạ danh mục Ăn uống bên Sổ Tiền.
 - Giao diện: sáng/tối/theo máy.
 
 **9.2 Nhắc nhở — hạn chế cần biết**
@@ -562,7 +533,7 @@ Mốc: **21–31/10 build đủ P0–P3 và test bằng dữ liệu giả; từ 
 
 | Ngày | Bật |
 | --- | --- |
-| 1/11 | Ghi chép, timeline, thói quen, ảnh, giờ ăn từ Sổ Tiền, thống kê mô tả |
+| 1/11 | Ghi chép, timeline, thói quen, ảnh, thống kê mô tả |
 | \~8/11 (7 ngày) | Luật cảnh báo, so tuần này với tuần trước |
 | \~29/11 (28 ngày) | Tương quan cùng ngày, thí nghiệm |
 | \~31/12 (60 ngày) | Tương quan trễ 1 ngày, phân tích theo thứ trong tuần |
@@ -579,7 +550,6 @@ Mốc: **21–31/10 build đủ P0–P3 và test bằng dữ liệu giả; từ 
 - [ ] Token hết hạn giữa chừng → không mất dữ liệu, tự sync lại sau khi đăng nhập.
 - [ ] Cài PWA lên màn hình chính điện thoại, mở offline được.
 - [ ] Streak đúng với lịch T2–T6 và lịch "3 lần/tuần".
-- [ ] Mốc giờ Sổ Tiền hiện "chờ xác nhận", không có số tiền nào lọt vào dữ liệu Nhật ký.
 - [ ] Ảnh < 300 KB, giờ Entry = giờ chụp, không có GPS trong file.
 - [ ] Engine tương quan qua bộ dữ liệu giả 60 ngày (Module 8).
 - [ ] Dashboard < 1 giây với 1 năm dữ liệu giả (\~11.000 Entry).
@@ -592,8 +562,7 @@ Mốc: **21–31/10 build đủ P0–P3 và test bằng dữ liệu giả; từ 
 | Chủ đề | Quyết định |
 | --- | --- |
 | Hướng app | Đồng hồ sinh hoạt → lời khuyên sức khoẻ, công việc, tinh thần. Không liên quan tiền |
-| Sổ Tiền | Chung Client ID; chỉ đọc mốc giờ ăn uống, không ghi ngược |
-| Source Sổ Tiền | Đạt sẽ đẩy repo `so-chi-tieu` lên GitHub để đọc |
+| Sổ Tiền | Tách riêng (đổi 21/10: Sổ Tiền chỉ có giờ thanh toán, không phải giờ ăn). Chỉ dùng lại Client ID cho tiện |
 | Thiết bị | Chủ yếu điện thoại |
 | Nhắc nhở | Phương án A trước, ổn thì lên C |
 | Ảnh | Có, nén + tách file (Module 10) |
@@ -604,7 +573,7 @@ Mốc: **21–31/10 build đủ P0–P3 và test bằng dữ liệu giả; từ 
 **Còn cần trả lời**
 
 - [ ] **1. Điện thoại iPhone hay Android?** Ảnh hưởng cách cài PWA, push ở phương án C, và đọc giờ chụp ảnh (iPhone hay lưu ảnh dạng HEIC).
-- [ ] **2. Repo `so-chi-tieu`**: đẩy lên trước 24/10 được không? Cần để chốt stack UI và kiểm tra giao dịch có lưu giờ không.
+- [x] ~~**2. Repo `so-chi-tieu`**~~ — không còn tích hợp.
 - [ ] **3. Giờ cắt ngày 04:00** — xem ví dụ ở Data model, ổn chưa?
 - [ ] **4. Giờ làm chuẩn** 8:00–17:30, T2–T6 đúng không? Thứ 7 có đi làm không?
 - [ ] **5. Thêm chỉ số nào nữa không**: cân nặng, thời gian dùng điện thoại, ra ngoài trời buổi sáng, đọc sách?
