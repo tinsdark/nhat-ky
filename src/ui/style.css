@@ -417,7 +417,7 @@ textarea {
   position: fixed;
   left: 16px;
   right: 16px;
-  bottom: calc(76px + env(safe-area-inset-bottom));
+  top: calc(68px + env(safe-area-inset-top));
   display: flex;
   align-items: center;
   gap: 4px;

@@ -2,7 +2,9 @@ import { useState } from 'preact/hooks'
 import { METRICS } from '../core/metrics'
 import type { Habit, HabitSchedule } from '../core/types'
 import { newHabitId, upsertHabit } from '../data/habits'
+import { getDefs } from '../data/repository'
 import { Choice } from './Choice'
+import { useLive } from './useLive'
 
 const DAY_LABELS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
 
@@ -24,7 +26,23 @@ export function HabitForm({
   const [target, setTarget] = useState(String(habit?.target.value ?? 1))
   const [schedule, setSchedule] = useState<HabitSchedule>(habit?.schedule ?? { kind: 'daily' })
   const [reminder, setReminder] = useState(habit?.reminderTime ?? '')
-  const [auto, setAuto] = useState(!!habit?.metricRule)
+  const defs = useLive(getDefs, [])
+  const [source, setSource] = useState<'manual' | 'linked' | 'auto'>(
+    habit?.metricRule ? 'auto' : habit?.linkedRule ? 'linked' : 'manual',
+  )
+  const auto = source === 'auto'
+  // A Today button (quick action) whose entries the habit counts; KEEP = an existing rule no button matches.
+  const KEEP = '__keep'
+  const rule = habit?.linkedRule ?? null
+  const matched = rule
+    ? defs?.quickActions.find(
+        (q) =>
+          q.type === rule.entryType && (rule.categoryId ? q.categoryId === rule.categoryId : true),
+      )
+    : undefined
+  // `picked` stays null until the user chooses, because defs load after the form mounts.
+  const [picked, setPicked] = useState<string | null>(null)
+  const linkedId = picked ?? matched?.id ?? (rule ? KEEP : '')
   const [metricId, setMetricId] = useState(habit?.metricRule?.metricId ?? 'bedtime')
   const [metricOp, setMetricOp] = useState<'<=' | '>='>(habit?.metricRule?.op ?? '<=')
   const [metricValue, setMetricValue] = useState(String(habit?.metricRule?.value ?? 23.5))
@@ -39,6 +57,8 @@ export function HabitForm({
       return setError('Chọn ít nhất 1 ngày.')
     const mv = Number(metricValue.replace(',', '.'))
     if (auto && Number.isNaN(mv)) return setError('Ngưỡng của chỉ số không hợp lệ.')
+    const qa = defs?.quickActions.find((q) => q.id === linkedId)
+    if (source === 'linked' && !qa && linkedId !== KEEP) return setError('Chọn mục ở Hôm nay.')
     await upsertHabit({
       id: habit?.id ?? newHabitId(),
       name: name.trim(),
@@ -47,7 +67,12 @@ export function HabitForm({
       target: auto ? { op: '>=', value: 1 } : { op, value },
       schedule,
       reminderTime: reminder || null,
-      linkedRule: habit?.linkedRule ?? null,
+      linkedRule:
+        source !== 'linked'
+          ? null
+          : qa
+            ? { entryType: qa.type, ...(qa.categoryId ? { categoryId: qa.categoryId } : {}) }
+            : rule,
       metricRule: auto ? { metricId, op: metricOp, value: mv, previousNight } : null,
       startDate: habit?.startDate ?? startDate,
       archived: habit?.archived ?? false,
@@ -83,11 +108,30 @@ export function HabitForm({
           label="Cách tính"
           options={[
             { id: 'manual', label: 'Tự tick' },
-            { id: 'auto', label: 'Tự tính từ chỉ số' },
+            { id: 'linked', label: 'Từ mục Hôm nay' },
+            { id: 'auto', label: 'Từ chỉ số' },
           ]}
-          value={auto ? 'auto' : 'manual'}
-          onChange={(v) => v && setAuto(v === 'auto')}
+          value={source}
+          onChange={(v) => v && setSource(v)}
         />
+        {source === 'linked' && (
+          <label>
+            Mục ở Hôm nay
+            <select value={linkedId} onChange={(e) => setPicked(e.currentTarget.value)}>
+              <option value="">— chọn —</option>
+              {linkedId === KEEP && <option value={KEEP}>(liên kết hiện tại)</option>}
+              {defs?.quickActions.map((q) => (
+                <option value={q.id}>
+                  {q.icon} {q.name}
+                </option>
+              ))}
+            </select>
+            <span class="muted hint">
+              Mỗi lần ghi mục này (ở Hôm nay hoặc Ghi bù) được cộng vào thói quen, không cần tick.
+              Giá trị lấy theo số đã ghi, hoặc số phút nếu mục có thời lượng.
+            </span>
+          </label>
+        )}
         {auto && (
           <>
             <label>
