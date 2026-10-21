@@ -43,18 +43,15 @@ export function findOpenNightSleep(
     .sort((a, b) => b.start.localeCompare(a.start))[0]
 }
 
-/** True when the app should ask about last night: morning, nothing open, no finished night sleep ending recently. */
-export function shouldAskLastNight(entries: Entry[], now: number, dayStartHour: number): boolean {
-  const hour = Number(toHHmm(now).slice(0, 2))
-  if (hour < dayStartHour || hour >= 14) return false
-  const recent = entries.some(
-    (e) =>
-      e.type === 'sleep' &&
-      !e.deleted &&
-      e.payload.nap !== true &&
-      (e.end === null
-        ? now - new Date(e.start).getTime() <= 24 * 3_600_000
-        : now - new Date(e.end).getTime() <= 20 * 3_600_000),
-  )
-  return !recent
+/**
+ * Bedtime to assume when "Thức dậy" is pressed without a matching "Đi ngủ": the usual bedtime
+ * (`usual`, HH:mm) if that gives a believable night of 2–14 hours, else `targetHours` before `now`.
+ */
+export function estimateBedtime(now: number, usual: string | null, targetHours: number): string {
+  if (usual) {
+    const candidate = bedtimeBefore(now, usual)
+    const hours = (now - new Date(candidate).getTime()) / 3_600_000
+    if (hours >= 2 && hours <= 14) return candidate
+  }
+  return toIso(now - targetHours * 3_600_000)
 }

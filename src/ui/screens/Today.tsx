@@ -15,9 +15,8 @@ import { copyToDay } from '../../core/entryForm'
 import { Thumb } from '../PhotoViews'
 import { EntryDetail } from '../EntryDetail'
 import { draftFromEntry, EntryForm, type FormDraft } from '../EntryForm'
-import { SleepPrompt, type SleepPromptState } from '../SleepPrompt'
-import { getRecentSleep, goToSleep, suggestBedtime, wakeUp } from '../../data/sleep'
-import { shouldAskLastNight } from '../../core/sleep'
+import { estimatedNote, SleepPrompt } from '../SleepPrompt'
+import { goToSleep, wakeUp } from '../../data/sleep'
 import { ReviewSheet } from '../ReviewSheet'
 import { reviewPrompt } from '../../core/review'
 import { DurationPicker } from '../DurationPicker'
@@ -38,7 +37,15 @@ export function Today() {
   const todayKey = toDateKey(Date.now(), dayStartHour)
   const [dateKey, setDateKey] = useState(todayKey)
   const isToday = dateKey === todayKey
-  const entries = useLive(() => getEntriesByDateKey(dateKey), [dateKey])
+  const ownEntries = useLive(() => getEntriesByDateKey(dateKey), [dateKey])
+  // The night that ended this morning started on the previous logical day; it still belongs on this day's timeline.
+  const prevNight = useLive(async () => {
+    const prev = await getEntriesByDateKey(addDays(dateKey, -1))
+    return prev.filter(
+      (e) => e.type === 'sleep' && e.end !== null && toDateKey(e.end, dayStartHour) === dateKey,
+    )
+  }, [dateKey, dayStartHour])
+  const entries = ownEntries && prevNight ? [...prevNight, ...ownEntries] : undefined
   const day = useLive(() => getDay(dateKey), [dateKey])
   const todayDay = useLive(() => getDay(todayKey), [todayKey])
   const yesterdayKey = addDays(todayKey, -1)
@@ -49,8 +56,7 @@ export function Today() {
   )
   const [, setFlagTick] = useState(0) // localStorage flags are not reactive; bump to re-read them
   const [reviewFor, setReviewFor] = useState<string | null>(null)
-  const recentSleep = useLive(getRecentSleep, [])
-  const [sleepPrompt, setSleepPrompt] = useState<SleepPromptState | null>(null)
+  const [sleepPrompt, setSleepPrompt] = useState<{ id: string; note?: string } | null>(null)
   const [form, setForm] = useState<FormDraft | null>(null)
   const [detail, setDetail] = useState<Entry | null>(null)
   const [durationFor, setDurationFor] = useState<QuickAction | null>(null)
@@ -102,8 +108,6 @@ export function Today() {
     showSaved(entry, true)
   }
 
-  const askNight = async () => setSleepPrompt({ mode: 'night', suggestion: await suggestBedtime() })
-
   const sleepTap = async (a: QuickAction): Promise<boolean> => {
     if (!isToday) return false
     if (a.id === 'qa-sleep') {
@@ -116,9 +120,8 @@ export function Today() {
       return true
     }
     if (a.id === 'qa-wake') {
-      const entry = await wakeUp()
-      if (entry) setSleepPrompt({ mode: 'quality', id: entry.id })
-      else await askNight()
+      const { entry, estimated } = await wakeUp()
+      setSleepPrompt({ id: entry.id, note: estimated ? estimatedNote(entry.start) : undefined })
       return true
     }
     return false
@@ -203,28 +206,7 @@ export function Today() {
           </div>
         </div>
       )}
-      {sleepPrompt ? (
-        <SleepPrompt
-          state={sleepPrompt}
-          onClose={() => {
-            if (sleepPrompt.mode === 'night') dismissAsk(dateKey)
-            setSleepPrompt(null)
-          }}
-          onRecorded={(id) => setSleepPrompt({ mode: 'quality', id })}
-        />
-      ) : (
-        isToday &&
-        recentSleep &&
-        !askDismissed(dateKey) &&
-        shouldAskLastNight(recentSleep, now, dayStartHour) && (
-          <div class="timerbar">
-            <span>Tối qua chưa ghi giấc ngủ.</span>
-            <button type="button" class="btn btn-primary" onClick={() => void askNight()}>
-              Nhập
-            </button>
-          </div>
-        )
-      )}
+      {sleepPrompt && <SleepPrompt {...sleepPrompt} onClose={() => setSleepPrompt(null)} />}
 
       <div class="progress" aria-label={`Đã ghi ${doneCount}/${progress.length} mục cốt lõi`}>
         <div class="bar">
@@ -386,7 +368,6 @@ export function Today() {
   )
 }
 
-const askKey = (dateKey: string) => `nk_sleepAsk_${dateKey}`
 const reviewKey = (dateKey: string) => `nk_reviewAsked_${dateKey}`
 function flagged(key: string): boolean {
   try {
@@ -402,8 +383,6 @@ function setFlag(key: string): void {
     // storage unavailable: the prompt may show again on reload
   }
 }
-const askDismissed = (dateKey: string) => flagged(askKey(dateKey))
-const dismissAsk = (dateKey: string) => setFlag(askKey(dateKey))
 
 function colorOf(categories: Category[], e: Entry): string {
   return categories.find((c) => c.id === e.categoryId)?.color ?? 'var(--border)'
