@@ -11,6 +11,9 @@ import {
   softDeleteEntry,
 } from '../../data/repository'
 import { draftFromEntry, EntryForm, type FormDraft } from '../EntryForm'
+import { SleepPrompt, type SleepPromptState } from '../SleepPrompt'
+import { getRecentSleep, goToSleep, suggestBedtime, wakeUp } from '../../data/sleep'
+import { shouldAskLastNight } from '../../core/sleep'
 import { TimerBar } from '../TimerBar'
 import { getRunningTimer, startTimer } from '../../data/timer'
 import { Toast, type ToastData } from '../Toast'
@@ -32,6 +35,8 @@ export function Today() {
   const entries = useLive(() => getEntriesByDateKey(dateKey), [dateKey])
   const day = useLive(() => getDay(dateKey), [dateKey])
   const timer = useLive(getRunningTimer, [])
+  const recentSleep = useLive(getRecentSleep, [])
+  const [sleepPrompt, setSleepPrompt] = useState<SleepPromptState | null>(null)
   const [form, setForm] = useState<FormDraft | null>(null)
   const [toast, setToast] = useState<ToastData | null>(null)
 
@@ -77,7 +82,30 @@ export function Today() {
     })
   }
 
+  const askNight = async () => setSleepPrompt({ mode: 'night', suggestion: await suggestBedtime() })
+
+  const sleepTap = async (a: QuickAction): Promise<boolean> => {
+    if (!isToday) return false
+    if (a.id === 'qa-sleep') {
+      const entry = await goToSleep()
+      setToast({
+        id: Date.now(),
+        text: entry ? 'Chúc ngủ ngon' : 'Đang có giấc ngủ chưa đóng — bấm Thức dậy',
+        onUndo: entry ? () => void softDeleteEntry(entry.id) : undefined,
+      })
+      return true
+    }
+    if (a.id === 'qa-wake') {
+      const entry = await wakeUp()
+      if (entry) setSleepPrompt({ mode: 'quality', id: entry.id })
+      else await askNight()
+      return true
+    }
+    return false
+  }
+
   const quickTap = async (a: QuickAction) => {
+    if (await sleepTap(a)) return
     if (a.type === 'work') return beginTimer({ categoryId: a.categoryId, title: a.title })
     const entry = await createEntry({
       type: a.type,
@@ -122,6 +150,28 @@ export function Today() {
         </button>
       </div>
 
+      {sleepPrompt ? (
+        <SleepPrompt
+          state={sleepPrompt}
+          onClose={() => {
+            if (sleepPrompt.mode === 'night') dismissAsk(dateKey)
+            setSleepPrompt(null)
+          }}
+          onRecorded={(id) => setSleepPrompt({ mode: 'quality', id })}
+        />
+      ) : (
+        isToday &&
+        recentSleep &&
+        !askDismissed(dateKey) &&
+        shouldAskLastNight(recentSleep, now, dayStartHour) && (
+          <div class="timerbar">
+            <span>Tối qua chưa ghi giấc ngủ.</span>
+            <button type="button" class="btn btn-primary" onClick={() => void askNight()}>
+              Nhập
+            </button>
+          </div>
+        )
+      )}
       <TimerBar timer={timer} categories={categories} />
 
       <div class="progress" aria-label={`Đã ghi ${doneCount}/${progress.length} mục cốt lõi`}>
@@ -232,6 +282,22 @@ export function Today() {
       {toast && <Toast toast={toast} onClose={() => setToast(null)} />}
     </section>
   )
+}
+
+const askKey = (dateKey: string) => `nk_sleepAsk_${dateKey}`
+function askDismissed(dateKey: string): boolean {
+  try {
+    return localStorage.getItem(askKey(dateKey)) === '1'
+  } catch {
+    return false
+  }
+}
+function dismissAsk(dateKey: string): void {
+  try {
+    localStorage.setItem(askKey(dateKey), '1')
+  } catch {
+    // storage unavailable: the prompt may show again on reload
+  }
 }
 
 function colorOf(categories: Category[], e: Entry): string {
