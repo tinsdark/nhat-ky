@@ -40,7 +40,7 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
 - [x] **T0.5 Drive client** (`src/drive/`). Trong `appDataFolder`: list theo tên (prefix `nk_`), đọc JSON, tạo/cập nhật JSON (multipart), tải lên/tải về blob (cho ảnh), xoá file, lấy `modifiedTime`. Tự retry 1 lần khi 401 qua `getToken()`. Không có hàm nào ghi file không có tiền tố `nk_`/`nkp_`/`nkt_` (chặn bằng assert).
 - [x] **T0.6 Sync engine** (`src/sync/`). File theo tháng `nk_YYYY-MM.json` chứa `{ entries, days }`; thêm `nk_defs.json`, `nk_settings.json`. Thuật toán: đọc file remote (bỏ qua nếu `modifiedTime` không đổi so với lần trước) → merge từng bản ghi theo `updatedAt` (hàm thuần trong `src/core`, có test) → ghi local → ghi lại remote nếu có bản ghi `dirty` → xoá cờ `dirty`. Trigger: mở app, `visibilitychange` sang visible, `online`, mỗi 60s khi có dirty. Trạng thái sync hiện ở UI (đã sync / đang sync / offline / cần đăng nhập).
     - Xong khi: test merge (bản mới thắng, xoá mềm thắng nếu mới hơn, không nhân đôi); 2 trình duyệt cùng tài khoản thấy dữ liệu của nhau ≤ 2 phút.
-- [ ] **T0.7 PWA.** Manifest (tên "Nhật ký", icon, `display: standalone`, theme color), service worker cache app shell. Mở offline được sau lần đầu.
+- [x] **T0.7 PWA.** Manifest (tên "Nhật ký", icon, `display: standalone`, theme color), service worker cache app shell. Mở offline được sau lần đầu.
 
 **Cổng P0:** cài PWA lên điện thoại, tạo 1 bản ghi test offline → bật mạng → PC thấy.
 
