@@ -127,6 +127,16 @@ Giao diện theo họ Sổ Tiền (giấy kem, thẻ bo 20px, pill chuyển mụ
 
 - **T6.4** nút cập nhật bản mới ở Cài đặt → Ứng dụng. Service worker chuyển sang `registerType: 'prompt'`: bản mới chỉ áp dụng khi bấm nút (hoặc khi đóng hết cửa sổ app rồi mở lại). Đã thử trên bản build bằng Chromium (build hai lần, nút nhận ra bản mới, bấm thì tải lại và đổi bundle); chưa thử trên iPhone cài PWA.
 
+## Đợt làm qua đêm 21/10 (P7, T7.1–T7.5)
+
+Đạt giao 4 việc trước khi ngủ: dữ liệu giả 1 tháng + ảnh chụp mọi màn, phân tích hành vi, nâng UI/UX + animation, báo cáo 40–50 trang.
+- **Dữ liệu:** `src/dev/persona.ts` (18 giả định H1–H18, tháng 10/2026, nút "Sinh tháng 10/2026" ở Cài đặt → Dữ liệu, chỉ dev).
+- **Báo cáo:** `docs/report/Bao-cao-Nhat-ky.pdf` (44 trang). Chạy lại: xem Phụ lục A trong báo cáo. Ảnh trong `docs/report/img/{before,after,after-dark,motion}`.
+- **UI:** lớp chuyển động ở cuối `src/ui/style.css` (tắt khi giảm chuyển động); sửa lịch tháng, biểu đồ giấc ngủ và năng lượng.
+- **Phát hiện chưa sửa:** bộ tương quan (`src/core/correlation`) báo nhiều kết quả chỉ vì lịch ngày thường/cuối tuần (37 phát hiện trên 150 ngày, chỉ ngày làm việc còn 9). Cần Đạt duyệt hướng sửa (mục 3.6 báo cáo).
+- **Chưa kiểm:** iPhone thật (độ mượt animation, form vuốt ngang), dữ liệu mẫu chưa có rượu bia, ngủ trưa, ngày bỏ ghi.
+- Repo `tinsdark/so-chi-tieu` đã được đọc (chỉ đọc) để tham khảo chuyển động.
+
 ## Việc chờ Đạt quyết (chưa làm)
 
 **(Đã giải quyết bằng T6.1: phím tắt theo Loại, có ô "Khác")** Ghi một việc không có nút nhanh ở Hôm nay. Hiện có 23 danh mục nhưng 9 nút nhanh. Việc không có nút thì ghi bằng: (1) giữ một nút rồi đổi Loại/Danh mục trong form, (2) tab Ghi bù → ô "Việc khác", (3) nhân bản mục trên timeline. Hôm nay **không có** ô "Việc khác" như Ghi bù, nên trên điện thoại hơi bất tiện.

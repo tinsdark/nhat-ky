@@ -1,3 +1,5 @@
 node_modules
 dist
 *.local
+docs/report/report.html
+docs/report/img/slices/

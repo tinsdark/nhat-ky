@@ -105,12 +105,19 @@ describe('report data', () => {
         confidence: f.confidence,
         alsoSeen: f.alsoSeen.map(label),
       }))
+    // Same 150 days with weekends marked as 'holiday' (the engine skips those), to test the weekday/weekend confound.
+    const wdOnly = {
+      entries: long.entries,
+      days: long.days.map((d) => (weekday(d.dateKey) >= 5 ? { ...d, dayType: 'holiday' as const } : d)),
+    }
+    const f150wd = findCorrelations(ctxOf(wdOnly), METRICS, lookback(end, 150))
     writeFileSync(
       `${OUT}/findings.json`,
       JSON.stringify(
         {
           days30: shape(f30),
           days150: shape(f150),
+          days150Workdays: shape(f150wd),
           weekday150: wk150.map((w) => ({ ...w })),
         },
         null,

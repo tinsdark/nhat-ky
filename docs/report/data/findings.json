@@ -567,6 +567,138 @@
    "alsoSeen": []
   }
  ],
+ "days150Workdays": [
+  {
+   "factor": "Màn hình trước ngủ",
+   "outcome": "Chất lượng ngủ",
+   "lag": 0,
+   "kind": "binary",
+   "nLow": 69,
+   "nHigh": 39,
+   "meanLow": 3.48,
+   "meanHigh": 2.49,
+   "d": -1.56,
+   "t": -7.96,
+   "confidence": "strong",
+   "alsoSeen": []
+  },
+  {
+   "factor": "Giờ ly cà phê cuối",
+   "outcome": "Chất lượng ngủ",
+   "lag": 0,
+   "kind": "tertile",
+   "nLow": 32,
+   "nHigh": 32,
+   "meanLow": 3.44,
+   "meanHigh": 2.47,
+   "d": -1.35,
+   "t": -5.41,
+   "confidence": "strong",
+   "alsoSeen": [
+    "Cà phê cuối → ngủ"
+   ]
+  },
+  {
+   "factor": "Có vận động",
+   "outcome": "Tâm trạng",
+   "lag": 0,
+   "kind": "binary",
+   "nLow": 83,
+   "nHigh": 25,
+   "meanLow": 3.19,
+   "meanHigh": 3.72,
+   "d": 1.16,
+   "t": 5.05,
+   "confidence": "strong",
+   "alsoSeen": []
+  },
+  {
+   "factor": "Giờ mạng xã hội",
+   "outcome": "Chất lượng ngủ",
+   "lag": 0,
+   "kind": "tertile",
+   "nLow": 36,
+   "nHigh": 36,
+   "meanLow": 3.5,
+   "meanHigh": 2.69,
+   "d": -1.08,
+   "t": -4.6,
+   "confidence": "strong",
+   "alsoSeen": []
+  },
+  {
+   "factor": "Thời lượng ngủ",
+   "outcome": "Deep work",
+   "lag": 0,
+   "kind": "tertile",
+   "nLow": 36,
+   "nHigh": 36,
+   "meanLow": 3.21,
+   "meanHigh": 2.54,
+   "d": -1.02,
+   "t": -4.34,
+   "confidence": "strong",
+   "alsoSeen": []
+  },
+  {
+   "factor": "Stress",
+   "outcome": "Tâm trạng",
+   "lag": 0,
+   "kind": "tertile",
+   "nLow": 36,
+   "nHigh": 36,
+   "meanLow": 3.56,
+   "meanHigh": 3.08,
+   "d": -1,
+   "t": -4.24,
+   "confidence": "strong",
+   "alsoSeen": []
+  },
+  {
+   "factor": "Có vận động",
+   "outcome": "Chất lượng ngủ",
+   "lag": 0,
+   "kind": "binary",
+   "nLow": 83,
+   "nHigh": 25,
+   "meanLow": 2.95,
+   "meanHigh": 3.68,
+   "d": 0.99,
+   "t": 4.08,
+   "confidence": "strong",
+   "alsoSeen": []
+  },
+  {
+   "factor": "Stress",
+   "outcome": "Điểm ngày",
+   "lag": 0,
+   "kind": "tertile",
+   "nLow": 36,
+   "nHigh": 36,
+   "meanLow": 8.31,
+   "meanHigh": 7.31,
+   "d": -0.93,
+   "t": -3.94,
+   "confidence": "strong",
+   "alsoSeen": [
+    "Giờ mạng xã hội"
+   ]
+  },
+  {
+   "factor": "Giờ dậy",
+   "outcome": "Deep work",
+   "lag": 0,
+   "kind": "tertile",
+   "nLow": 36,
+   "nHigh": 36,
+   "meanLow": 3.14,
+   "meanHigh": 2.58,
+   "d": -0.84,
+   "t": -3.58,
+   "confidence": "strong",
+   "alsoSeen": []
+  }
+ ],
  "weekday150": [
   {
    "weekday": 5,
