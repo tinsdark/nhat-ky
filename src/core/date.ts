@@ -40,3 +40,9 @@ export function dateKeyRange(from: string, to: string): string[] {
 export function weekday(dateKey: string): number {
   return (new Date(dateKeyToMs(dateKey)).getUTCDay() + 6) % 7
 }
+
+/** ISO string with +07:00 offset, e.g. 2026-10-20T00:40:00.000+07:00. */
+export function toIso(ts: number | Date = Date.now()): string {
+  const ms = new Date(ts).getTime()
+  return new Date(ms + VN_OFFSET_MS).toISOString().replace('Z', '+07:00')
+}
