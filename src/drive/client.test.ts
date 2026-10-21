@@ -260,7 +260,7 @@ describe('401 handling', () => {
 describe('write guard', () => {
   const bad = [
     'abc.json',
-    'Sotien_x',
+    'Other_x',
     '',
     'nk_',
     '../nk_x',
