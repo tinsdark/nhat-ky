@@ -2,6 +2,8 @@
 // Pure (no Dexie), deterministic per seed. The hypotheses are data (`HYPOTHESES`) so the report can quote
 // them; the simulation below implements exactly those, nothing else is planted.
 import { addDays, atTime, dateKeyRange, toIso, weekday } from '../core/date'
+import { isOvertime } from '../core/overtime'
+import { DEFAULT_SETTINGS } from '../core/settings'
 import type { Day, Entry } from '../core/types'
 import { FAKE_DEVICE, rng, type FakeData } from './fakeData'
 
@@ -44,14 +46,16 @@ export const HYPOTHESES: Hypothesis[] = [
     area: 'Giấc ngủ',
     claim: 'Ăn tối quá sát giờ ngủ làm ngủ kém.',
     why: 'Tiêu hoá còn hoạt động, khó vào giấc sâu.',
-    effect: 'Ăn tối cách giờ ngủ dưới 2,5 giờ: chất lượng −0,5 điểm.',
+    effect:
+      'Ăn tối cách giờ ngủ dưới 2,5 giờ (xảy ra ~15% số tối và cả tuần nước rút): chất lượng −0,5 điểm.',
   },
   {
     id: 'H5',
     area: 'Giấc ngủ',
     claim: 'Căng thẳng cao làm ngủ kém và trằn trọc.',
     why: 'Hưng phấn thần kinh kéo dài sau giờ làm.',
-    effect: 'Ngày căng thẳng ≥ 4: chất lượng −0,7 điểm.',
+    effect:
+      'Ngày căng thẳng ≥ 4 (một ngày tệ ngẫu nhiên ~12%, thêm tuần nước rút): chất lượng −0,7 điểm.',
   },
   {
     id: 'H6',
@@ -204,12 +208,18 @@ export function generatePersonaMonth(opts: PersonaOptions): FakeData {
     over: Partial<Entry> = {},
   ) => {
     const start = atTime(dateKey, hhmm(startMin))
+    const endIso = durMin === null ? null : toIso(Date.parse(start) + durMin * 60_000)
+    // Like the repository on save: work blocks carry whether they fall outside working hours.
+    const payload =
+      type === 'work' && endIso
+        ? { ...over.payload, isOvertime: isOvertime(start, endIso, DEFAULT_SETTINGS) }
+        : over.payload
     entries.push({
       id: `persona-${seed}-${n++}`,
       type,
       dateKey,
       start,
-      end: durMin === null ? null : toIso(Date.parse(start) + durMin * 60_000),
+      end: endIso,
       categoryId: '',
       title: '',
       value: null,
@@ -226,6 +236,7 @@ export function generatePersonaMonth(opts: PersonaOptions): FakeData {
       deleted: false,
       dirty: 0,
       ...over,
+      ...(payload && { payload }),
     })
   }
 
@@ -241,12 +252,14 @@ export function generatePersonaMonth(opts: PersonaOptions): FakeData {
     const works = !weekend && !sick && !trip
 
     // ---------------------------------------------------------------- stress of the day (H13, H14)
+    const badDay = r.chance(0.12) // an ordinary rough day: argument, bad news, a bug in production
     const meetingsToday = works
       ? (dow === 1 || dow === 3 ? 1 : dow === 2 ? 1 : 0) + (sprint ? 1 : 0)
       : 0
     const stress = clamp(
       (weekend ? 1.7 : 2.5) +
         (sprint ? 1.1 : 0) +
+        (badDay ? 1.3 : 0) +
         meetingsToday * 0.15 +
         gauss() * 0.7 +
         (sick ? -0.3 : 0),
@@ -405,11 +418,14 @@ export function generatePersonaMonth(opts: PersonaOptions): FakeData {
         },
       })
     }
-    const dinnerAt = sprint
-      ? 20 * 60 + 45 + r.int(-20, 25)
-      : weekend
-        ? 19 * 60 + 30 + r.int(-40, 50)
-        : 19 * 60 + r.int(-30, 40)
+    const eatsLate = !sprint && !sick && r.chance(0.15) // dinner out, a late meeting, a long call home
+    const dinnerAt = eatsLate
+      ? 21 * 60 + r.int(0, 55)
+      : sprint
+        ? 20 * 60 + 45 + r.int(-20, 25)
+        : weekend
+          ? 19 * 60 + 30 + r.int(-40, 50)
+          : 19 * 60 + r.int(-30, 40)
     add(d, 'meal', dinnerAt, null, {
       categoryId: 'cat-dinner',
       title: 'Ăn tối',

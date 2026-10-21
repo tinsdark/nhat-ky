@@ -1,0 +1,237 @@
+{
+ "fired": [
+  {
+   "key": "low_exercise",
+   "ruleId": "low_exercise",
+   "label": "Thiếu vận động",
+   "priority": 2,
+   "text": "Tuần này vận động 51/150 phút."
+  },
+  {
+   "key": "skip_breakfast",
+   "ruleId": "skip_breakfast",
+   "label": "Bỏ bữa sáng",
+   "priority": 1,
+   "text": "Bỏ bữa sáng 4/7 ngày."
+  },
+  {
+   "key": "ba_short",
+   "ruleId": "ba_short",
+   "label": "Học BA hụt",
+   "priority": 1,
+   "text": "Học BA tuần này mới 0,8h, mốc đến hôm nay là 2,9h (ngân sách 4h/tuần)."
+  }
+ ],
+ "recovery": [
+  {
+   "id": "H1",
+   "measure": "Giờ ngủ T7/CN trừ giờ ngủ T2–T6 (giờ)",
+   "expected": "≈ +0,9",
+   "diff": 0.83,
+   "nYes": 114,
+   "nNo": 286
+  },
+  {
+   "id": "H2",
+   "measure": "Chất lượng ngủ: có cà phê sau 15:00 trừ không có (điểm)",
+   "expected": "≈ −0,8",
+   "diff": -0.96,
+   "nYes": 96,
+   "nNo": 304
+  },
+  {
+   "id": "H3",
+   "measure": "Chất lượng ngủ: dùng màn hình trước ngủ trừ không dùng (điểm)",
+   "expected": "≈ −0,6",
+   "diff": -0.73,
+   "nYes": 177,
+   "nNo": 223
+  },
+  {
+   "id": "H4",
+   "measure": "Chất lượng ngủ: ăn tối cách giờ ngủ dưới 2,5 giờ trừ còn lại (điểm)",
+   "expected": "≈ −0,5",
+   "diff": -0.56,
+   "nYes": 34,
+   "nNo": 366
+  },
+  {
+   "id": "H5",
+   "measure": "Chất lượng ngủ: ngày căng thẳng ≥ 4 trừ còn lại (điểm)",
+   "expected": "≈ −0,7",
+   "diff": -1.04,
+   "nYes": 31,
+   "nNo": 369
+  },
+  {
+   "id": "H6",
+   "measure": "Chất lượng ngủ: ngày có vận động trừ không (điểm)",
+   "expected": "≈ +0,4",
+   "diff": 0.51,
+   "nYes": 110,
+   "nNo": 290
+  },
+  {
+   "id": "H10",
+   "measure": "Giờ ngủ đêm trước: ngày bỏ bữa sáng trừ ngày có ăn sáng (giờ)",
+   "expected": "âm (ngủ ít thì dễ bỏ sáng)",
+   "diff": -0.16,
+   "nYes": 148,
+   "nNo": 251
+  },
+  {
+   "id": "H11",
+   "measure": "Căng thẳng: ngày có cà phê sau 15:00 trừ không (điểm)",
+   "expected": "dương",
+   "diff": 0.4,
+   "nYes": 96,
+   "nNo": 304
+  },
+  {
+   "id": "H12",
+   "measure": "Tập trung TB: sau đêm ngủ ngon (≥ 4) trừ sau đêm ngủ kém (điểm)",
+   "expected": "dương",
+   "diff": 0.52,
+   "nYes": 84,
+   "nNo": 201
+  },
+  {
+   "id": "H17",
+   "measure": "Giờ mạng xã hội: ngày căng thẳng ≥ 4 trừ còn lại (giờ)",
+   "expected": "dương",
+   "diff": 0.6,
+   "nYes": 31,
+   "nNo": 369
+  }
+ ],
+ "hypotheses": [
+  {
+   "id": "H1",
+   "area": "Giấc ngủ",
+   "claim": "Cuối tuần ngủ muộn và dậy muộn hơn ngày đi làm (lệch múi giờ xã hội).",
+   "why": "Ngày thường báo thức cắt giấc ngủ; cuối tuần cơ thể trả nợ ngủ và đi chơi tối.",
+   "effect": "Giờ ngủ T7/CN muộn thêm ~50 phút; dậy tự nhiên 07:45–09:00; ngày thường báo thức 06:30."
+  },
+  {
+   "id": "H2",
+   "area": "Giấc ngủ",
+   "claim": "Cà phê sau 15:00 làm giấc ngủ đêm đó tệ hơn.",
+   "why": "Caffeine bán rã vài giờ, vẫn còn tác dụng lúc đi ngủ.",
+   "effect": "Chất lượng ngủ −0,8 điểm; số lần thức giấc tăng."
+  },
+  {
+   "id": "H3",
+   "area": "Giấc ngủ",
+   "claim": "Dùng màn hình sát giờ ngủ làm ngủ kém đi và đi ngủ muộn hơn.",
+   "why": "Ánh sáng và nội dung kích thích làm chậm buồn ngủ.",
+   "effect": "Chất lượng ngủ −0,6 điểm; giờ ngủ muộn thêm ~20 phút."
+  },
+  {
+   "id": "H4",
+   "area": "Giấc ngủ",
+   "claim": "Ăn tối quá sát giờ ngủ làm ngủ kém.",
+   "why": "Tiêu hoá còn hoạt động, khó vào giấc sâu.",
+   "effect": "Ăn tối cách giờ ngủ dưới 2,5 giờ (xảy ra ~15% số tối và cả tuần nước rút): chất lượng −0,5 điểm."
+  },
+  {
+   "id": "H5",
+   "area": "Giấc ngủ",
+   "claim": "Căng thẳng cao làm ngủ kém và trằn trọc.",
+   "why": "Hưng phấn thần kinh kéo dài sau giờ làm.",
+   "effect": "Ngày căng thẳng ≥ 4 (một ngày tệ ngẫu nhiên ~12%, thêm tuần nước rút): chất lượng −0,7 điểm."
+  },
+  {
+   "id": "H6",
+   "area": "Giấc ngủ",
+   "claim": "Vận động ban ngày (xong trước 20:00) giúp ngủ sâu hơn.",
+   "why": "Mệt thể chất lành mạnh và nhiệt độ cơ thể hạ dần.",
+   "effect": "Chất lượng ngủ +0,4 điểm đêm đó."
+  },
+  {
+   "id": "H7",
+   "area": "Năng lượng",
+   "claim": "Ngủ đủ giờ và ngủ ngon thì hôm sau nhiều năng lượng hơn.",
+   "why": "Nợ ngủ làm giảm tỉnh táo cả ngày.",
+   "effect": "Năng lượng nền +0,5 điểm cho mỗi giờ ngủ trên 6,8 giờ (kẹp ±1) và +0,25 cho mỗi điểm chất lượng trên 3,5."
+  },
+  {
+   "id": "H8",
+   "area": "Năng lượng",
+   "claim": "Năng lượng có nhịp trong ngày: đỉnh khoảng 10:00, tụt sau bữa trưa 14:00–15:30, hồi lại buổi tối.",
+   "why": "Nhịp sinh học cộng cơn buồn ngủ sau ăn.",
+   "effect": "Cộng điều chỉnh theo giờ (+0,3 lúc 10:00, −0,6 lúc 14:30); bữa trưa nặng thêm −0,4."
+  },
+  {
+   "id": "H9",
+   "area": "Năng lượng",
+   "claim": "Cà phê sáng nâng tỉnh táo khoảng 3 giờ; uống thiếu nước làm mệt hơn.",
+   "why": "Caffeine kích thích ngắn hạn; mất nước nhẹ cũng giảm tập trung.",
+   "effect": "Cà phê trong 3 giờ trước: +0,3 năng lượng; uống dưới 1,25 lít/ngày: −0,3."
+  },
+  {
+   "id": "H10",
+   "area": "Ăn uống",
+   "claim": "Ngủ thiếu và dậy muộn thì hay bỏ bữa sáng.",
+   "why": "Dậy vội, mất cảm giác đói buổi sáng.",
+   "effect": "Xác suất bỏ sáng 30% nền, +20% khi đêm trước ngủ dưới 6,3 giờ."
+  },
+  {
+   "id": "H11",
+   "area": "Ăn uống",
+   "claim": "Căng thẳng làm ăn vặt nhiều hơn và uống cà phê chiều nhiều hơn.",
+   "why": "Ăn và caffeine như cách tự xoa dịu.",
+   "effect": "Ăn vặt 55% nền, +20% khi căng thẳng ≥ 3,5; cà phê chiều 15% nền, +35% khi căng thẳng cao, +20% khi ngủ thiếu."
+  },
+  {
+   "id": "H12",
+   "area": "Làm việc",
+   "claim": "Tập trung buổi sáng tốt hơn buổi chiều; ngủ ngon hôm trước thì tập trung hơn.",
+   "why": "Nhịp tỉnh táo và nợ ngủ.",
+   "effect": "Điểm tập trung nền 3,2 +0,35 mỗi điểm chất lượng ngủ trên 3,5 +0,3 mỗi giờ ngủ trên 7; buổi chiều −0,5."
+  },
+  {
+   "id": "H13",
+   "area": "Làm việc",
+   "claim": "Ngày họp nhiều thì bị cắt ngang nhiều và căng thẳng hơn.",
+   "why": "Mỗi cuộc họp chia vụn thời gian tập trung.",
+   "effect": "Căng thẳng +0,15 mỗi cuộc họp; số lần bị cắt ngang tăng khi có họp."
+  },
+  {
+   "id": "H14",
+   "area": "Làm việc",
+   "claim": "Tuần nước rút (deadline) làm tăng giờ làm thêm, giảm vận động và uống nước, đi ngủ muộn.",
+   "why": "Áp lực thời hạn đẩy việc cá nhân xuống sau.",
+   "effect": "Tuần 19–23/10: căng thẳng +1,1; OT 1,5–2,5 giờ; bỏ vận động; nước −2 ly; ăn tối ~20:45; ngủ muộn thêm ~25 phút."
+  },
+  {
+   "id": "H15",
+   "area": "Vận động",
+   "claim": "Vận động thường xuyên nhưng không đều: cuối tuần dễ tập hơn ngày đi làm.",
+   "why": "Ngày đi làm hết sức vào buổi tối.",
+   "effect": "Xác suất tập 22% ngày thường, 55% cuối tuần; 30–60 phút, vừa."
+  },
+  {
+   "id": "H16",
+   "area": "Tinh thần",
+   "claim": "Tâm trạng tốt hơn khi vận động và khi gặp bạn bè; kém hơn khi lướt mạng nhiều, căng thẳng cao.",
+   "why": "Tương tác xã hội, vận động tạo cảm giác tích cực; lướt mạng thường là cách trốn căng thẳng.",
+   "effect": "Tâm trạng nền 3,4 +0,3×(năng lượng−3) +0,4 vận động +0,5 gặp bạn −0,3 mỗi mức căng thẳng trên 2 −0,3 nếu lướt mạng trên 90 phút."
+  },
+  {
+   "id": "H17",
+   "area": "Tinh thần",
+   "claim": "Lướt mạng xã hội nhiều hơn khi căng thẳng và cuối tuần.",
+   "why": "Giải trí thụ động là lối thoát dễ nhất.",
+   "effect": "25 phút nền +25 phút cho mỗi mức căng thẳng trên 2, +30 phút cuối tuần (10–150)."
+  },
+  {
+   "id": "H18",
+   "area": "Lịch",
+   "claim": "Ốm thì nghỉ việc, ngủ nhiều, năng lượng thấp, không vận động; đi xa thì nhịp ngày lệch hẳn.",
+   "why": "Cơ thể ưu tiên hồi phục; môi trường lạ làm xáo trộn thói quen.",
+   "effect": "Ốm 8–9/10: không đi làm, ngủ thêm 1,5 giờ, năng lượng −1,2. Đi xa 17–18/10: ngủ muộn, đi bộ nhiều, không làm việc."
+  }
+ ],
+ "longDays": 400,
+ "longEntries": 10365
+}

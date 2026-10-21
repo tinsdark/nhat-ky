@@ -27,7 +27,7 @@ fs.mkdirSync(OUT, { recursive: true })
   const go = async (hash) => {
     await p.goto(BASE + hash)
     await p.reload()
-    await wait(900)
+    await wait(1700) // chờ animation vào màn xong
   }
   const shotFull = async (name) => {
     const h = await p.evaluate(() => Math.min(5200, Math.max(844, document.documentElement.scrollHeight)))
@@ -43,7 +43,7 @@ fs.mkdirSync(OUT, { recursive: true })
   }
   const pill = async (label) => {
     await p.locator('.pills button', { hasText: label }).first().click()
-    await wait(600)
+    await wait(1500)
   }
 
   // dữ liệu
@@ -53,6 +53,7 @@ fs.mkdirSync(OUT, { recursive: true })
   await p.reload()
   await wait(2500)
 
+  await wait(1200)
   await shotFull('01-hom-nay')
   await shotView('02-hom-nay-man-dau')
   await p.locator('.quickgrid .quick', { hasText: 'Làm việc' }).click(); await wait(500)
