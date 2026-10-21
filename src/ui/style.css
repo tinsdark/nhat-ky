@@ -377,3 +377,37 @@ h1 {
 .row .btn {
   flex: 1;
 }
+
+.timerbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.timerbar .elapsed {
+  font-size: 1.4rem;
+  font-variant-numeric: tabular-nums;
+}
+.timerbar .actions,
+.timerbar .focus {
+  display: flex;
+  gap: 6px;
+}
+.timerbar .focus button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+.timerbar .focus .skip {
+  color: var(--muted);
+  padding: 0 10px;
+}

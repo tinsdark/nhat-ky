@@ -50,12 +50,15 @@ export function EntryForm({
   dayStartHour,
   onClose,
   onSaved,
+  onStartTimer,
 }: {
   draft: FormDraft
   categories: Category[]
   dayStartHour: number
   onClose: () => void
   onSaved: (entry: Entry, isNew: boolean) => void
+  /** Offered for new work entries: start a timer with the chosen category and title. */
+  onStartTimer?: (fields: { categoryId: string; title: string }) => void
 }) {
   const [type, setType] = useState(draft.type)
   const [categoryId, setCategoryId] = useState(draft.categoryId)
@@ -163,6 +166,15 @@ export function EntryForm({
           <textarea rows={2} value={note} onInput={(e) => setNote(e.currentTarget.value)} />
         </label>
         {error && <p class="error">{error}</p>}
+        {onStartTimer && !draft.id && type === 'work' && (
+          <button
+            type="button"
+            class="btn"
+            onClick={() => onStartTimer({ categoryId, title: title.trim() })}
+          >
+            Bấm giờ ngay
+          </button>
+        )}
         <div class="row">
           <button type="button" class="btn" onClick={onClose}>
             Huỷ

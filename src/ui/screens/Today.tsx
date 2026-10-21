@@ -11,6 +11,8 @@ import {
   softDeleteEntry,
 } from '../../data/repository'
 import { draftFromEntry, EntryForm, type FormDraft } from '../EntryForm'
+import { TimerBar } from '../TimerBar'
+import { getRunningTimer, startTimer } from '../../data/timer'
 import { Toast, type ToastData } from '../Toast'
 import { useLive } from '../useLive'
 
@@ -29,6 +31,7 @@ export function Today() {
   const isToday = dateKey === todayKey
   const entries = useLive(() => getEntriesByDateKey(dateKey), [dateKey])
   const day = useLive(() => getDay(dateKey), [dateKey])
+  const timer = useLive(getRunningTimer, [])
   const [form, setForm] = useState<FormDraft | null>(null)
   const [toast, setToast] = useState<ToastData | null>(null)
 
@@ -63,7 +66,19 @@ export function Today() {
     })
   }
 
+  const beginTimer = async (fields: { categoryId?: string; title?: string }) => {
+    const { entry, stopped } = await startTimer(fields)
+    setForm(null)
+    setToast({
+      id: Date.now(),
+      text: stopped ? 'Đã dừng timer cũ, bật timer mới' : 'Đã bật timer',
+      onEdit: () => setForm(draftFromEntry(entry)),
+      onUndo: () => void softDeleteEntry(entry.id),
+    })
+  }
+
   const quickTap = async (a: QuickAction) => {
+    if (a.type === 'work') return beginTimer({ categoryId: a.categoryId, title: a.title })
     const entry = await createEntry({
       type: a.type,
       start: nowIso(),
@@ -106,6 +121,8 @@ export function Today() {
           ▶
         </button>
       </div>
+
+      <TimerBar timer={timer} categories={categories} />
 
       <div class="progress" aria-label={`Đã ghi ${doneCount}/${progress.length} mục cốt lõi`}>
         <div class="bar">
@@ -209,6 +226,7 @@ export function Today() {
           dayStartHour={dayStartHour}
           onClose={() => setForm(null)}
           onSaved={showSaved}
+          onStartTimer={isToday ? (f) => void beginTimer(f) : undefined}
         />
       )}
       {toast && <Toast toast={toast} onClose={() => setToast(null)} />}
