@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { defaultDefs } from './defaults'
 import {
+  ENTRY_TYPES,
+  entryTypeOptions,
   moveItem,
+  newCustomType,
   nextOrder,
   removeQuickAction,
   setArchived,
   tagName,
+  typeLabel,
   upsertById,
   validateQuickAction,
 } from './defs'
@@ -60,5 +64,25 @@ describe('defs helpers', () => {
   it('tagName', () => {
     expect(tagName([{ id: 't1', name: 'OT', color: '' }], 't1')).toBe('OT')
     expect(tagName([], 't1')).toBeNull()
+  })
+})
+
+describe('custom types', () => {
+  it('lists built-ins first, then custom types, hiding archived ones unless asked', () => {
+    const live = newCustomType(' Thuốc ', '💊')
+    const hidden = { ...newCustomType('Cũ', '📌'), archived: true }
+    const defs = { customTypes: [live, hidden] }
+    const ids = (withArchived: boolean) => entryTypeOptions(defs, withArchived).map((t) => t.id)
+    expect(ids(false)).toEqual([...ENTRY_TYPES.map((t) => t.id), live.id])
+    expect(ids(true)).toContain(hidden.id)
+    expect(live.name).toBe('Thuốc')
+    expect(live.id.startsWith('x-')).toBe(true)
+  })
+
+  it('labels a custom type, and works on data without customTypes', () => {
+    const t = newCustomType('Thuốc', '💊')
+    expect(typeLabel({ customTypes: [t] }, t.id)).toBe('💊 Thuốc')
+    expect(typeLabel({}, 'meal')).toBe('Ăn uống')
+    expect(entryTypeOptions(undefined)).toEqual(ENTRY_TYPES)
   })
 })

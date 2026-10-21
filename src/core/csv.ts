@@ -87,7 +87,7 @@ export function csvToEntries(
     const line = i + 2
     const get = (name: string) => (r[col.get(name) ?? -1] ?? '').trim()
     const type = get('type') as EntryType
-    if (!TYPES.includes(type))
+    if (!TYPES.includes(type) && !type.startsWith('x-'))
       return void out.errors.push({ line, reason: `Loại "${get('type')}" không hợp lệ.` })
     const rawStart = get('start')
     const hasOffset = /(Z|[+-]\d{2}:?\d{2})$/.test(rawStart)

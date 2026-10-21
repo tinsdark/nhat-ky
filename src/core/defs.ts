@@ -1,4 +1,4 @@
-import type { Category, Defs, EntryType, QuickAction, Tag } from './types'
+import type { Category, CustomType, Defs, EntryType, QuickAction, Tag } from './types'
 
 export const ENTRY_TYPES: { id: EntryType; label: string }[] = [
   { id: 'sleep', label: 'Ngủ' },
@@ -9,6 +9,27 @@ export const ENTRY_TYPES: { id: EntryType; label: string }[] = [
   { id: 'water', label: 'Uống nước' },
   { id: 'note', label: 'Check-in / ghi chú' },
 ]
+
+/** Built-in types plus the user's own (archived ones only when `withArchived`), for the "Loại" selects. */
+export function entryTypeOptions(
+  defs: Pick<Defs, 'customTypes'> | null | undefined,
+  withArchived = false,
+): { id: EntryType; label: string }[] {
+  const custom = (defs?.customTypes ?? [])
+    .filter((t) => withArchived || !t.archived)
+    .map((t) => ({ id: t.id as EntryType, label: `${t.icon} ${t.name}`.trim() }))
+  return [...ENTRY_TYPES, ...custom]
+}
+
+export const typeLabel = (defs: Pick<Defs, 'customTypes'> | null | undefined, t: EntryType) =>
+  entryTypeOptions(defs, true).find((x) => x.id === t)?.label ?? t
+
+export const newCustomType = (name: string, icon: string): CustomType => ({
+  id: `x-${crypto.randomUUID().slice(0, 8)}`,
+  name: name.trim(),
+  icon,
+  archived: false,
+})
 
 export const newId = (prefix: string) => `${prefix}-${crypto.randomUUID().slice(0, 8)}`
 

@@ -71,8 +71,8 @@ export async function saveSettings(patch: Partial<Settings>): Promise<void> {
 export async function getDefs(): Promise<Defs> {
   const row = await db.defs.get('defs')
   if (!row) return { categories: [], habits: [], quickActions: [], tags: [] }
-  const { categories, habits, quickActions, tags } = row
-  return { categories, habits, quickActions, tags }
+  const { categories, habits, quickActions, tags, customTypes } = row
+  return { categories, habits, quickActions, tags, ...(customTypes && { customTypes }) }
 }
 
 export async function saveDefs(defs: Defs): Promise<void> {

@@ -5,7 +5,7 @@ import { ManageDefs } from '../ManageDefs'
 import { useLive } from '../useLive'
 import { Section } from './fields'
 
-type Tab = 'quick' | 'cat' | 'tag'
+type Tab = 'quick' | 'cat' | 'tag' | 'type'
 
 /** Entry point to the editors: one tappable line per list, with its count. */
 export function Categories() {
@@ -26,6 +26,12 @@ export function Categories() {
       count: defs.categories.filter((c) => !c.archived).length,
     },
     {
+      tab: 'type',
+      title: 'Loại',
+      sub: 'Loại có sẵn và loại tự đặt (thuốc, cân nặng…)',
+      count: 7 + (defs.customTypes ?? []).filter((t) => !t.archived).length,
+    },
+    {
       tab: 'tag',
       title: 'Tag',
       sub: 'Nhãn gắn vào từng mục ("ăn ngoài", "OT")',
@@ -34,7 +40,7 @@ export function Categories() {
   ]
   return (
     <>
-      <Section title="Danh mục và nút nhanh" hint="Mọi thứ mày ghi đều dựa trên ba danh sách này.">
+      <Section title="Danh mục và nút nhanh" hint="Mọi thứ mày ghi đều dựa trên các danh sách này.">
         <ul class="rows">
           {lines.map((l) => (
             <li>
