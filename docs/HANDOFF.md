@@ -48,13 +48,24 @@ Test hiện có: 107 test pass (`npm run test`), `lint` và `build` pass.
 Test: 182 pass, lint và build pass. Đã chạy từng task trong Chromium 390×844 (Playwright), chưa thử trên điện thoại thật.
 
 Chưa làm / cần để ý:
-- Chưa có UI sửa Settings (đổi giờ chấm ngày, `skipRestDays`) và sửa danh mục/nút nhanh.
+- Màn Cài đặt đã sửa được giờ làm, mục tiêu, nhắc nhở, ngưỡng cảnh báo; chưa sửa được danh mục và nút nhanh.
 - Entry ăn uống không chọn danh mục thì không tính vào "x/6 mục cốt lõi" (đếm theo `categoryId` Ăn sáng/trưa/tối).
 - Cổng P1: thử trên điện thoại thật.
 
+## Đã xong: P2 (T2.1, T2.2, T2.3, T2.5), cùng nhánh, chưa mở PR
+
+- **T2.1** `src/core/metrics/`: registry 29 chỉ số + `habit:<id>` + `habit_rate`. Một giấc ngủ thuộc ngày bắt đầu (`nightSleep(dateKey)`), nên "giờ dậy" của ngày D là sáng D+1. Ngày không ghi gì → `null`. Test trên 7 ngày mẫu tính tay.
+- **T2.2** màn Thống kê: thẻ tuần vs tuần trước, xu hướng 90 ngày (2 chỉ số, TB trượt 7 ngày), lịch tháng, theo thứ trong tuần. SVG tự vẽ (`src/ui/charts.tsx`). Phần "tương quan" (Module 7.1 mục 5) chờ T3.2.
+- **T2.3** ảnh: `src/core/photo.ts` (đọc EXIF `DateTimeOriginal` tự viết, không thêm thư viện), `src/photos/` (nén canvas WebP, hàng đợi tải lên riêng, cache ≤ 200 MB, dọn ảnh mồ côi sau 1 ngày). Thử thật: JPEG 5,8 MB có GPS → 138 KB, thumb 9 KB, không còn EXIF/GPS, giờ ăn lấy theo giờ chụp (`payload.timeSource = photo`). Safari không mã hoá được WebP sẽ rơi về JPEG (tên file vẫn `.webp`).
+- **T2.5** `src/core/rules/`: 11 luật, `evaluateRules` có cổng < 7 ngày và cooldown. Ngưỡng sửa ở màn Cài đặt (`Settings.ruleThresholds`, khoá `<ruleId>.<param>`). Thẻ lời khuyên trên Thống kê đang hiện tối đa 3 luật, chưa lưu `lastShown` (T3.3).
+
+Xoá Entry không xoá ảnh ngay: ảnh bị dọn sau 24 giờ nếu không còn Entry nào dùng, để "Hoàn tác" vẫn còn ảnh.
+
+Test: 249 pass, lint và build pass. Chưa chạy trên điện thoại thật: camera/HEIC, tải ảnh lên Drive thật, `navigator.connection`.
+
 ## Tiếp theo theo PLAN
 
-P2: T2.1 metric registry → T2.2 dashboard → T2.3 ảnh → T2.5 luật cảnh báo.
+P3: T3.1 sinh dữ liệu giả → T3.2 engine tương quan → T3.3 lời khuyên → T3.4 thí nghiệm → T3.5 backup → T3.6 nút "Hỏi Claude" → T3.7 nghiệm thu.
 
 ## Ghi chú
 

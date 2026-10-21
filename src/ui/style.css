@@ -695,3 +695,40 @@ h1 {
   color: var(--fg);
   font-size: 0.9rem;
 }
+
+.stack.tight {
+  margin-top: 0;
+  gap: 8px;
+}
+.card.advice span {
+  font-size: 0.9rem;
+}
+.card.advice.p3 {
+  border-color: var(--warn);
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.settings label {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.settings input {
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  font-size: 1rem;
+}
+.hint {
+  font-size: 0.75rem;
+}

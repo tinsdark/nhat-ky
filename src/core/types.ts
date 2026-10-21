@@ -121,6 +121,8 @@ export interface Settings {
   skipRestDays: boolean
   /** Upload photos only on Wi-Fi (when the browser can tell). */
   photosWifiOnly: boolean
+  /** Rule threshold overrides, keyed `<ruleId>.<param>`; missing keys use the rule's default. */
+  ruleThresholds: Record<string, number>
   theme: 'light' | 'dark' | 'system'
 }
 

@@ -11,5 +11,6 @@ export const DEFAULT_SETTINGS: Settings = {
   reviewTime: '21:30',
   skipRestDays: false,
   photosWifiOnly: false,
+  ruleThresholds: {},
   theme: 'system',
 }
