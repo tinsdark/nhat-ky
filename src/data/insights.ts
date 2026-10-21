@@ -22,8 +22,8 @@ const HISTORY_DAYS = 180
 export async function getInsightStore(): Promise<InsightStore> {
   const row = await db.insights.get('insights')
   if (!row) return emptyStore()
-  const { items, weights, lastRunDate } = row
-  return { items, weights, lastRunDate }
+  const { items, weights, lastRunDate, experiments } = row
+  return { items, weights, lastRunDate, experiments: experiments ?? [] }
 }
 
 export async function saveInsightStore(store: InsightStore): Promise<void> {

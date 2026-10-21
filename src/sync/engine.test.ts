@@ -437,7 +437,12 @@ describe('insights doc', () => {
   it('syncs nk_insights.json like the other whole-file docs', async () => {
     const drive = fakeDrive()
     const a = device(drive)
-    const store = { items: [], weights: { 'corr:bedtime': 0.5 }, lastRunDate: '2026-11-02' }
+    const store = {
+      items: [],
+      weights: { 'corr:bedtime': 0.5 },
+      lastRunDate: '2026-11-02',
+      experiments: [],
+    }
     await a.db.insights.put({ ...store, key: 'insights', updatedAt: t(1), deviceId: 'A', dirty: 1 })
     await a.engine.run()
     expect(drive.json('nk_insights.json')).toMatchObject({ weights: { 'corr:bedtime': 0.5 } })

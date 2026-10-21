@@ -1,22 +1,18 @@
 import { useEffect } from 'preact/hooks'
 import { toDateKey } from '../core/date'
 import { dailyPicks } from '../core/insights'
-import type { Insight } from '../core/types'
+import { settleExperiments, startExperiment } from '../data/experiments'
 import { getInsightStore, giveFeedback, refreshInsights } from '../data/insights'
 import { getSettings } from '../data/repository'
 import { useLive } from './useLive'
 
-export function AdviceCards({
-  emptyText,
-  onTry,
-}: {
-  emptyText: string
-  onTry?: (insight: Insight) => void
-}) {
+export function AdviceCards({ emptyText }: { emptyText: string }) {
   const store = useLive(getInsightStore, [])
   const settings = useLive(getSettings, [])
   useEffect(() => {
-    void refreshInsights().catch((err) => console.warn('insights', err))
+    void refreshInsights()
+      .then(settleExperiments)
+      .catch((err) => console.warn('insights', err))
   }, [])
 
   if (!store || !settings) return null
@@ -30,12 +26,11 @@ export function AdviceCards({
         <div class="card advice">
           <span>{i.text}</span>
           <div class="fb">
-            <button
-              type="button"
-              onClick={() => (onTry ? onTry(i) : void giveFeedback(i.id, 'try'))}
-            >
-              Thử
-            </button>
+            {i.action && i.source === 'correlation' && (
+              <button type="button" onClick={() => void startExperiment(i)}>
+                Thử 14 ngày
+              </button>
+            )}
             <button type="button" onClick={() => void giveFeedback(i.id, 'helpful')}>
               Hữu ích
             </button>

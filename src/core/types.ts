@@ -139,6 +139,8 @@ export interface Insight {
   status: InsightStatus
   /** Hidden until this dateKey (exclusive end); null when visible. */
   hiddenUntil: string | null
+  /** What to try, when the finding is actionable (also the experiment's name); null = information only. */
+  action: string | null
   /** Ranking score before feedback weights. */
   score: number
   /** Last day the engine produced it / last day it was shown among the daily picks. */
@@ -148,6 +150,35 @@ export interface Insight {
   updatedAt: string
 }
 
+export type ExperimentStatus = 'running' | 'finished' | 'kept' | 'dropped'
+
+export interface ExperimentResult {
+  /** Days the habit was ticked inside the window, and baseline days before it. */
+  nTest: number
+  nBase: number
+  testMean: number | null
+  baseMean: number | null
+  /** Cohen's d of test minus baseline; null when too few days. */
+  d: number | null
+  verdict: 'better' | 'worse' | 'same' | 'insufficient'
+}
+
+/** A 14-day trial of one change, run through a temporary habit (SPEC 8.5). */
+export interface Experiment {
+  id: string
+  insightId: string
+  /** What is being changed and what is measured; lag 1 = outcome of the day after. */
+  factorId: string
+  outcomeId: string
+  lag: 0 | 1
+  title: string
+  habitId: string
+  startDate: string
+  endDate: string
+  status: ExperimentStatus
+  result: ExperimentResult | null
+}
+
 /** Everything the advice engine keeps (synced as one file, `nk_insights.json`). */
 export interface InsightStore {
   items: Insight[]
@@ -155,6 +186,7 @@ export interface InsightStore {
   weights: Record<string, number>
   /** dateKey of the last engine run, so it runs once a day. */
   lastRunDate: string | null
+  experiments: Experiment[]
 }
 
 export interface PhotoRecord {

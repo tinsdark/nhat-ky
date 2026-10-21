@@ -13,10 +13,16 @@ export interface Candidate {
   source: Insight['source']
   text: string
   confidence: Insight['confidence']
+  action: string | null
   score: number
 }
 
-export const emptyStore = (): InsightStore => ({ items: [], weights: {}, lastRunDate: null })
+export const emptyStore = (): InsightStore => ({
+  items: [],
+  weights: {},
+  lastRunDate: null,
+  experiments: [],
+})
 
 /** Weight bucket of an insight: the rule, or the correlation factor (so "Không đúng" demotes the whole type). */
 export function weightKey(kind: string): string {
@@ -33,6 +39,7 @@ export function ruleCandidates(fired: FiredRule[]): Candidate[] {
     source: 'rule' as const,
     text: f.text,
     confidence: null,
+    action: null,
     score: f.priority,
   }))
 }
@@ -112,6 +119,7 @@ export function correlationCandidates(findings: Finding[], metrics: Metric[]): C
         source: 'correlation' as const,
         text,
         confidence: f.confidence,
+        action,
         score,
       },
     ]
@@ -140,6 +148,7 @@ export function mergeInsights(
         kind: c.kind,
         text: c.text,
         confidence: c.confidence,
+        action: c.action,
         status: 'new',
         hiddenUntil: null,
         score: c.score,
@@ -155,6 +164,7 @@ export function mergeInsights(
       ...cur,
       text: c.text,
       confidence: c.confidence,
+      action: c.action,
       score: c.score,
       lastSeenDate: today,
       status: expired && cur.status !== 'trying' ? 'new' : cur.status,

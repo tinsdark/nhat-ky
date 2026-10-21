@@ -5,6 +5,7 @@ import { countLoggedDays, readiness } from '../../core/rules'
 import { byWeekday, formatMetric, movingAverage, weekCompare } from '../../core/stats'
 import { getDaysInRange, getDefs, getEntriesInRange, getSettings } from '../../data/repository'
 import { AdviceCards } from '../AdviceCards'
+import { Experiments } from '../Experiments'
 import { MonthCalendar, TrendChart, WeekdayBars } from '../charts'
 import { useLive } from '../useLive'
 
@@ -103,6 +104,8 @@ export function Stats() {
             : 'Hôm nay chưa có gì đáng nhắc.'
         }
       />
+
+      <Experiments ctx={ctx} metrics={metrics} today={today} />
 
       <h2 class="sub">Xu hướng 90 ngày</h2>
       <div class="row">
