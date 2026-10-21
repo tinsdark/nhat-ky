@@ -30,7 +30,7 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
 
 ## P0 — Nền móng (21–22/10)
 
-- [ ] **T0.1 Khởi tạo dự án.** Vite + TS strict + Preact, ESLint + Prettier, Vitest, vite-plugin-pwa, `base: '/nhat-ky/'`. Workflow GitHub Actions build + deploy Pages khi push `main`. Tạo cấu trúc thư mục như CLAUDE.md.
+- [x] **T0.1 Khởi tạo dự án.** Vite + TS strict + Preact, ESLint + Prettier, Vitest, vite-plugin-pwa, `base: '/nhat-ky/'`. Workflow GitHub Actions build + deploy Pages khi push `main`. Tạo cấu trúc thư mục như CLAUDE.md.
     - Xong khi: `npm run test`, `npm run build` chạy; push lên thấy trang trống trên `https://<user>.github.io/nhat-ky/`.
 - [ ] **T0.2 Ngày logic** (`src/core/date.ts`). `toDateKey(ts, dayStartHour = 4)`, `dateKeyRange(from, to)`, `addDays(dateKey, n)`, thứ trong tuần của dateKey.
     - Xong khi: test pass với đủ các dòng trong bảng "Ngày logic" của SPEC (00:40 T3 → T2; 04:00 T3 → T3; 03:59 → ngày trước) + đổi `dayStartHour` = 5.
