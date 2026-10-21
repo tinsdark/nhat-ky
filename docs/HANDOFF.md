@@ -111,3 +111,17 @@ Chưa kiểm: ghi offline rồi sync hai máy, hai máy sửa cùng Entry, token
 ## P5 — Làm lại giao diện (T5.1–T5.6)
 
 Giao diện theo họ Sổ Tiền (giấy kem, thẻ bo 20px, pill chuyển mục, tab bar icon), màu nhấn xanh lá `#2f5d50`. Mọi màu qua token CSS ở đầu `src/ui/style.css`. Repo tham chiếu (chỉ đọc): `tinsdark/so-chi-tieu`. Cài đặt chia 6 mục (`src/ui/settings/`), nút dev nằm ở mục "Dữ liệu". Chưa kiểm trên điện thoại thật.
+
+## Đã làm sau P5 (PR15)
+
+- Bỏ mục thói quen khỏi Hôm nay (còn banner nhắc).
+- Loại tự đặt: Cài đặt → Danh mục → Loại. Lưu ở `Defs.customTypes` (tuỳ chọn, id `x-…`, không cần migration); form cơ bản, không có chỉ số tự động. Bản app cũ đọc `defs` sẽ bỏ qua và có thể ghi đè mất trường này.
+- Thói quen liên kết với nút ghi nhanh: form thói quen → "Từ mục Hôm nay" (dùng `linkedRule` có sẵn).
+
+## Việc chờ Đạt quyết (chưa làm)
+
+**Ghi một việc không có nút nhanh ở Hôm nay.** Hiện có 23 danh mục nhưng 9 nút nhanh. Việc không có nút thì ghi bằng: (1) giữ một nút rồi đổi Loại/Danh mục trong form, (2) tab Ghi bù → ô "Việc khác", (3) nhân bản mục trên timeline. Hôm nay **không có** ô "Việc khác" như Ghi bù, nên trên điện thoại hơi bất tiện.
+
+Hướng đề xuất (chưa chốt): thêm ô "Việc khác" vào lưới Hôm nay, mở form trống, giờ bắt đầu là bây giờ. Cần phân tích thêm trước khi làm: có nên giới hạn ở "ghi thời gian thực" (đúng nguyên tắc không timer); danh mục nào nên có nút mặc định; có cần ẩn bớt danh mục ít dùng.
+
+Cũng chưa quyết: nút "Vận động" chưa có trong 9 nút mặc định (máy đã có dữ liệu phải tự thêm; muốn chèn tự động thì cần migration), và `ManageDefs` chưa đổi sang kiểu giao diện mới.
