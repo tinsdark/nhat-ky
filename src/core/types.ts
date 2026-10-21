@@ -124,6 +124,10 @@ export interface Settings {
   photosWifiOnly: boolean
   /** Rule threshold overrides, keyed `<ruleId>.<param>`; missing keys use the rule's default. */
   ruleThresholds: Record<string, number>
+  /** Rule ids switched off in Settings. */
+  disabledRules: string[]
+  /** Weekly time budgets in hours (SPEC 4.4). Rules and the Thời gian screen use them. */
+  weeklyBudgets: { deepWorkHours: number; baHours: number; socialHours: number }
   theme: 'light' | 'dark' | 'system'
 }
 

@@ -30,6 +30,8 @@ export interface Rule {
   defaults: Record<string, number>
   /** Human labels for the thresholds, same keys as `defaults`. */
   params: Record<string, string>
+  /** Thresholds that come from Settings (targets, budgets) and are edited there, not per rule. */
+  settingsBacked?: string[]
   evaluate(input: RuleInput): RuleHit[]
 }
 
@@ -168,6 +170,7 @@ export const RULES: Rule[] = [
     // `minutes` follows Settings.exerciseTargetMinPerWeek unless overridden (see resolveThresholds).
     defaults: { minutes: 150, minLoggedDays: 3 },
     params: { minutes: 'Mục tiêu (phút/tuần)', minLoggedDays: 'Cần ghi ít nhất (ngày)' },
+    settingsBacked: ['minutes'],
     evaluate({ ctx, today, p }) {
       const v = present(values('exercise_min', ctx, ...last7(today)))
       if (v.length < p.minLoggedDays! || sum(v) >= p.minutes!) return []
@@ -184,6 +187,7 @@ export const RULES: Rule[] = [
     cooldownDays: 2,
     defaults: { budgetHours: 15, ratio: 0.7 },
     params: { budgetHours: 'Ngân sách tuần (giờ)', ratio: 'Báo khi dưới (tỷ lệ)' },
+    settingsBacked: ['budgetHours'],
     evaluate({ ctx, today, p }) {
       const days = dateKeyRange(weekStart(today), today)
       const workDays = ctx.settings.workDays
@@ -196,6 +200,30 @@ export const RULES: Rule[] = [
         {
           key: 'deep_work_short',
           text: `Deep work tuần này mới ${num1(actual)}h, mốc đến hôm nay là ${num1(expected)}h.`,
+        },
+      ]
+    },
+  },
+  {
+    id: 'ba_short',
+    label: 'Học BA hụt',
+    priority: 1,
+    windowDays: 7,
+    cooldownDays: 3,
+    defaults: { budgetHours: 4, ratio: 0.7 },
+    params: { budgetHours: 'Ngân sách tuần (giờ)', ratio: 'Báo khi dưới (tỷ lệ)' },
+    settingsBacked: ['budgetHours'],
+    evaluate({ ctx, today, p }) {
+      // Study time is not tied to work days, so the week is paced over all 7 days.
+      const days = dateKeyRange(weekStart(today), today)
+      if (days.length < 4) return []
+      const expected = (p.budgetHours! * days.length) / 7
+      const actual = sum(present(values('ba_hours', ctx, days[0]!, today)))
+      if (actual >= p.ratio! * expected) return []
+      return [
+        {
+          key: 'ba_short',
+          text: `Học BA tuần này mới ${num1(actual)}h, mốc đến hôm nay là ${num1(expected)}h (ngân sách ${p.budgetHours}h/tuần).`,
         },
       ]
     },
@@ -228,6 +256,7 @@ export const RULES: Rule[] = [
     cooldownDays: 3,
     defaults: { budgetHours: 7 },
     params: { budgetHours: 'Ngân sách tuần (giờ)' },
+    settingsBacked: ['budgetHours'],
     evaluate({ ctx, today, p }) {
       const total = sum(present(values('social_hours', ctx, weekStart(today), today)))
       return total <= p.budgetHours!

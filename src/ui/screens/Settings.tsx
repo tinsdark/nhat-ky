@@ -3,7 +3,7 @@ import { lazy, Suspense } from 'preact/compat'
 import { signOut } from '../../auth'
 import { RULES, resolveThresholds } from '../../core/rules'
 import type { Settings as SettingsData } from '../../core/types'
-import { getSettings, saveSettings } from '../../data/repository'
+import { changeDayStartHour, getSettings, saveSettings } from '../../data/repository'
 import { engine } from '../../sync'
 import { BackupSection } from '../BackupSection'
 import { Choice } from '../Choice'
@@ -124,6 +124,21 @@ export function Settings({ onSignedOut }: { onSignedOut: () => void }) {
           onSave={(v) => save({ waterTargetMl: v })}
         />
         <NumberField
+          label="Deep work (giờ/tuần, tối thiểu)"
+          value={settings.weeklyBudgets.deepWorkHours}
+          onSave={(v) => save({ weeklyBudgets: { ...settings.weeklyBudgets, deepWorkHours: v } })}
+        />
+        <NumberField
+          label="Học BA (giờ/tuần, tối thiểu)"
+          value={settings.weeklyBudgets.baHours}
+          onSave={(v) => save({ weeklyBudgets: { ...settings.weeklyBudgets, baHours: v } })}
+        />
+        <NumberField
+          label="Mạng xã hội (giờ/tuần, tối đa)"
+          value={settings.weeklyBudgets.socialHours}
+          onSave={(v) => save({ weeklyBudgets: { ...settings.weeklyBudgets, socialHours: v } })}
+        />
+        <NumberField
           label="Vận động (phút/tuần)"
           value={settings.exerciseTargetMinPerWeek}
           onSave={(v) => save({ exerciseTargetMinPerWeek: v })}
@@ -132,6 +147,39 @@ export function Settings({ onSignedOut }: { onSignedOut: () => void }) {
 
       <h2 class="sub">Nhắc nhở và tuỳ chọn</h2>
       <div class="form">
+        <Choice
+          label="Giao diện"
+          options={[
+            { id: 'system', label: 'Theo máy' },
+            { id: 'light', label: 'Sáng' },
+            { id: 'dark', label: 'Tối' },
+          ]}
+          value={settings.theme}
+          onChange={(v) => v && save({ theme: v })}
+        />
+        <label>
+          Ngày kết thúc lúc (giờ sáng hôm sau)
+          <select
+            value={String(settings.dayStartHour)}
+            onChange={async (e) => {
+              const hour = Number(e.currentTarget.value)
+              if (hour === settings.dayStartHour) return
+              if (
+                !confirm(
+                  `Đổi giờ cắt ngày sang ${String(hour).padStart(2, '0')}:00? Các mục ghi trong khoảng giữa hai mốc sẽ chuyển sang ngày khác.`,
+                )
+              ) {
+                e.currentTarget.value = String(settings.dayStartHour)
+                return
+              }
+              await changeDayStartHour(hour)
+            }}
+          >
+            {[0, 1, 2, 3, 4, 5, 6].map((h) => (
+              <option value={h}>{String(h).padStart(2, '0')}:00</option>
+            ))}
+          </select>
+        </label>
         <label>
           Nhắc chấm ngày từ
           <input
@@ -159,41 +207,59 @@ export function Settings({ onSignedOut }: { onSignedOut: () => void }) {
           onChange={(v) => v && save({ photosWifiOnly: v === 'yes' })}
         />
         <p class="muted hint">
-          Ngày bắt đầu là {String(settings.dayStartHour).padStart(2, '0')}:00 sáng hôm sau, không
-          đổi được vì mọi bản ghi đã gắn ngày theo mốc này.
+          Mặc định ngày kết thúc lúc 04:00 sáng hôm sau, nên ngủ lúc 00:40 vẫn tính vào đêm hôm
+          trước.
         </p>
       </div>
 
-      <h2 class="sub">Ngưỡng cảnh báo</h2>
+      <h2 class="sub">Luật cảnh báo</h2>
       <div class="form">
         {RULES.map((rule) => {
-          const p = resolveThresholds(
-            rule,
-            settings.ruleThresholds,
-            settings.exerciseTargetMinPerWeek,
+          const p = resolveThresholds(rule, settings.ruleThresholds, settings)
+          const editable = Object.keys(rule.defaults).filter(
+            (k) => !rule.settingsBacked?.includes(k),
           )
-          const overridden = Object.keys(rule.defaults).some(
-            (k) => `${rule.id}.${k}` in settings.ruleThresholds,
-          )
+          const on = !settings.disabledRules.includes(rule.id)
+          const overridden = editable.some((k) => `${rule.id}.${k}` in settings.ruleThresholds)
           return (
             <fieldset class="group">
               <legend>{rule.label}</legend>
-              {Object.keys(rule.defaults).map((k) => (
-                <NumberField
-                  label={rule.params[k]!}
-                  value={p[k]!}
-                  onSave={(v) =>
-                    save({ ruleThresholds: { ...settings.ruleThresholds, [`${rule.id}.${k}`]: v } })
-                  }
-                />
-              ))}
-              {overridden && (
+              <Choice
+                label=""
+                options={[
+                  { id: 'on', label: 'Bật' },
+                  { id: 'off', label: 'Tắt' },
+                ]}
+                value={on ? 'on' : 'off'}
+                onChange={(v) =>
+                  v &&
+                  save({
+                    disabledRules:
+                      v === 'off'
+                        ? [...settings.disabledRules, rule.id]
+                        : settings.disabledRules.filter((x) => x !== rule.id),
+                  })
+                }
+              />
+              {on &&
+                editable.map((k) => (
+                  <NumberField
+                    label={rule.params[k]!}
+                    value={p[k]!}
+                    onSave={(v) =>
+                      save({
+                        ruleThresholds: { ...settings.ruleThresholds, [`${rule.id}.${k}`]: v },
+                      })
+                    }
+                  />
+                ))}
+              {on && overridden && (
                 <button
                   type="button"
                   class="btn"
                   onClick={() => {
                     const next = { ...settings.ruleThresholds }
-                    for (const k of Object.keys(rule.defaults)) delete next[`${rule.id}.${k}`]
+                    for (const k of editable) delete next[`${rule.id}.${k}`]
                     save({ ruleThresholds: next })
                   }}
                 >

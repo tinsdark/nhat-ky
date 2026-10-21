@@ -1,21 +1,30 @@
 import { addDays, dateKeyRange } from '../date'
 import type { MetricContext } from '../metrics'
+import type { Settings } from '../types'
 import { RULES, type Rule } from './rules'
 
 export { fmtHM, RULES } from './rules'
 export type { Rule, RuleHit } from './rules'
 
-/** Defaults, then the user's overrides. Exercise follows the weekly target in Settings unless overridden. */
+/**
+ * Defaults, then the user's overrides. Thresholds that Settings owns (exercise target, weekly time
+ * budgets) always come from Settings, so there is one place to edit each.
+ */
 export function resolveThresholds(
   rule: Rule,
   overrides: Record<string, number> = {},
-  exerciseTargetMinPerWeek?: number,
+  settings?: Pick<Settings, 'exerciseTargetMinPerWeek' | 'weeklyBudgets'>,
 ): Record<string, number> {
   const base = { ...rule.defaults }
-  if (rule.id === 'low_exercise' && exerciseTargetMinPerWeek !== undefined)
-    base.minutes = exerciseTargetMinPerWeek
+  if (settings) {
+    if (rule.id === 'low_exercise') base.minutes = settings.exerciseTargetMinPerWeek
+    if (rule.id === 'deep_work_short') base.budgetHours = settings.weeklyBudgets.deepWorkHours
+    if (rule.id === 'ba_short') base.budgetHours = settings.weeklyBudgets.baHours
+    if (rule.id === 'social_over') base.budgetHours = settings.weeklyBudgets.socialHours
+  }
   const own: Record<string, number> = {}
   for (const k of Object.keys(base)) {
+    if (rule.settingsBacked?.includes(k)) continue
     const v = overrides[`${rule.id}.${k}`]
     if (typeof v === 'number' && Number.isFinite(v)) own[k] = v
   }
@@ -60,7 +69,8 @@ export function evaluateRules(input: {
   if (readiness(countLoggedDays(ctx, today)) === 'describe') return []
   const fired: FiredRule[] = []
   for (const rule of RULES) {
-    const p = resolveThresholds(rule, overrides, ctx.settings.exerciseTargetMinPerWeek)
+    if (ctx.settings.disabledRules?.includes(rule.id)) continue
+    const p = resolveThresholds(rule, overrides, ctx.settings)
     for (const hit of rule.evaluate({ ctx, today, now, p })) {
       const last = lastShown[hit.key]
       if (last && dateKeyRange(last, today).length - 1 < rule.cooldownDays) continue

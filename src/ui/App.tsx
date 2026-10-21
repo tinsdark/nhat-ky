@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'preact/hooks'
 import { hasSession } from '../auth'
+import { getSettings } from '../data/repository'
+import { useLive } from './useLive'
 import { Login } from './screens/Login'
 import { Backfill } from './screens/Backfill'
 import { Habits } from './screens/Habits'
@@ -30,6 +32,12 @@ function writeSkip(on: boolean): void {
 
 export function App() {
   const [tab, setTab] = useState(() => parseHash(location.hash))
+  const settings = useLive(getSettings, [])
+  useEffect(() => {
+    const theme = settings?.theme
+    if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme
+    else delete document.documentElement.dataset.theme
+  }, [settings?.theme])
   const [gate, setGate] = useState(() => !hasSession() && !readSkip())
   useEffect(() => {
     const onHash = () => setTab(parseHash(location.hash))

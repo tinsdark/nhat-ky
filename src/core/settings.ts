@@ -12,5 +12,7 @@ export const DEFAULT_SETTINGS: Settings = {
   skipRestDays: false,
   photosWifiOnly: false,
   ruleThresholds: {},
+  disabledRules: [],
+  weeklyBudgets: { deepWorkHours: 15, baHours: 4, socialHours: 7 },
   theme: 'system',
 }

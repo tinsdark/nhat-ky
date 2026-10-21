@@ -206,3 +206,29 @@ export async function getDaysInRange(from: string, to: string): Promise<Day[]> {
   const rows = await db.days.where('dateKey').between(from, to, true, true).toArray()
   return rows.filter((d) => !d.deleted)
 }
+
+/**
+ * Moves the day cut to `hour` (SPEC: "Giờ cắt chỉnh được trong cài đặt"). Every entry's `dateKey` is
+ * recomputed from its start, since the key is only ever derived from toDateKey. Day ratings stay under
+ * the dateKey they were given. Entries that move are marked dirty so other devices follow.
+ */
+export async function changeDayStartHour(hour: number): Promise<number> {
+  if (!Number.isInteger(hour) || hour < 0 || hour > 8)
+    throw new Error(`Invalid day start hour: ${hour}`)
+  const deviceId = await getDeviceId()
+  const stamp = toIso()
+  let moved = 0
+  await db.transaction('rw', db.entries, db.settings, db.meta, async () => {
+    const changed: Entry[] = []
+    await db.entries.each((e) => {
+      const dateKey = toDateKey(e.start, hour)
+      if (dateKey !== e.dateKey)
+        changed.push({ ...e, dateKey, updatedAt: stamp, deviceId, dirty: 1 })
+    })
+    await db.entries.bulkPut(changed)
+    moved = changed.length
+    const next = { ...(await getSettings()), dayStartHour: hour }
+    await db.settings.put({ ...next, key: 'settings', updatedAt: stamp, deviceId, dirty: 1 })
+  })
+  return moved
+}

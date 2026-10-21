@@ -12,8 +12,10 @@
   --warn: #ef6c00;
 }
 
+/* Dark palette: by default when the device is dark; forced by Settings via data-theme. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
     --bg: #121214;
     --fg: #f2f2f7;
     --muted: #9a9aa0;
@@ -25,6 +27,24 @@
     --ok: #66bb6a;
     --warn: #ffa726;
   }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #121214;
+  --fg: #f2f2f7;
+  --muted: #9a9aa0;
+  --surface: #1c1c20;
+  --border: #2e2e34;
+  --accent: #7c8cf0;
+  --on-accent: #10132b;
+  --danger: #ef6b6b;
+  --ok: #66bb6a;
+  --warn: #ffa726;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
 }
 
 * {
