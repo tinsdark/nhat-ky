@@ -1,4 +1,4 @@
-import type { Category, Defs, EntryType, Habit, QuickAction } from './types'
+import type { Category, CategoryGroup, Defs, EntryType, Habit, QuickAction } from './types'
 
 // Ids are fixed strings (not UUIDs) so two devices that both seed produce the same records.
 const WORK_COLOR = '#3b4a9e'
@@ -14,25 +14,26 @@ function cat(
   color: string,
   icon: string,
   order: number,
+  group?: CategoryGroup,
 ): Category {
-  return { id, name, entryType, color, icon, order, archived: false }
+  return { id, name, entryType, color, icon, order, archived: false, ...(group && { group }) }
 }
 
 export const DEFAULT_CATEGORIES: Category[] = [
-  cat('cat-deep', 'Deep work', 'work', WORK_COLOR, '💻', 1),
-  cat('cat-meeting', 'Họp', 'work', WORK_COLOR, '👥', 2),
-  cat('cat-support', 'Hỗ trợ/fix lỗi khách', 'work', WORK_COLOR, '🛠', 3),
-  cat('cat-chat', 'Email/chat', 'work', WORK_COLOR, '✉️', 4),
-  cat('cat-learnwork', 'Học trong việc', 'work', WORK_COLOR, '📘', 5),
-  cat('cat-ba', 'Học BA', 'activity', GROWTH_COLOR, '📊', 6),
-  cat('cat-side', 'Side project', 'activity', GROWTH_COLOR, '🚀', 7),
-  cat('cat-readwork', 'Đọc sách chuyên môn', 'activity', GROWTH_COLOR, '📖', 8),
-  cat('cat-chores', 'Việc nhà', 'activity', PERSONAL_COLOR, '🧹', 9),
-  cat('cat-commute', 'Di chuyển', 'activity', PERSONAL_COLOR, '🛵', 10),
-  cat('cat-fun', 'Giải trí', 'activity', PERSONAL_COLOR, '🎮', 11),
-  cat('cat-social', 'Mạng xã hội', 'activity', PERSONAL_COLOR, '📱', 12),
-  cat('cat-friends', 'Gặp bạn bè/gia đình', 'activity', PERSONAL_COLOR, '🧑‍🤝‍🧑', 13),
-  cat('cat-outdoor', 'Ra ngoài trời', 'activity', GROWTH_COLOR, '🌤', 14),
+  cat('cat-deep', 'Deep work', 'work', WORK_COLOR, '💻', 1, 'work'),
+  cat('cat-meeting', 'Họp', 'work', WORK_COLOR, '👥', 2, 'work'),
+  cat('cat-support', 'Hỗ trợ/fix lỗi khách', 'work', WORK_COLOR, '🛠', 3, 'work'),
+  cat('cat-chat', 'Email/chat', 'work', WORK_COLOR, '✉️', 4, 'work'),
+  cat('cat-learnwork', 'Học trong việc', 'work', WORK_COLOR, '📘', 5, 'work'),
+  cat('cat-ba', 'Học BA', 'activity', GROWTH_COLOR, '📊', 6, 'growth'),
+  cat('cat-side', 'Side project', 'activity', GROWTH_COLOR, '🚀', 7, 'growth'),
+  cat('cat-readwork', 'Đọc sách chuyên môn', 'activity', GROWTH_COLOR, '📖', 8, 'growth'),
+  cat('cat-chores', 'Việc nhà', 'activity', PERSONAL_COLOR, '🧹', 9, 'personal'),
+  cat('cat-commute', 'Di chuyển', 'activity', PERSONAL_COLOR, '🛵', 10, 'personal'),
+  cat('cat-fun', 'Giải trí', 'activity', PERSONAL_COLOR, '🎮', 11, 'personal'),
+  cat('cat-social', 'Mạng xã hội', 'activity', PERSONAL_COLOR, '📱', 12, 'personal'),
+  cat('cat-friends', 'Gặp bạn bè/gia đình', 'activity', PERSONAL_COLOR, '🧑‍🤝‍🧑', 13, 'personal'),
+  cat('cat-outdoor', 'Ra ngoài trời', 'activity', GROWTH_COLOR, '🌤', 14, 'personal'),
   cat('cat-breakfast', 'Ăn sáng', 'meal', MEAL_COLOR, '🥐', 15),
   cat('cat-lunch', 'Ăn trưa', 'meal', MEAL_COLOR, '🍱', 16),
   cat('cat-dinner', 'Ăn tối', 'meal', MEAL_COLOR, '🍜', 17),
@@ -62,7 +63,7 @@ export const DEFAULT_QUICK_ACTIONS: QuickAction[] = [
   qa('qa-breakfast', 'Ăn sáng', '🥐', 3, 'meal', 'cat-breakfast'),
   qa('qa-lunch', 'Ăn trưa', '🍱', 4, 'meal', 'cat-lunch'),
   qa('qa-dinner', 'Ăn tối', '🍜', 5, 'meal', 'cat-dinner'),
-  qa('qa-work', 'Bắt đầu làm', '💻', 6, 'work', 'cat-deep'),
+  qa('qa-work', 'Làm việc', '💻', 6, 'work', 'cat-deep'),
   qa('qa-water', 'Uống nước', '💧', 7, 'water', 'cat-water', { value: 250, unit: 'ml' }),
   qa('qa-coffee', 'Cà phê', '☕', 8, 'meal', 'cat-drink'),
   qa('qa-outdoor', 'Ra ngoài trời', '🌤', 9, 'activity', 'cat-outdoor'),
@@ -74,7 +75,7 @@ function habit(
   kind: Habit['kind'],
   target: Habit['target'],
   startDate: string,
-  extra: Partial<Pick<Habit, 'linkedRule' | 'archived'>> = {},
+  extra: Partial<Pick<Habit, 'linkedRule' | 'archived' | 'metricRule'>> = {},
 ): Habit {
   return {
     id,
@@ -105,8 +106,12 @@ export function defaultHabits(startDate: string): Habit[] {
       archived: false,
       linkedRule: { entryType: 'exercise' },
     }),
-    habit('habit-wake7', 'Dậy trước 7h', 'check', { op: '>=', value: 1 }, startDate),
-    habit('habit-sleep2330', 'Ngủ trước 23h30', 'check', { op: '>=', value: 1 }, startDate),
+    habit('habit-wake7', 'Dậy trước 7h', 'check', { op: '>=', value: 1 }, startDate, {
+      metricRule: { metricId: 'wake_time', op: '<=', value: 7, previousNight: true },
+    }),
+    habit('habit-sleep2330', 'Ngủ trước 23h30', 'check', { op: '>=', value: 1 }, startDate, {
+      metricRule: { metricId: 'bedtime', op: '<=', value: 23.5 },
+    }),
     habit(
       'habit-nopreview',
       'Không màn hình 30 phút trước ngủ',

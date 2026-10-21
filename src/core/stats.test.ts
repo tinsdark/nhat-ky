@@ -75,6 +75,8 @@ describe('formatMetric', () => {
     expect(formatMetric('alcohol', '0/1', 1)).toBe('Có')
     expect(formatMetric('mood', '1–5', 4)).toBe('4')
     expect(formatMetric('water_ml', 'ml', 750)).toBe('750 ml')
+    expect(formatMetric('water_ml', 'ml', 2041.66)).toBe('2042 ml')
+    expect(formatMetric('exercise_min', 'phút', 71.5)).toBe('72 phút')
     expect(formatMetric('mood', '1–5', null)).toBe('–')
   })
 })

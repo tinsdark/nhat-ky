@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { atTime } from './date'
-import { autoMealSlot, copyToDay, findOverlaps, shiftHHmm, suggestTitles } from './entryForm'
+import {
+  addMinutes,
+  autoMealSlot,
+  copyToDay,
+  findOverlaps,
+  formatDuration,
+  resolveEnd,
+  shiftHHmm,
+  suggestTitles,
+} from './entryForm'
 import type { Entry } from './types'
 
 function e(over: Partial<Entry>): Entry {
@@ -87,10 +96,13 @@ describe('autoMealSlot', () => {
   it('uses the category first', () => {
     expect(autoMealSlot('cat-lunch', '23:00')).toBe('lunch')
   })
-  it('falls back to late after 22:00 and before 04:00, else snack', () => {
+  it('otherwise follows the hour', () => {
+    expect(autoMealSlot('', '07:30')).toBe('breakfast')
+    expect(autoMealSlot('', '12:34')).toBe('lunch')
+    expect(autoMealSlot('', '16:00')).toBe('snack')
+    expect(autoMealSlot('', '19:00')).toBe('dinner')
     expect(autoMealSlot('cat-drink', '22:30')).toBe('late')
     expect(autoMealSlot('', '01:00')).toBe('late')
-    expect(autoMealSlot('', '15:00')).toBe('snack')
   })
 })
 
@@ -102,7 +114,7 @@ describe('copyToDay', () => {
       title: 'Code',
       start: atTime('2026-11-02', '23:00'),
       end: atTime('2026-11-02', '01:00'),
-      source: 'timer',
+      source: 'quick',
       photoIds: ['p1'],
     })
     const copy = copyToDay(src, '2026-11-03', 4)
@@ -114,5 +126,30 @@ describe('copyToDay', () => {
   })
   it('copies an open entry as open', () => {
     expect(copyToDay(e({ start: atTime('2026-11-02', '08:00') }), '2026-11-03', 4).end).toBeNull()
+  })
+})
+
+describe('resolveEnd / durations', () => {
+  const start = atTime('2026-11-02', '23:30')
+  it('rolls an end at or before the start to the next day', () => {
+    expect(resolveEnd(start, atTime('2026-11-02', '06:30'))).toBe(
+      new Date('2026-11-03T06:30:00+07:00').toISOString(),
+    )
+    expect(resolveEnd(atTime('2026-11-02', '09:00'), atTime('2026-11-02', '11:00'))).toBe(
+      new Date('2026-11-02T11:00:00+07:00').toISOString(),
+    )
+  })
+  it('keeps a crossing-midnight end as is', () => {
+    expect(resolveEnd(atTime('2026-11-02', '23:00'), atTime('2026-11-02', '01:00'))).toBe(
+      new Date('2026-11-03T01:00:00+07:00').toISOString(),
+    )
+  })
+  it('rejects blocks over 16 hours, including end = start', () => {
+    expect(resolveEnd(atTime('2026-11-02', '08:00'), atTime('2026-11-02', '08:00'))).toBeNull()
+    expect(resolveEnd(atTime('2026-11-02', '08:00'), atTime('2026-11-02', '01:00'))).toBeNull()
+  })
+  it('addMinutes and formatDuration', () => {
+    expect(addMinutes('2026-11-02T10:00:00.000Z', 90)).toBe('2026-11-02T11:30:00.000Z')
+    expect([15, 60, 90, 120, 135].map(formatDuration)).toEqual(['15p', '1h', '1h30', '2h', '2h15'])
   })
 })

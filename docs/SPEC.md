@@ -104,7 +104,7 @@ Tiền tố `nk_` để file của Nhật ký luôn nhận ra được trong app
 | `rating` | 1–5 / null | Tuỳ loại: chất lượng ngủ, độ tập trung, độ ngon |
 | `tags` | string\[\] | "cà phê", "ăn ngoài", "OT". Ảnh: mảng \`photoIds\` (tối đa 3) |
 | `payload` | object | Trường riêng theo loại, mô tả ở từng module |
-| `source` | enum | `manual`, `timer`, `quick` |
+| `source` | enum | `manual`, `quick` (bấm nút trong lúc đó, giờ là thời gian thực), `backfill` (ghi bù ở tab Ghi bù, giờ là ước lượng) |
 | `note` | string |  |
 | `createdAt`, `updatedAt`, `deviceId`, `deleted` |  | Phục vụ sync |
 
@@ -125,7 +125,9 @@ Tiền tố `nk_` để file của Nhật ký luôn nhận ra được trong app
 - `categories[]`: id, tên, loại Entry, màu, icon, thứ tự, `archived`.
 - `habits[]`: xem Module 2.
 - `quickActions[]`: nút bấm nhanh = mẫu Entry dựng sẵn (loại, danh mục, title, value mặc định).
-- `tags[]`: tên, màu.
+- `tags[]`: id, tên, màu. `Entry.tags` lưu **id** tag.
+- Danh mục có thêm `group` (`work` / `growth` / `personal`) để gom giờ ở màn Thời gian; mặc định theo loại.
+- Quản lý (thêm, sửa, ẩn, sắp xếp) ở Cài đặt → "Sửa danh mục, nút nhanh và tag". Sắp xếp bằng nút ↑ ↓ (điện thoại), không kéo thả.
 
 Không xoá cứng định nghĩa đã có dữ liệu; chỉ `archived` để thống kê cũ không vỡ.
 
@@ -137,7 +139,8 @@ Không xoá cứng định nghĩa đã có dữ liệu; chỉ `archived` để t
 
 - Trên cùng: ngày logic, nút ◀ ▶ đổi ngày, thanh tiến độ "đã ghi x/y mục cốt lõi" (ngủ, 3 bữa, làm việc, chấm ngày).
 - Lưới **nút nhanh** 2×4 (tuỳ chỉnh được): Thức dậy, Đi ngủ, Ăn sáng, Ăn trưa, Ăn tối, Bắt đầu làm, Uống nước, Cà phê.
-- **Timer đang chạy** (nếu có): "Đang làm việc — 01:23:45", nút Dừng. Chỉ một timer chạy cùng lúc; bật timer mới thì tự dừng timer cũ.
+- **Không có timer** (đổi 21/10: Đạt không bật được liên tục). Việc làm được ghi bằng thời gian ước lượng: chạm "Làm việc" → chọn "vừa làm xong bao lâu" (15p … 4h); khối kết thúc bây giờ và bắt đầu cách đây đúng khoảng đó.
+- **Check-in nhanh**: chạm 1–5 cho năng lượng hoặc tâm trạng ngay lúc đó (Module 5.3).
 - **Timeline dọc** theo giờ: mỗi Entry là một khối, khối kéo dài có chiều cao theo thời lượng, màu theo danh mục. Khoảng trống > 2 tiếng chưa ghi gì hiện vạch mờ "chưa ghi" để bấm điền.
 - Nút **+** nổi góc dưới: mở form đầy đủ.
 
@@ -147,7 +150,8 @@ Không xoá cứng định nghĩa đã có dữ liệu; chỉ `archived` để t
 | --- | --- | --- |
 | Chạm nút nhanh | 1 chạm | Tạo Entry với giờ = bây giờ, giá trị mặc định. Hiện toast 5 giây có nút "Sửa" / "Hoàn tác" |
 | Nhấn giữ nút nhanh | 2 chạm | Mở form điền sẵn để chỉnh giờ, giá trị, ghi chú |
-| Bật/dừng timer | 2 chạm | Entry có `start`/`end` từ timer, `source = timer` |
+| Chạm "Làm việc" + chọn thời lượng ước lượng | 2 chạm | Entry kết thúc bây giờ, bắt đầu cách đây đúng khoảng đó, `source = quick` |
+| Tab **Ghi bù** | 2–3 chạm | Cho việc đã làm xong mà chưa kịp bấm: chọn ngày, chạm một mục (giờ mặc định theo thói quen, ví dụ ăn trưa 12:00), chỉnh giờ hoặc chip thời lượng, Lưu. `source = backfill`, hiện nhãn "ghi bù" trên timeline |
 | Form đầy đủ (+) | Chọn loại → điền | Dùng khi ghi bù |
 | Chép từ hôm qua | 1 chạm trên một khối của hôm qua | Copy sang hôm nay, giữ giờ |
 | Điền khoảng trống | Chạm vạch "chưa ghi" | Form với `start`/`end` điền sẵn theo khoảng trống |
@@ -188,6 +192,7 @@ Theo dõi thói quen tốt muốn xây và thói quen xấu muốn bỏ, có m�
 | `schedule` | hằng ngày / thứ cụ thể / x lần mỗi tuần | T2–T6 · 3 lần/tuần |
 | `reminderTime` | HH:mm / null | 22:00 |
 | `linkedRule` | tuỳ chọn | Tự tick từ Entry khác: "Uống nước" tự đếm từ Entry `water` |
+| `metricRule` | tuỳ chọn | Tự đạt khi một chỉ số qua ngưỡng, ví dụ `wake_time ≤ 7` ("Dậy trước 7h", lấy đêm hôm trước) hay `bedtime ≤ 23,5` ("Ngủ trước 23h30") |
 | `startDate`, `archived` |  |  |
 
 **2.2 Màn hình Thói quen**
@@ -253,7 +258,7 @@ Giờ bữa đầu, giờ bữa cuối, **khung ăn** (bữa đầu → bữa cu
 
 ## Module 4 — Công việc & quản lý thời gian
 
-Ghi thời gian làm việc theo khối (timer hoặc ghi bù) để biết mày thực sự dùng giờ vào đâu, giờ nào tập trung nhất, và OT bao nhiêu. Không thay thế Jira hay task tool của công ty.
+Ghi thời gian làm việc theo khối (ước lượng thời lượng; không dùng timer) để biết mày thực sự dùng giờ vào đâu, giờ nào tập trung nhất, và OT bao nhiêu. Không thay thế Jira hay task tool của công ty.
 
 **4.1 Danh mục mặc định (sửa được)**
 
@@ -266,8 +271,8 @@ Ghi thời gian làm việc theo khối (timer hoặc ghi bù) để biết mày
 **4.2 Payload `work` / `activity`**
 
 - `project`: tên dự án/hệ thống tự do, có gợi ý: "CyberApp Golden", "QLBX", "Nhật ký".
-- `focus`: 1–5, hỏi khi dừng timer (có thể bỏ qua).
-- `interruptions`: số lần bị cắt ngang, nút +1 trong lúc timer chạy.
+- `focus`: 1–5, điền trong form (tuỳ chọn).
+- `interruptions`: số lần bị cắt ngang, điền tay trong form (tuỳ chọn).
 - `location`: văn phòng / nhà / quán.
 - `isOvertime`: tự đặt `true` nếu ngoài giờ làm việc khai báo trong cài đặt (vd 8:00–17:30, T2–T6).
 
@@ -286,7 +291,7 @@ Ghi thời gian làm việc theo khối (timer hoặc ghi bù) để biết mày
 
 Tổng giờ làm, giờ deep work, focus trung bình, số lần bị ngắt, giờ OT, giờ học BA, giờ mạng xã hội, giờ bắt đầu làm việc đầu tiên.
 
-**Tiêu chí xong:** dừng timer + chấm focus ≤ 2 chạm; tổng giờ một ngày khớp tổng các khối.
+**Tiêu chí xong:** ghi một khối làm việc bằng thời lượng ước lượng ≤ 2 chạm; tổng giờ một ngày khớp tổng các khối.
 
 ## Module 5 — Ngủ, vận động, tâm trạng & năng lượng
 
@@ -294,8 +299,8 @@ Ba thứ này là biến "đầu ra" chính của phân tích: hầu hết lời
 
 **5.1 Giấc ngủ (`type = sleep`)**
 
-- Ghi bằng 2 nút nhanh: **Đi ngủ** (tạo Entry mở, chỉ có `start`) và **Thức dậy** (đóng Entry đang mở, điền `end`, hỏi chất lượng 1–5).
-- Quên bấm thì sáng hôm sau app hỏi: "Tối qua ngủ lúc mấy giờ?" với giờ gợi ý = trung bình 7 ngày.
+- Ghi bằng 2 nút nhanh, chỉ cần bấm, app tự lưu giờ: **Đi ngủ** (tạo Entry mở, chỉ có `start`) và **Thức dậy** (đóng Entry đang mở, điền `end`; chất lượng 1–5 là tuỳ chọn, bỏ qua được).
+- Quên bấm "Đi ngủ" thì "Thức dậy" vẫn ghi một giấc ngủ với giờ ngủ ước lượng (giờ ngủ thường lệ 7 ngày, kẹp trong 2–14 giờ, không thì mục tiêu ngủ trước giờ dậy), `payload.estimated = true`. App không hỏi lại giờ ngủ. Sai thì sửa ở Hôm nay hoặc Ghi bù.
 - Payload: `quality` 1–5, `wakeUps` số lần tỉnh giữa đêm, `screenBeforeBed` có/không, `alarm` dậy bằng báo thức hay tự dậy.
 - Ngủ trưa: Entry `sleep` có `payload.nap = true`, không tính vào giấc chính.
 - Chỉ số dẫn xuất: giờ đi ngủ, giờ dậy, thời lượng, **độ lệch giờ ngủ** (độ lệch chuẩn giờ đi ngủ 7 ngày — càng thấp càng đều), nợ ngủ so với mục tiêu (mặc định 7,5h).
@@ -335,7 +340,7 @@ Ba thứ này là biến "đầu ra" chính của phân tích: hầu hết lời
 
 **Lưu ý:** app không chẩn đoán sức khoẻ. Lời khuyên chỉ nói về thói quen và số liệu của chính mày.
 
-**Tiêu chí xong:** ghi trọn một giấc ngủ chỉ bằng 2 lần bấm (tối + sáng); giấc ngủ qua nửa đêm gán đúng ngày logic.
+**Tiêu chí xong:** ghi trọn một giấc ngủ chỉ bằng 2 lần bấm (tối + sáng), không phải nhập giờ; giấc ngủ qua nửa đêm gán đúng ngày logic.
 
 ## Module 6 — (đã bỏ)
 

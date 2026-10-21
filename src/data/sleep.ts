@@ -1,5 +1,5 @@
 import { addDays, toDateKey, toIso } from '../core/date'
-import { averageBedtime, findOpenNightSleep } from '../core/sleep'
+import { averageBedtime, estimateBedtime, findOpenNightSleep } from '../core/sleep'
 import type { Entry, Rating } from '../core/types'
 import { db } from './db'
 import { createEntry, getSettings, updateEntry } from './repository'
@@ -39,22 +39,29 @@ export async function goToSleep(): Promise<Entry | null> {
   })
 }
 
-/** "Thức dậy": closes the open night sleep, or returns null when there is none to close. */
-export async function wakeUp(): Promise<Entry | null> {
+/**
+ * "Thức dậy": closes the open night sleep. With none open (the "Đi ngủ" press was forgotten) it
+ * records a night anyway, with an estimated bedtime and `payload.estimated`: no question is asked.
+ */
+export async function wakeUp(): Promise<{ entry: Entry; estimated: boolean }> {
   const open = await getOpenSleep()
-  if (!open) return null
-  return updateEntry(open.id, { end: toIso(), title: 'Ngủ đêm' })
-}
-
-export function recordNight(start: string, end: string): Promise<Entry> {
-  return createEntry({
+  if (open)
+    return {
+      entry: await updateEntry(open.id, { end: toIso(), title: 'Ngủ đêm' }),
+      estimated: false,
+    }
+  const { sleepTargetHours } = await getSettings()
+  const now = Date.now()
+  const entry = await createEntry({
     type: 'sleep',
-    start,
-    end,
+    start: estimateBedtime(now, await suggestBedtime(), sleepTargetHours),
+    end: toIso(now),
     categoryId: SLEEP_CATEGORY,
     title: 'Ngủ đêm',
-    source: 'manual',
+    source: 'quick',
+    payload: { estimated: true },
   })
+  return { entry, estimated: true }
 }
 
 export async function setSleepQuality(id: string, quality: Rating): Promise<Entry> {

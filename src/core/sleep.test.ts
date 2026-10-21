@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { atTime } from './date'
-import { averageBedtime, bedtimeBefore, findOpenNightSleep, shouldAskLastNight } from './sleep'
+import { averageBedtime, bedtimeBefore, estimateBedtime, findOpenNightSleep } from './sleep'
 import type { Entry } from './types'
 
 const sleep = (start: string, end: string | null, payload = {}): Entry =>
@@ -51,17 +51,19 @@ describe('findOpenNightSleep', () => {
   })
 })
 
-describe('shouldAskLastNight', () => {
-  const morning = new Date('2026-11-03T08:00:00+07:00').getTime()
-  it('asks in the morning when there is no recent sleep', () => {
-    expect(shouldAskLastNight([], morning, 4)).toBe(true)
+describe('estimateBedtime', () => {
+  const morning = new Date('2026-11-03T07:00:00+07:00').getTime()
+  it('uses the usual bedtime when the night is believable', () => {
+    expect(estimateBedtime(morning, '23:30', 7.5)).toBe('2026-11-02T23:30:00.000+07:00')
+    expect(estimateBedtime(morning, '00:30', 7.5)).toBe('2026-11-03T00:30:00.000+07:00')
   })
-  it('does not ask when last night was recorded', () => {
-    const done = sleep('2026-11-02T23:30:00.000+07:00', '2026-11-03T06:30:00.000+07:00')
-    expect(shouldAskLastNight([done], morning, 4)).toBe(false)
+  it('falls back to the sleep target without a usual bedtime', () => {
+    expect(estimateBedtime(morning, null, 7.5)).toBe('2026-11-02T23:30:00.000+07:00')
   })
-  it('does not ask in the afternoon or before the day starts', () => {
-    expect(shouldAskLastNight([], new Date('2026-11-03T15:00:00+07:00').getTime(), 4)).toBe(false)
-    expect(shouldAskLastNight([], new Date('2026-11-03T02:00:00+07:00').getTime(), 4)).toBe(false)
+  it('falls back when the usual bedtime gives an implausible night (pressed in the afternoon)', () => {
+    const afternoon = new Date('2026-11-03T15:00:00+07:00').getTime() // usual bed would be 15.5h ago
+    expect(estimateBedtime(afternoon, '23:30', 7.5)).toBe('2026-11-03T07:30:00.000+07:00')
+    const justAfter = new Date('2026-11-03T01:00:00+07:00').getTime() // 1.5h of sleep: too short
+    expect(estimateBedtime(justAfter, '23:30', 7.5)).toBe('2026-11-02T17:30:00.000+07:00')
   })
 })

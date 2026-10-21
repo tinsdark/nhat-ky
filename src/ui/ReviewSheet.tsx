@@ -41,7 +41,13 @@ export function ReviewSheet({ dateKey, onClose }: { dateKey: string; onClose: ()
   const entries = useLive(() => getEntriesByDateKey(dateKey), [dateKey])
   // Habits due that day and not yet met; linked ones fill themselves from other entries.
   const pending = (defs?.habits ?? []).filter((h) => {
-    if (h.archived || h.linkedRule || h.direction === 'quit' || !isScheduled(h, dateKey))
+    if (
+      h.archived ||
+      h.linkedRule ||
+      h.metricRule ||
+      h.direction === 'quit' ||
+      !isScheduled(h, dateKey)
+    )
       return false
     return !isMet(h, valuesByDate(h, entries ?? []).get(dateKey) ?? 0)
   })

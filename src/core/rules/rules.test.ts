@@ -175,11 +175,26 @@ describe('low_exercise', () => {
   it('does not fire when the target is met', () => {
     expect(ids(run([e('2026-11-12', 'exercise', '18:00', '20:40')]))).not.toContain('low_exercise')
   })
-  it('follows the Settings target and the override', () => {
+  it('follows the Settings target (the old per-rule override is ignored)', () => {
     const ex = [e('2026-11-12', 'exercise', '18:00', '19:00')]
-    expect(ids(run(ex, { overrides: { 'low_exercise.minutes': 50 } }))).not.toContain(
-      'low_exercise',
-    )
+    const entries = [
+      ...Array.from({ length: 14 }, (_, i) => e(addDays(TODAY, -i), 'note', '08:00', null)),
+      ...ex,
+    ]
+    const withTarget = (exerciseTargetMinPerWeek: number) =>
+      evaluateRules({
+        ctx: createMetricContext({
+          entries,
+          days: [],
+          habits: [],
+          settings: { ...DEFAULT_SETTINGS, exerciseTargetMinPerWeek },
+        }),
+        today: TODAY,
+        now: NOW_MORNING,
+        overrides: { 'low_exercise.minutes': 9999 },
+      }).map((x) => x.ruleId)
+    expect(withTarget(50)).not.toContain('low_exercise')
+    expect(withTarget(150)).toContain('low_exercise')
   })
 })
 
@@ -295,8 +310,11 @@ describe('engine', () => {
   it('resolveThresholds: defaults, Settings target, overrides', () => {
     const rule = RULES.find((r) => r.id === 'low_exercise')!
     expect(resolveThresholds(rule).minutes).toBe(150)
-    expect(resolveThresholds(rule, {}, 120).minutes).toBe(120)
-    expect(resolveThresholds(rule, { 'low_exercise.minutes': 90 }, 120).minutes).toBe(90)
+    const st = { exerciseTargetMinPerWeek: 120, weeklyBudgets: DEFAULT_SETTINGS.weeklyBudgets }
+    expect(resolveThresholds(rule, {}, st).minutes).toBe(120)
+    // the exercise target is owned by Settings: a stale per-rule override is ignored
+    expect(resolveThresholds(rule, { 'low_exercise.minutes': 90 }, st).minutes).toBe(120)
+    expect(resolveThresholds(rule, { 'low_exercise.minLoggedDays': 5 }, st).minLoggedDays).toBe(5)
   })
   it('every rule has 1–3 priority, a cooldown, and labels for all its thresholds', () => {
     for (const r of RULES) {
@@ -304,10 +322,41 @@ describe('engine', () => {
       expect(r.cooldownDays).toBeGreaterThan(0)
       expect(Object.keys(r.params).sort()).toEqual(Object.keys(r.defaults).sort())
     }
-    expect(RULES).toHaveLength(11)
+    expect(RULES).toHaveLength(12)
   })
   it('fmtHM', () => {
     expect(fmtHM(5.3333)).toBe('5h20')
     expect(fmtHM(7)).toBe('7h00')
+  })
+})
+
+describe('ba_short and switches', () => {
+  it('Học BA hụt: pace is budget × days elapsed / 7', () => {
+    // Saturday: 6 days elapsed → expected 4 × 6/7 = 3.4h; 1h studied is under 70%
+    const ba = [e('2026-11-10', 'activity', '21:00', '22:00', { categoryId: 'cat-ba' })]
+    expect(run(ba).find((x) => x.ruleId === 'ba_short')?.text).toBe(
+      'Học BA tuần này mới 1h, mốc đến hôm nay là 3,4h (ngân sách 4h/tuần).',
+    )
+    const enough = [e('2026-11-10', 'activity', '21:00', '23:30', { categoryId: 'cat-ba' })]
+    expect(ids(run(enough))).not.toContain('ba_short')
+  })
+  it('a rule switched off in Settings does not fire; budgets come from Settings', () => {
+    const entries = Array.from({ length: 14 }, (_, i) =>
+      e(addDays(TODAY, -i), 'note', '08:00', null),
+    )
+    const ctx = (over: object) =>
+      createMetricContext({
+        entries,
+        days: [],
+        habits: [],
+        settings: { ...DEFAULT_SETTINGS, ...over },
+      })
+    const fired = (c: ReturnType<typeof ctx>) =>
+      evaluateRules({ ctx: c, today: TODAY, now: NOW_MORNING }).map((x) => x.ruleId)
+    expect(fired(ctx({}))).toContain('skip_breakfast')
+    expect(fired(ctx({ disabledRules: ['skip_breakfast'] }))).not.toContain('skip_breakfast')
+    expect(
+      fired(ctx({ weeklyBudgets: { deepWorkHours: 0, baHours: 0, socialHours: 7 } })),
+    ).not.toContain('ba_short')
   })
 })

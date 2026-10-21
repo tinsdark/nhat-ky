@@ -1,7 +1,7 @@
 import { dateKeyRange } from '../date'
 import type { Habit } from '../types'
 import { habitMetrics, METRICS, type Metric } from './definitions'
-import type { MetricContext } from './context'
+import { setMetricLookup, type MetricContext } from './context'
 
 export { createMetricContext } from './context'
 export type { MetricContext, MetricInput } from './context'
@@ -26,3 +26,5 @@ export function computeSeries(
 ): { dateKey: string; value: number | null }[] {
   return dateKeyRange(from, to).map((dateKey) => ({ dateKey, value: metric.compute(dateKey, ctx) }))
 }
+
+setMetricLookup((id) => getMetric(id))

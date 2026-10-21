@@ -73,6 +73,7 @@ export function createPhotoStore({ db, drive }: { db: NhatKyDB; drive: PhotoDriv
   async function load(id: string, kind: 'blob' | 'thumb'): Promise<Blob | null> {
     const rec = await db.photos.get(id)
     if (rec?.[kind]) return rec[kind]
+    if (kind === 'blob' && rec?.trimmed) return null // the full-size file was deleted on purpose
     const file = await drive.downloadBlob(kind === 'blob' ? fullName(id) : thumbName(id))
     if (!file) return null
     if (rec) await db.photos.update(id, { [kind]: file })
@@ -118,5 +119,27 @@ export function createPhotoStore({ db, drive }: { db: NhatKyDB; drive: PhotoDriv
     return orphans.length
   }
 
-  return { add, remove, runQueue, load, enforceCacheLimit, sweepOrphans }
+  /**
+   * "Sau 12 tháng chỉ giữ ảnh thu nhỏ": for uploaded photos older than `months`, deletes the full-size
+   * file from Drive and from this device. The thumbnail stays. Returns how many photos were trimmed.
+   */
+  async function pruneFull(months: number, now = Date.now()): Promise<number> {
+    const cutoff = now - months * 30.44 * 86_400_000
+    const old = (await db.photos.toArray()).filter(
+      (p) => p.uploaded === 1 && new Date(p.createdAt).getTime() < cutoff && !p.trimmed,
+    )
+    let trimmed = 0
+    for (const p of old) {
+      try {
+        await drive.deleteFile(fullName(p.id))
+      } catch {
+        continue // offline: try again next time
+      }
+      await db.photos.update(p.id, { blob: null, trimmed: true })
+      trimmed++
+    }
+    return trimmed
+  }
+
+  return { add, remove, runQueue, load, enforceCacheLimit, sweepOrphans, pruneFull }
 }

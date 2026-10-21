@@ -1,6 +1,15 @@
-import { toHHmm } from '../date'
+import { addDays, dateKeyRange, toHHmm } from '../date'
 import { valuesByDate } from '../habits'
 import type { Day, Entry, Habit, Settings } from '../types'
+
+/** Metric lookup for habits that follow a metric. Registered by metrics/index.ts, which owns the registry. */
+type MetricLookup = (
+  id: string,
+) => { compute(dateKey: string, ctx: MetricContext): number | null } | undefined
+let lookupMetric: MetricLookup = () => undefined
+export function setMetricLookup(fn: MetricLookup): void {
+  lookupMetric = fn
+}
 
 export interface MetricInput {
   entries: Entry[]
@@ -15,6 +24,8 @@ export interface MetricContext {
   habits: Habit[]
   /** Live entries of a logical day. */
   entriesOf(dateKey: string): Entry[]
+  /** Every dateKey that has at least one entry, sorted. */
+  dateKeys(): string[]
   day(dateKey: string): Day | undefined
   /** True when anything was recorded that day. A day with nothing is "not logged": metrics return null, not 0. */
   logged(dateKey: string): boolean
@@ -41,10 +52,30 @@ export function createMetricContext(input: MetricInput): MetricContext {
   const habitCache = new Map<string, Map<string, number>>()
 
   const entriesOf = (dateKey: string) => byDate.get(dateKey) ?? []
-  return {
+
+  /** 1 on days the metric passes the test, 0 when it does not, absent when the metric has no value. */
+  function metricRuleValues(habit: Habit): Map<string, number> {
+    const rule = habit.metricRule!
+    const out = new Map<string, number>()
+    const metric = lookupMetric(rule.metricId)
+    const keys = [...byDate.keys(), ...days.keys()].sort()
+    if (!metric || keys.length === 0) return out
+    for (const d of dateKeyRange(
+      habit.startDate < keys[0]! ? habit.startDate : keys[0]!,
+      keys[keys.length - 1]!,
+    )) {
+      const v = metric.compute(rule.previousNight ? addDays(d, -1) : d, ctx)
+      if (v === null) continue
+      out.set(d, (rule.op === '<=' ? v <= rule.value : v >= rule.value) ? 1 : 0)
+    }
+    return out
+  }
+
+  const ctx: MetricContext = {
     settings: input.settings,
     habits: input.habits,
     entriesOf,
+    dateKeys: () => [...byDate.keys()].sort(),
     day: (dateKey) => days.get(dateKey),
     logged: (dateKey) => entriesOf(dateKey).length > 0,
     nightSleep(dateKey) {
@@ -63,12 +94,13 @@ export function createMetricContext(input: MetricInput): MetricContext {
     habitValues(habit) {
       let v = habitCache.get(habit.id)
       if (!v) {
-        v = valuesByDate(habit, live)
+        v = habit.metricRule ? metricRuleValues(habit) : valuesByDate(habit, live)
         habitCache.set(habit.id, v)
       }
       return v
     },
   }
+  return ctx
 }
 
 /** Clock hour 0–24 (Vietnam time) with decimals. */

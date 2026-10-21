@@ -12,7 +12,8 @@ export interface SyncFields {
 export type EntryType =
   'sleep' | 'meal' | 'work' | 'habit' | 'exercise' | 'activity' | 'water' | 'note'
 
-export type EntrySource = 'manual' | 'timer' | 'quick'
+/** `quick` = tapped in real time on Hôm nay; `backfill` = written afterwards on Ghi bù, times are estimates. */
+export type EntrySource = 'manual' | 'quick' | 'backfill'
 
 export type Rating = 1 | 2 | 3 | 4 | 5
 
@@ -51,10 +52,14 @@ export interface Day extends SyncFields {
   note: string
 }
 
+export type CategoryGroup = 'work' | 'growth' | 'personal'
+
 export interface Category {
   id: string
   name: string
   entryType: EntryType
+  /** Time group for the Thời gian screen (SPEC 4.1). Default: work for work categories, else personal. */
+  group?: CategoryGroup
   color: string
   icon: string
   order: number
@@ -94,6 +99,12 @@ export interface Habit {
   reminderTime: string | null
   /** Auto-count from another entry type, e.g. water. */
   linkedRule: { entryType: EntryType; categoryId?: string } | null
+  /**
+   * Met automatically when a metric passes a test that day, e.g. wake_time ≤ 7. `previousNight` reads the
+   * metric of the day before: a night is filed under the day it starts, so "dậy trước 7h" on day D
+   * is about the night of D−1.
+   */
+  metricRule?: { metricId: string; op: '<=' | '>='; value: number; previousNight?: boolean } | null
   startDate: string
   archived: boolean
 }
@@ -121,8 +132,14 @@ export interface Settings {
   skipRestDays: boolean
   /** Upload photos only on Wi-Fi (when the browser can tell). */
   photosWifiOnly: boolean
+  /** 0 = keep full-size photos forever; 12 = after 12 months keep only the thumbnail (SPEC 10.3). */
+  photoFullMonths: 0 | 12
   /** Rule threshold overrides, keyed `<ruleId>.<param>`; missing keys use the rule's default. */
   ruleThresholds: Record<string, number>
+  /** Rule ids switched off in Settings. */
+  disabledRules: string[]
+  /** Weekly time budgets in hours (SPEC 4.4). Rules and the Thời gian screen use them. */
+  weeklyBudgets: { deepWorkHours: number; baHours: number; socialHours: number }
   theme: 'light' | 'dark' | 'system'
 }
 
@@ -207,4 +224,6 @@ export interface PhotoRecord {
   createdAt: string
   /** 1 once both files are on Drive. */
   uploaded: 0 | 1
+  /** True once the full-size file was deliberately removed (older than the keep-full setting). */
+  trimmed?: boolean
 }

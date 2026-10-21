@@ -9,6 +9,7 @@ import {
   getDeviceId,
   getEntriesByDateKey,
   getEntriesInRange,
+  changeDayStartHour,
   getSettings,
   restoreEntry,
   saveDay,
@@ -167,5 +168,57 @@ describe('restoreEntry', () => {
     await restoreEntry(e.id)
     expect(await getEntriesByDateKey(e.dateKey)).toHaveLength(1)
     expect((await db.entries.get(e.id))?.dirty).toBe(1)
+  })
+})
+
+describe('work overtime', () => {
+  it('sets payload.isOvertime from the working hours on create and update', async () => {
+    const inside = await createEntry({
+      type: 'work',
+      start: '2026-11-02T09:00:00.000+07:00',
+      end: '2026-11-02T11:00:00.000+07:00',
+    })
+    expect(inside.payload.isOvertime).toBe(false)
+    const moved = await updateEntry(inside.id, {
+      start: '2026-11-02T19:00:00.000+07:00',
+      end: '2026-11-02T20:00:00.000+07:00',
+    })
+    expect(moved.payload.isOvertime).toBe(true)
+    const open = await createEntry({ type: 'work', start: '2026-11-02T09:00:00.000+07:00' })
+    expect(open.payload.isOvertime).toBeUndefined()
+    const other = await createEntry({
+      type: 'meal',
+      start: '2026-11-02T19:00:00.000+07:00',
+      end: '2026-11-02T20:00:00.000+07:00',
+    })
+    expect(other.payload.isOvertime).toBeUndefined()
+  })
+})
+
+describe('time format', () => {
+  it('stores start and end with the +07:00 offset even when given UTC', async () => {
+    const e = await createEntry({
+      type: 'note',
+      start: '2026-11-02T05:00:00.000Z',
+      end: '2026-11-02T06:00:00.000Z',
+    })
+    expect(e.start).toBe('2026-11-02T12:00:00.000+07:00')
+    expect(e.end).toBe('2026-11-02T13:00:00.000+07:00')
+    expect(e.dateKey).toBe('2026-11-02')
+  })
+})
+
+describe('changeDayStartHour', () => {
+  it('re-keys entries by the new cut and keeps the rest', async () => {
+    const late = await createEntry({ type: 'note', start: '2026-11-03T03:00:00.000+07:00' }) // 03:00: belongs to Nov 2 with cut 4
+    const noon = await createEntry({ type: 'note', start: '2026-11-03T12:00:00.000+07:00' })
+    expect(late.dateKey).toBe('2026-11-02')
+    const moved = await changeDayStartHour(2)
+    expect(moved).toBe(1)
+    expect((await db.entries.get(late.id))?.dateKey).toBe('2026-11-03')
+    expect((await db.entries.get(late.id))?.dirty).toBe(1)
+    expect((await db.entries.get(noon.id))?.dateKey).toBe('2026-11-03')
+    expect((await getSettings()).dayStartHour).toBe(2)
+    await expect(changeDayStartHour(12)).rejects.toThrow()
   })
 })

@@ -1,5 +1,5 @@
 import { addDays } from './date'
-import type { Finding } from './correlation'
+import type { Finding, WeekdayFinding } from './correlation'
 import type { Metric } from './metrics'
 import type { FiredRule } from './rules'
 import { formatMetric } from './stats'
@@ -27,7 +27,7 @@ export const emptyStore = (): InsightStore => ({
 
 /** Weight bucket of an insight: the rule, or the correlation factor (so "Không đúng" demotes the whole type). */
 export function weightKey(kind: string): string {
-  if (kind.startsWith('corr:')) return kind.split('>')[0]!
+  if (kind.startsWith('corr:') || kind.startsWith('weekday:')) return kind.split('>')[0]!
   return `rule:${kind.slice(5).split(':')[0]}`
 }
 
@@ -83,33 +83,55 @@ function actionFor(f: Finding): string | null {
   return null
 }
 
+export interface Sides {
+  /** The two conditions, the better outcome first, e.g. "Giờ đi ngủ ≤ 23:06". */
+  goodCond: string
+  badCond: string
+  goodN: number
+  badN: number
+  goodMean: number
+  badMean: number
+  /** Outcome label, with "ngày hôm sau" for next-day findings. */
+  what: string
+}
+
+/** The two groups of a finding put in "better / worse outcome" order, as text. Null if a metric is unknown. */
+export function describeSides(f: Finding, byId: Map<string, Metric>): Sides | null {
+  const factor = byId.get(f.factorId)
+  const outcome = byId.get(f.outcomeId)
+  if (!factor || !outcome) return null
+  const cond = (high: boolean) => {
+    if (f.kind === 'binary') return `${factor.label} = ${high ? 'Có' : 'Không'}`
+    return high
+      ? `${factor.label} ≥ ${formatMetric(factor.id, factor.unit, f.highMin)}`
+      : `${factor.label} ≤ ${formatMetric(factor.id, factor.unit, f.lowMax)}`
+  }
+  const goodIsHigh = f.d > 0
+  return {
+    goodCond: cond(goodIsHigh),
+    badCond: cond(!goodIsHigh),
+    goodN: goodIsHigh ? f.nHigh : f.nLow,
+    badN: goodIsHigh ? f.nLow : f.nHigh,
+    goodMean: goodIsHigh ? f.meanHigh : f.meanLow,
+    badMean: goodIsHigh ? f.meanLow : f.meanHigh,
+    what: f.lag === 1 ? `${outcome.label} ngày hôm sau` : outcome.label,
+  }
+}
+
 /** One sentence with the numbers, then (if there is one) what to try. SPEC 8.3/8.4. */
 export function correlationCandidates(findings: Finding[], metrics: Metric[]): Candidate[] {
   const byId = new Map(metrics.map((m) => [m.id, m]))
   return findings.flatMap((f) => {
-    const factor = byId.get(f.factorId)
-    const outcome = byId.get(f.outcomeId)
-    if (!factor || !outcome) return []
-    const cond = (high: boolean) => {
-      if (f.kind === 'binary') return `${factor.label} = ${high ? 'Có' : 'Không'}`
-      return high
-        ? `${factor.label} ≥ ${formatMetric(factor.id, factor.unit, f.highMin)}`
-        : `${factor.label} ≤ ${formatMetric(factor.id, factor.unit, f.lowMax)}`
-    }
-    const better = f.d > 0 ? 'high' : 'low'
-    const goodN = better === 'high' ? f.nHigh : f.nLow
-    const badN = better === 'high' ? f.nLow : f.nHigh
-    const goodMean = better === 'high' ? f.meanHigh : f.meanLow
-    const badMean = better === 'high' ? f.meanLow : f.meanHigh
-    const what = f.lag === 1 ? `${outcome.label} ngày hôm sau` : outcome.label
+    const sides = describeSides(f, byId)
+    if (!sides) return []
     const together = f.alsoSeen
       .map((id) => byId.get(id)?.label)
       .filter(Boolean)
       .join(', ')
     const action = actionFor(f)
     const text =
-      `Khi ${cond(better === 'high')} (${goodN} ngày), ${what} TB ${fmt1(goodMean)}; ` +
-      `khi ${cond(better !== 'high')} (${badN} ngày) TB ${fmt1(badMean)}. ` +
+      `Khi ${sides.goodCond} (${sides.goodN} ngày), ${sides.what} TB ${fmt1(sides.goodMean)}; ` +
+      `khi ${sides.badCond} (${sides.badN} ngày) TB ${fmt1(sides.badMean)}. ` +
       `Độ tin cậy: ${CONFIDENCE_LABEL[f.confidence]}.` +
       (together ? ` Đi kèm: ${together}.` : '') +
       (action ? ` ${action}` : ' (Chỉ để tham khảo.)')
@@ -126,6 +148,32 @@ export function correlationCandidates(findings: Finding[], metrics: Metric[]): C
     ]
   })
 }
+
+const WEEKDAY_NAMES = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ nhật']
+
+/** Weekday findings as information-only insights: a weekday cannot be changed, so they rank low. */
+export function weekdayCandidates(findings: WeekdayFinding[], metrics: Metric[]): Candidate[] {
+  const byId = new Map(metrics.map((m) => [m.id, m]))
+  return findings.flatMap((f) => {
+    const outcome = byId.get(f.outcomeId)
+    if (!outcome) return []
+    const text =
+      `${WEEKDAY_NAMES[f.weekday]}: ${outcome.label} TB ${fmt1(f.mean)} (${f.n} ngày) so với ${fmt1(f.restMean)} các ngày còn lại (${f.restN} ngày). ` +
+      `Độ tin cậy: ${CONFIDENCE_LABEL[f.confidence]}. Thứ trong tuần không đổi được, chỉ để tham khảo.`
+    return [
+      {
+        kind: `weekday:${f.weekday}>${f.outcomeId}`,
+        source: 'correlation' as const,
+        text,
+        confidence: f.confidence,
+        action: null,
+        score: CONFIDENCE_WEIGHT[f.confidence] * Math.min(Math.abs(f.d), 2) * 0.3,
+      },
+    ]
+  })
+}
+
+export { WEEKDAY_NAMES }
 
 // ---- store -------------------------------------------------------------------------------------
 

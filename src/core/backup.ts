@@ -1,5 +1,5 @@
 import { weekday } from './date'
-import type { Category, Entry } from './types'
+import type { Category, Entry, Tag } from './types'
 
 export const BACKUP_PREFIX = 'nk_backup_'
 export const BACKUP_KEEP = 8
@@ -43,8 +43,9 @@ export const CSV_COLUMNS = [
 ] as const
 
 /** Entries as CSV (UTF-8 with BOM so Excel reads Vietnamese). Photos are not included. */
-export function entriesToCsv(entries: Entry[], categories: Category[]): string {
+export function entriesToCsv(entries: Entry[], categories: Category[], tags: Tag[] = []): string {
   const names = new Map(categories.map((c) => [c.id, c.name]))
+  const tagNames = new Map(tags.map((t) => [t.id, t.name]))
   const lines = [CSV_COLUMNS.join(',')]
   for (const e of [...entries].sort((a, b) => a.start.localeCompare(b.start))) {
     if (e.deleted) continue
@@ -59,7 +60,7 @@ export function entriesToCsv(entries: Entry[], categories: Category[]): string {
         e.value,
         e.unit,
         e.rating,
-        e.tags.join(';'),
+        e.tags.map((id) => tagNames.get(id) ?? id).join(';'),
         e.note,
         Object.keys(e.payload).length ? JSON.stringify(e.payload) : '',
       ]

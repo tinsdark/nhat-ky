@@ -1,9 +1,19 @@
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { addDays, atTime, toDateKey, toHHmm } from '../core/date'
 import { MAX_PHOTOS_PER_ENTRY } from '../core/photo'
-import { autoMealSlot, findOverlaps, shiftHHmm, suggestTitles } from '../core/entryForm'
-import type { Category, Entry, EntryType } from '../core/types'
-import { createEntry, getEntriesInRange, updateEntry } from '../data/repository'
+import {
+  addMinutes,
+  autoMealSlot,
+  DURATION_CHOICES,
+  findOverlaps,
+  formatDuration,
+  resolveEnd,
+  shiftHHmm,
+  suggestTitles,
+} from '../core/entryForm'
+import { newId } from '../core/defs'
+import type { Category, Entry, EntryType, Tag } from '../core/types'
+import { createEntry, getDefs, getEntriesInRange, saveDefs, updateEntry } from '../data/repository'
 import { PhotoError, photos, pokePhotoQueue, processPhoto } from '../photos'
 import { PayloadFields, type Payload } from './PayloadFields'
 import { Thumb } from './PhotoViews'
@@ -22,6 +32,7 @@ export interface FormDraft {
   start: string
   end: string | null
   payload?: Payload
+  tags?: string[]
   photoIds?: string[]
   source?: Entry['source']
 }
@@ -49,6 +60,7 @@ export function draftFromEntry(e: Entry): FormDraft {
     start: e.start,
     end: e.end,
     payload: e.payload,
+    tags: e.tags,
     photoIds: e.photoIds,
   }
 }
@@ -56,18 +68,17 @@ export function draftFromEntry(e: Entry): FormDraft {
 export function EntryForm({
   draft,
   categories,
+  tags,
   dayStartHour,
   onClose,
   onSaved,
-  onStartTimer,
 }: {
   draft: FormDraft
   categories: Category[]
+  tags: Tag[]
   dayStartHour: number
   onClose: () => void
   onSaved: (entry: Entry, isNew: boolean) => void
-  /** Offered for new work entries: start a timer with the chosen category and title. */
-  onStartTimer?: (fields: { categoryId: string; title: string }) => void
 }) {
   const [type, setType] = useState(draft.type)
   const [categoryId, setCategoryId] = useState(draft.categoryId)
@@ -78,6 +89,8 @@ export function EntryForm({
   const [unit, setUnit] = useState(draft.unit)
   const [note, setNote] = useState(draft.note)
   const [payload, setPayload] = useState<Payload>(draft.payload ?? {})
+  const [tagIds, setTagIds] = useState<string[]>(draft.tags ?? [])
+  const [newTag, setNewTag] = useState('')
   const [photoIds, setPhotoIds] = useState<string[]>(draft.photoIds ?? [])
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState('')
@@ -136,13 +149,17 @@ export function EntryForm({
   }
 
   const startIso = atTime(draft.dateKey, start, dayStartHour)
-  const endIso = end ? atTime(draft.dateKey, end, dayStartHour) : null
+  const typedEnd = end ? atTime(draft.dateKey, end, dayStartHour) : null
+  const endIso = typedEnd ? resolveEnd(startIso, typedEnd) : null
+  const durationMin = endIso
+    ? Math.round((new Date(endIso).getTime() - new Date(startIso).getTime()) / 60_000)
+    : null
   const overlaps = findOverlaps(history, type, startIso, endIso, draft.id)
 
   const cats = categories.filter((c) => c.entryType === type && !c.archived)
 
   const save = async () => {
-    if (endIso && endIso <= startIso) return setError('Giờ kết thúc phải sau giờ bắt đầu.')
+    if (typedEnd && !endIso) return setError('Khối dài quá 16 giờ, kiểm tra lại giờ kết thúc.')
     const num = value.trim() === '' ? null : Number(value.replace(',', '.'))
     if (num !== null && Number.isNaN(num)) return setError('Giá trị không hợp lệ.')
     const fields = {
@@ -155,6 +172,7 @@ export function EntryForm({
       start: startIso,
       end: endIso,
       photoIds,
+      tags: tagIds,
       payload:
         type === 'meal' && !payload.mealSlot
           ? { ...payload, mealSlot: autoMealSlot(categoryId, start) }
@@ -234,6 +252,27 @@ export function EntryForm({
             <input type="time" value={end} onInput={(e) => setEnd(e.currentTarget.value)} />
           </label>
         </div>
+        <div class="field">
+          <span class="lbl">
+            Ước lượng thời lượng{durationMin ? `: ${formatDuration(durationMin)}` : ''}
+          </span>
+          <div class="choice">
+            {DURATION_CHOICES.map((m) => (
+              <button
+                type="button"
+                class={durationMin === m ? 'on' : ''}
+                onClick={() => setEnd(toHHmm(addMinutes(startIso, m)))}
+              >
+                {formatDuration(m)}
+              </button>
+            ))}
+            {end && (
+              <button type="button" onClick={() => setEnd('')}>
+                Không có giờ kết thúc
+              </button>
+            )}
+          </div>
+        </div>
         <div class="row shift">
           {[15, 30, 60].map((m) => (
             <button type="button" class="btn" onClick={() => setStart(shiftHHmm(start, -m))}>
@@ -297,21 +336,55 @@ export function EntryForm({
           </div>
           {notice && <p class="muted">{notice}</p>}
         </div>
-        <PayloadFields type={type} payload={payload} set={setField} />
+        <div class="field">
+          <span class="lbl">Tag</span>
+          <div class="choice">
+            {tags.map((t) => (
+              <button
+                type="button"
+                class={tagIds.includes(t.id) ? 'on' : ''}
+                onClick={() =>
+                  setTagIds((ids) =>
+                    ids.includes(t.id) ? ids.filter((x) => x !== t.id) : [...ids, t.id],
+                  )
+                }
+              >
+                {t.name}
+              </button>
+            ))}
+            <input
+              class="newtag"
+              placeholder="+ tag mới"
+              value={newTag}
+              onInput={(e) => setNewTag(e.currentTarget.value)}
+              onKeyDown={async (e) => {
+                if (e.key !== 'Enter') return
+                e.preventDefault()
+                const name = newTag.trim()
+                if (!name) return
+                const existing = tags.find((t) => t.name.toLowerCase() === name.toLowerCase())
+                const tag = existing ?? { id: newId('tag'), name, color: '#6c6c70' }
+                if (!existing) {
+                  const defs = await getDefs()
+                  await saveDefs({ ...defs, tags: [...defs.tags, tag] })
+                }
+                setTagIds((ids) => (ids.includes(tag.id) ? ids : [...ids, tag.id]))
+                setNewTag('')
+              }}
+            />
+          </div>
+        </div>
+        <PayloadFields
+          type={type}
+          payload={payload}
+          set={setField}
+          projects={projectNames(history)}
+        />
         <label>
           Ghi chú
           <textarea rows={2} value={note} onInput={(e) => setNote(e.currentTarget.value)} />
         </label>
         {error && <p class="error">{error}</p>}
-        {onStartTimer && !draft.id && type === 'work' && (
-          <button
-            type="button"
-            class="btn"
-            onClick={() => onStartTimer({ categoryId, title: title.trim() })}
-          >
-            Bấm giờ ngay
-          </button>
-        )}
         <div class="row">
           <button type="button" class="btn" onClick={close}>
             Huỷ
@@ -323,4 +396,17 @@ export function EntryForm({
       </form>
     </div>
   )
+}
+
+const DEFAULT_PROJECTS = ['CyberApp Golden', 'QLBX', 'Nhật ký']
+
+/** Project names for the suggestion list: the ones used before (most used first), then the defaults. */
+function projectNames(history: Entry[]): string[] {
+  const count = new Map<string, number>()
+  for (const e of history) {
+    const p = e.payload.project
+    if (typeof p === 'string' && p.trim()) count.set(p.trim(), (count.get(p.trim()) ?? 0) + 1)
+  }
+  const used = [...count.entries()].sort((a, b) => b[1] - a[1]).map(([name]) => name)
+  return [...used, ...DEFAULT_PROJECTS.filter((p) => !count.has(p))]
 }

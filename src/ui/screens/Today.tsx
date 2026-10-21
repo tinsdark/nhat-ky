@@ -15,13 +15,15 @@ import { copyToDay } from '../../core/entryForm'
 import { Thumb } from '../PhotoViews'
 import { EntryDetail } from '../EntryDetail'
 import { draftFromEntry, EntryForm, type FormDraft } from '../EntryForm'
-import { SleepPrompt, type SleepPromptState } from '../SleepPrompt'
-import { getRecentSleep, goToSleep, suggestBedtime, wakeUp } from '../../data/sleep'
-import { shouldAskLastNight } from '../../core/sleep'
+import { estimatedNote, SleepPrompt } from '../SleepPrompt'
+import { goToSleep, wakeUp } from '../../data/sleep'
 import { ReviewSheet } from '../ReviewSheet'
 import { reviewPrompt } from '../../core/review'
-import { TimerBar } from '../TimerBar'
-import { getRunningTimer, startTimer } from '../../data/timer'
+import { dueReminders } from '../../core/reminders'
+import { tickHabit } from '../../data/habits'
+import { CheckinBar, undoCheckin } from '../CheckinBar'
+import { DurationPicker } from '../DurationPicker'
+import { addMinutes } from '../../core/entryForm'
 import { Toast, type ToastData } from '../Toast'
 import { useLive } from '../useLive'
 
@@ -38,9 +40,16 @@ export function Today() {
   const todayKey = toDateKey(Date.now(), dayStartHour)
   const [dateKey, setDateKey] = useState(todayKey)
   const isToday = dateKey === todayKey
-  const entries = useLive(() => getEntriesByDateKey(dateKey), [dateKey])
+  const ownEntries = useLive(() => getEntriesByDateKey(dateKey), [dateKey])
+  // The night that ended this morning started on the previous logical day; it still belongs on this day's timeline.
+  const prevNight = useLive(async () => {
+    const prev = await getEntriesByDateKey(addDays(dateKey, -1))
+    return prev.filter(
+      (e) => e.type === 'sleep' && e.end !== null && toDateKey(e.end, dayStartHour) === dateKey,
+    )
+  }, [dateKey, dayStartHour])
+  const entries = ownEntries && prevNight ? [...prevNight, ...ownEntries] : undefined
   const day = useLive(() => getDay(dateKey), [dateKey])
-  const timer = useLive(getRunningTimer, [])
   const todayDay = useLive(() => getDay(todayKey), [todayKey])
   const yesterdayKey = addDays(todayKey, -1)
   const yesterdayDay = useLive(() => getDay(yesterdayKey), [yesterdayKey])
@@ -50,10 +59,10 @@ export function Today() {
   )
   const [, setFlagTick] = useState(0) // localStorage flags are not reactive; bump to re-read them
   const [reviewFor, setReviewFor] = useState<string | null>(null)
-  const recentSleep = useLive(getRecentSleep, [])
-  const [sleepPrompt, setSleepPrompt] = useState<SleepPromptState | null>(null)
+  const [sleepPrompt, setSleepPrompt] = useState<{ id: string; note?: string } | null>(null)
   const [form, setForm] = useState<FormDraft | null>(null)
   const [detail, setDetail] = useState<Entry | null>(null)
+  const [durationFor, setDurationFor] = useState<QuickAction | null>(null)
   const [toast, setToast] = useState<ToastData | null>(null)
 
   if (!settings || !defs || !entries) return null
@@ -87,18 +96,20 @@ export function Today() {
     })
   }
 
-  const beginTimer = async (fields: { categoryId?: string; title?: string }) => {
-    const { entry, stopped } = await startTimer(fields)
-    setForm(null)
-    setToast({
-      id: Date.now(),
-      text: stopped ? 'Đã dừng timer cũ, bật timer mới' : 'Đã bật timer',
-      onEdit: () => setForm(draftFromEntry(entry)),
-      onUndo: () => void softDeleteEntry(entry.id),
+  /** A work block estimated after the fact: ends now, started `minutes` ago. */
+  const logWork = async (a: QuickAction, minutes: number) => {
+    const end = nowIso()
+    const entry = await createEntry({
+      type: 'work',
+      start: addMinutes(end, -minutes),
+      end,
+      categoryId: a.categoryId,
+      title: a.title,
+      source: 'quick',
     })
+    setDurationFor(null)
+    showSaved(entry, true)
   }
-
-  const askNight = async () => setSleepPrompt({ mode: 'night', suggestion: await suggestBedtime() })
 
   const sleepTap = async (a: QuickAction): Promise<boolean> => {
     if (!isToday) return false
@@ -112,9 +123,8 @@ export function Today() {
       return true
     }
     if (a.id === 'qa-wake') {
-      const entry = await wakeUp()
-      if (entry) setSleepPrompt({ mode: 'quality', id: entry.id })
-      else await askNight()
+      const { entry, estimated } = await wakeUp()
+      setSleepPrompt({ id: entry.id, note: estimated ? estimatedNote(entry.start) : undefined })
       return true
     }
     return false
@@ -122,7 +132,7 @@ export function Today() {
 
   const quickTap = async (a: QuickAction) => {
     if (await sleepTap(a)) return
-    if (a.type === 'work') return beginTimer({ categoryId: a.categoryId, title: a.title })
+    if (a.type === 'work') return setDurationFor(a)
     const entry = await createEntry({
       type: a.type,
       start: nowIso(),
@@ -153,6 +163,15 @@ export function Today() {
     setReviewFor(r.dateKey)
   }
 
+  const reminders = isToday
+    ? dueReminders({
+        habits: defs.habits,
+        todayEntries: ownEntries ?? [],
+        todayKey,
+        now,
+        dayStartHour,
+      })
+    : []
   const progress = coreProgress(entries, day)
   const doneCount = progress.filter((p) => p.done).length
   const rows = buildTimeline(entries, isToday ? { now } : {})
@@ -199,29 +218,23 @@ export function Today() {
           </div>
         </div>
       )}
-      {sleepPrompt ? (
-        <SleepPrompt
-          state={sleepPrompt}
-          onClose={() => {
-            if (sleepPrompt.mode === 'night') dismissAsk(dateKey)
-            setSleepPrompt(null)
-          }}
-          onRecorded={(id) => setSleepPrompt({ mode: 'quality', id })}
-        />
-      ) : (
-        isToday &&
-        recentSleep &&
-        !askDismissed(dateKey) &&
-        shouldAskLastNight(recentSleep, now, dayStartHour) && (
-          <div class="timerbar">
-            <span>Tối qua chưa ghi giấc ngủ.</span>
-            <button type="button" class="btn btn-primary" onClick={() => void askNight()}>
-              Nhập
-            </button>
-          </div>
-        )
-      )}
-      <TimerBar timer={timer} categories={categories} />
+      {reminders.map((h) => (
+        <div class="timerbar" key={h.id}>
+          <span>
+            Nhắc {h.reminderTime}: {h.name}
+          </span>
+          <button
+            type="button"
+            class="btn btn-primary"
+            onClick={() =>
+              void tickHabit(h, todayKey, dayStartHour, h.kind === 'duration' ? h.target.value : 1)
+            }
+          >
+            Xong
+          </button>
+        </div>
+      ))}
+      {sleepPrompt && <SleepPrompt {...sleepPrompt} onClose={() => setSleepPrompt(null)} />}
 
       <div class="progress" aria-label={`Đã ghi ${doneCount}/${progress.length} mục cốt lõi`}>
         <div class="bar">
@@ -237,41 +250,44 @@ export function Today() {
         </div>
       </div>
 
-      <div class="quickgrid">
-        {[...defs.quickActions]
-          .sort((a, b) => a.order - b.order)
-          .map((a) => (
-            <QuickButton
-              action={a}
-              onTap={() => void quickTap(a)}
-              onHold={() => setForm(draftFor(a))}
-            />
-          ))}
-      </div>
+      {isToday ? (
+        <div class="quickgrid">
+          {[...defs.quickActions]
+            .sort((a, b) => a.order - b.order)
+            .map((a) => (
+              <QuickButton
+                action={a}
+                onTap={() => void quickTap(a)}
+                onHold={() => setForm(draftFor(a))}
+              />
+            ))}
+        </div>
+      ) : (
+        <p class="muted hint">
+          Đây là ngày đã qua: nút bấm nhanh chỉ dùng cho hôm nay. Muốn ghi thêm thì sang tab{' '}
+          <a href={`#/backfill?d=${dateKey}&s=12:00`}>Ghi bù</a>.
+        </p>
+      )}
+
+      {isToday && (
+        <CheckinBar
+          onSaved={(entry, label) =>
+            setToast({
+              id: Date.now(),
+              text: `Đã ghi: ${label}`,
+              onUndo: () => undoCheckin(entry.id),
+            })
+          }
+        />
+      )}
 
       <div class="timeline">
         {rows.length === 0 && <p class="muted">Chưa ghi gì cho ngày này.</p>}
         {rows.map((r) =>
           r.kind === 'gap' ? (
-            <button
-              type="button"
-              class="gap"
-              onClick={() =>
-                setForm({
-                  dateKey,
-                  type: 'activity',
-                  categoryId: '',
-                  title: '',
-                  value: null,
-                  unit: '',
-                  note: '',
-                  start: r.start,
-                  end: r.end,
-                })
-              }
-            >
-              chưa ghi · {toHHmm(r.start)}–{toHHmm(r.end)}
-            </button>
+            <a class="gap" href={`#/backfill?d=${dateKey}&s=${toHHmm(r.start)}&e=${toHHmm(r.end)}`}>
+              chưa ghi · {toHHmm(r.start)}–{toHHmm(r.end)} · chạm để ghi bù
+            </a>
           ) : (
             <button
               type="button"
@@ -286,7 +302,10 @@ export function Today() {
                 {toHHmm(r.entry.start)}
                 {r.entry.end ? `–${toHHmm(r.entry.end)}` : ''}
               </span>
-              <span>{r.entry.title || labelOf(categories, r.entry)}</span>
+              <span>
+                {r.entry.title || labelOf(categories, r.entry)}{' '}
+                {r.entry.source === 'backfill' && <span class="tag">ghi bù</span>}
+              </span>
               {r.entry.value != null && (
                 <span class="muted">
                   {r.entry.value} {r.entry.unit}
@@ -304,31 +323,11 @@ export function Today() {
         )}
       </div>
 
-      <button
-        type="button"
-        class="fab"
-        aria-label="Ghi mới"
-        onClick={() =>
-          setForm({
-            dateKey,
-            type: 'activity',
-            categoryId: '',
-            title: '',
-            value: null,
-            unit: '',
-            note: '',
-            start: nowIso(),
-            end: null,
-          })
-        }
-      >
-        +
-      </button>
-
       {detail && (
         <EntryDetail
           entry={detail}
           categories={categories}
+          tags={defs.tags}
           canCopyToToday={!isToday}
           onClose={() => setDetail(null)}
           onEdit={() => {
@@ -361,10 +360,21 @@ export function Today() {
         <EntryForm
           draft={form}
           categories={categories}
+          tags={defs.tags}
           dayStartHour={dayStartHour}
           onClose={() => setForm(null)}
           onSaved={showSaved}
-          onStartTimer={isToday ? (f) => void beginTimer(f) : undefined}
+        />
+      )}
+      {durationFor && (
+        <DurationPicker
+          title={durationFor.name}
+          onPick={(m) => void logWork(durationFor, m)}
+          onMore={() => {
+            setForm({ ...draftFor(durationFor), start: nowIso() })
+            setDurationFor(null)
+          }}
+          onClose={() => setDurationFor(null)}
         />
       )}
       {reviewFor && <ReviewSheet dateKey={reviewFor} onClose={() => setReviewFor(null)} />}
@@ -373,7 +383,6 @@ export function Today() {
   )
 }
 
-const askKey = (dateKey: string) => `nk_sleepAsk_${dateKey}`
 const reviewKey = (dateKey: string) => `nk_reviewAsked_${dateKey}`
 function flagged(key: string): boolean {
   try {
@@ -389,8 +398,6 @@ function setFlag(key: string): void {
     // storage unavailable: the prompt may show again on reload
   }
 }
-const askDismissed = (dateKey: string) => flagged(askKey(dateKey))
-const dismissAsk = (dateKey: string) => setFlag(askKey(dateKey))
 
 function colorOf(categories: Category[], e: Entry): string {
   return categories.find((c) => c.id === e.categoryId)?.color ?? 'var(--border)'

@@ -1,4 +1,5 @@
 import { useState } from 'preact/hooks'
+import { METRICS } from '../core/metrics'
 import type { Habit, HabitSchedule } from '../core/types'
 import { newHabitId, upsertHabit } from '../data/habits'
 import { Choice } from './Choice'
@@ -23,6 +24,11 @@ export function HabitForm({
   const [target, setTarget] = useState(String(habit?.target.value ?? 1))
   const [schedule, setSchedule] = useState<HabitSchedule>(habit?.schedule ?? { kind: 'daily' })
   const [reminder, setReminder] = useState(habit?.reminderTime ?? '')
+  const [auto, setAuto] = useState(!!habit?.metricRule)
+  const [metricId, setMetricId] = useState(habit?.metricRule?.metricId ?? 'bedtime')
+  const [metricOp, setMetricOp] = useState<'<=' | '>='>(habit?.metricRule?.op ?? '<=')
+  const [metricValue, setMetricValue] = useState(String(habit?.metricRule?.value ?? 23.5))
+  const [previousNight, setPreviousNight] = useState(!!habit?.metricRule?.previousNight)
   const [error, setError] = useState('')
 
   const save = async () => {
@@ -31,15 +37,18 @@ export function HabitForm({
     if (Number.isNaN(value)) return setError('Mục tiêu không hợp lệ.')
     if (schedule.kind === 'weekdays' && schedule.days.length === 0)
       return setError('Chọn ít nhất 1 ngày.')
+    const mv = Number(metricValue.replace(',', '.'))
+    if (auto && Number.isNaN(mv)) return setError('Ngưỡng của chỉ số không hợp lệ.')
     await upsertHabit({
       id: habit?.id ?? newHabitId(),
       name: name.trim(),
       direction,
-      kind,
-      target: { op, value },
+      kind: auto ? 'check' : kind,
+      target: auto ? { op: '>=', value: 1 } : { op, value },
       schedule,
       reminderTime: reminder || null,
       linkedRule: habit?.linkedRule ?? null,
+      metricRule: auto ? { metricId, op: metricOp, value: mv, previousNight } : null,
       startDate: habit?.startDate ?? startDate,
       archived: habit?.archived ?? false,
     })
@@ -71,35 +80,94 @@ export function HabitForm({
           onChange={(v) => v && setDirection(v)}
         />
         <Choice
-          label="Kiểu"
+          label="Cách tính"
           options={[
-            { id: 'check', label: 'Có/không' },
-            { id: 'count', label: 'Số lần' },
-            { id: 'duration', label: 'Số phút' },
+            { id: 'manual', label: 'Tự tick' },
+            { id: 'auto', label: 'Tự tính từ chỉ số' },
           ]}
-          value={kind}
-          onChange={(v) => v && setKind(v)}
+          value={auto ? 'auto' : 'manual'}
+          onChange={(v) => v && setAuto(v === 'auto')}
         />
-        <div class="row">
-          <Choice
-            label="Đạt khi"
-            options={[
-              { id: '>=', label: '≥' },
-              { id: '<=', label: '≤' },
-              { id: '=', label: '=' },
-            ]}
-            value={op}
-            onChange={(v) => v && setOp(v)}
-          />
-          <label>
-            Mục tiêu
-            <input
-              inputMode="decimal"
-              value={target}
-              onInput={(e) => setTarget(e.currentTarget.value)}
+        {auto && (
+          <>
+            <label>
+              Chỉ số
+              <select value={metricId} onChange={(e) => setMetricId(e.currentTarget.value)}>
+                {METRICS.map((m) => (
+                  <option value={m.id}>
+                    {m.label} ({m.unit})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div class="row">
+              <Choice
+                label="Đạt khi"
+                options={[
+                  { id: '<=', label: '≤' },
+                  { id: '>=', label: '≥' },
+                ]}
+                value={metricOp}
+                onChange={(v) => v && setMetricOp(v)}
+              />
+              <label>
+                Ngưỡng
+                <input
+                  inputMode="decimal"
+                  value={metricValue}
+                  onInput={(e) => setMetricValue(e.currentTarget.value)}
+                />
+              </label>
+            </div>
+            <Choice
+              label="Lấy chỉ số của"
+              options={[
+                { id: 'same', label: 'Cùng ngày' },
+                { id: 'prev', label: 'Đêm hôm trước' },
+              ]}
+              value={previousNight ? 'prev' : 'same'}
+              onChange={(v) => v && setPreviousNight(v === 'prev')}
             />
-          </label>
-        </div>
+            <p class="muted hint">
+              Giờ đi ngủ tính theo số giờ, sau nửa đêm cộng 24 (23:30 = 23,5; 00:30 = 24,5). Chọn
+              "Đêm hôm trước" cho giờ dậy.
+            </p>
+          </>
+        )}
+        {!auto && (
+          <>
+            <Choice
+              label="Kiểu"
+              options={[
+                { id: 'check', label: 'Có/không' },
+                { id: 'count', label: 'Số lần' },
+                { id: 'duration', label: 'Số phút' },
+              ]}
+              value={kind}
+              onChange={(v) => v && setKind(v)}
+            />
+            <div class="row">
+              <Choice
+                label="Đạt khi"
+                options={[
+                  { id: '>=', label: '≥' },
+                  { id: '<=', label: '≤' },
+                  { id: '=', label: '=' },
+                ]}
+                value={op}
+                onChange={(v) => v && setOp(v)}
+              />
+              <label>
+                Mục tiêu
+                <input
+                  inputMode="decimal"
+                  value={target}
+                  onInput={(e) => setTarget(e.currentTarget.value)}
+                />
+              </label>
+            </div>
+          </>
+        )}
         <Choice
           label="Lịch"
           options={[

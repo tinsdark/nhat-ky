@@ -130,3 +130,33 @@ describe('photo store', () => {
     expect(await db.photos.get(kept)).toBeDefined()
   })
 })
+
+describe('pruneFull (keep only thumbnails after N months)', () => {
+  const old = '2025-01-01T00:00:00.000+07:00'
+  it('deletes the full file from Drive and the device for old uploaded photos, keeps the thumbnail', async () => {
+    const { drive, files } = fakeDrive()
+    const store = createPhotoStore({ db, drive })
+    await db.photos.bulkAdd([
+      { id: 'old', blob: blob(100), thumb: blob(10), createdAt: old, uploaded: 1 },
+      {
+        id: 'new',
+        blob: blob(100),
+        thumb: blob(10),
+        createdAt: new Date().toISOString(),
+        uploaded: 1,
+      },
+      { id: 'waiting', blob: blob(100), thumb: blob(10), createdAt: old, uploaded: 0 },
+    ])
+    files.set('nkp_old.webp', blob(100))
+    files.set('nkt_old.webp', blob(10))
+    expect(await store.pruneFull(12, new Date('2026-11-01').getTime())).toBe(1)
+    expect([...files.keys()]).toEqual(['nkt_old.webp'])
+    const rec = await db.photos.get('old')
+    expect(rec?.blob).toBeNull()
+    expect(rec?.thumb).not.toBeNull()
+    expect((await db.photos.get('new'))?.blob).not.toBeNull()
+    expect((await db.photos.get('waiting'))?.blob).not.toBeNull() // never lose a photo that has not reached Drive
+    expect(await store.load('old', 'blob')).toBeNull() // and it is not fetched again
+    expect(await store.pruneFull(12, new Date('2026-11-01').getTime())).toBe(0)
+  })
+})

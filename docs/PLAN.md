@@ -50,7 +50,7 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
 - [x] **T1.2 Dữ liệu mặc định.** Seed lần đầu: danh mục (Module 4.1 + loại ăn uống), 8 nút nhanh (Module 1.1 + "Ra ngoài trời"), 6 thói quen mẫu (bật 3, Module 2.4), settings mặc định (`dayStartHour` 4, giờ làm 8:00–17:30 T2–T6, mục tiêu ngủ 7,5h, nước 2000ml, vận động 150 phút/tuần).
 - [x] **T1.3 Màn Hôm nay** (Module 1.1, 1.2). Đổi ngày ◀ ▶, thanh "đã ghi x/y mục cốt lõi", lưới nút nhanh (chạm = tạo Entry + toast 5s có Sửa/Hoàn tác; giữ = mở form điền sẵn), timeline dọc theo giờ, khoảng trống > 2h hiện vạch "chưa ghi" chạm để điền, nút + nổi.
     - Xong khi: ghi "Ăn trưa" ≤ 2 chạm; Entry 23:00–01:00 hiện đúng trên timeline ngày logic.
-- [x] **T1.4 Timer** (Module 1.2, 4). Một timer chạy tại một thời điểm, lưu trạng thái trong IndexedDB (reload/đóng app không mất). Bật timer mới tự dừng timer cũ. Dừng → hỏi focus 1–5 (bỏ qua được). Nút +1 bị ngắt. Tự set `isOvertime` theo giờ làm chuẩn.
+- [x] ~~**T1.4 Timer**~~ — bỏ ở T4.1 (Đạt không bật được timer liên tục). Cũ: (Module 1.2, 4). Một timer chạy tại một thời điểm, lưu trạng thái trong IndexedDB (reload/đóng app không mất). Bật timer mới tự dừng timer cũ. Dừng → hỏi focus 1–5 (bỏ qua được). Nút +1 bị ngắt. Tự set `isOvertime` theo giờ làm chuẩn.
 - [x] **T1.5 Form đầy đủ** (Module 1.3). Trường chung + payload theo loại: sleep, meal (Module 3.2, chưa có ảnh), work/activity (4.2), exercise (5.2), water, check-in năng lượng/tâm trạng (5.3). Gợi ý title theo tần suất từ lịch sử. Nút giờ −15p/−30p/−1h. Validate `end > start`, cảnh báo trùng giờ.
 - [x] **T1.6 Giấc ngủ** (Module 5.1). "Đi ngủ" tạo Entry mở; "Thức dậy" đóng Entry đang mở + hỏi chất lượng. Sáng hôm sau không có giấc ngủ đêm qua → hỏi giờ ngủ, gợi ý = TB 7 ngày. Ngủ trưa `payload.nap`.
 - [x] **T1.7 Chấm cuối ngày** (Module 1.4). Màn chấm Day: 4 thanh 1–5, điểm ngày 1–10, highlight, loại ngày, thói quen chưa tick. Banner trong app sau 21:30; sáng hôm sau hỏi lại một lần.
@@ -93,6 +93,22 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
 - [x] Engine tương quan qua bộ dữ liệu giả 60 ngày. *(8 seed, test Vitest)*
 - [x] Dashboard < 1 giây với 1 năm dữ liệu giả. *(8.186 Entry: ~0,25 giây trên Chromium máy dev; điện thoại chưa đo)*
 - [ ] Đã xoá sạch dữ liệu giả, kể cả trên Drive.
+
+## P3b — Bổ sung (yêu cầu của Đạt sau P3): bỏ bấm giờ, ghi bù, nốt phần còn lại của SPEC
+
+- [x] **T4.1 Bỏ bấm giờ.** Không còn timer. "Làm việc" hỏi thời lượng ước lượng (khối kết thúc bây giờ, bắt đầu cách đây đúng khoảng đó); form có chip thời lượng; `isOvertime` tự tính khi lưu khối làm việc; giờ luôn lưu dạng `+07:00`.
+- [x] **T4.2 Ngủ một chạm.** "Đi ngủ" / "Thức dậy" chỉ cần bấm. Quên bấm "Đi ngủ" thì "Thức dậy" tự ước lượng giờ ngủ (TB 7 ngày, kẹp trong 2–14 giờ), không hỏi lại. Bỏ banner "Tối qua chưa ghi giấc ngủ".
+- [x] **T4.3 Tab Ghi bù.** Chỗ riêng cho việc đã làm xong, tách khỏi Hôm nay (`source = backfill`). Hôm nay chỉ còn nút bấm thời gian thực và timeline.
+- [x] **T4.4 Quản lý danh mục, tag, nút nhanh** (Module 9.1), gắn tag vào Entry.
+- [x] **T4.5 Cài đặt còn thiếu** (Module 9.1, 4.4): giao diện sáng/tối, bật/tắt từng luật, giờ cắt ngày, ngân sách tuần (deep work, học BA, mạng xã hội) + thanh tiến độ + luật "Học BA hụt".
+- [x] **T4.6 Thói quen tự tính + nhắc.** Thói quen lấy từ chỉ số (dậy trước 7h, ngủ trước 23h30), nhắc theo `reminderTime` trong app, bữa ăn tính vào mục cốt lõi theo bữa.
+- [x] **T4.7 Màn Ăn uống** (Module 3.3).
+- [x] **T4.8 Màn Thời gian** (Module 4.3).
+- [x] **T4.9 Màn Sức khoẻ + đường năng lượng** (Module 5.4, 5.5).
+- [x] **T4.10 Tương quan trên Dashboard, theo thứ trong tuần, Báo cáo tuần** (Module 7.1, 7.3, 8.1).
+- [x] **T4.11 Nhập CSV, xuất kèm ảnh (zip), dọn ảnh lớn sau 12 tháng** (Module 9.3, 10.3, 10.4).
+- [x] **T4.12 Khoá app bằng passkey/Face ID** (Module 9.4, tuỳ chọn).
+- [x] **T4.13 Cập nhật SPEC và HANDOFF** theo các thay đổi trên.
 
 ## Sau 1/11 (P4)
 

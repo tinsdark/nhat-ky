@@ -28,7 +28,15 @@ export const pokePhotoQueue = () => void runQueue()
 
 /** Call once at app start: sweep orphans, then upload on open, tab visible, back online, every 2 minutes. */
 export function startPhotoQueue(): void {
-  void photos.sweepOrphans().then(runQueue)
+  void photos
+    .sweepOrphans()
+    .then(runQueue)
+    .then(async () => {
+      const { photoFullMonths } = await getSettings()
+      if (photoFullMonths > 0 && hasSession() && navigator.onLine)
+        await photos.pruneFull(photoFullMonths)
+    })
+    .catch((err) => console.warn('photo maintenance', err))
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') pokePhotoQueue()
   })

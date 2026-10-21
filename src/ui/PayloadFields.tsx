@@ -9,17 +9,20 @@ function Text({
   value,
   onChange,
   inputMode,
+  list,
 }: {
   label: string
   value: unknown
   onChange: (v: string) => void
   inputMode?: 'decimal' | 'numeric'
+  list?: string
 }) {
   return (
     <label>
       {label}
       <input
         inputMode={inputMode}
+        list={list}
         value={value == null ? '' : String(value)}
         onInput={(e) => onChange(e.currentTarget.value)}
       />
@@ -47,10 +50,13 @@ export function PayloadFields({
   type,
   payload,
   set,
+  projects = [],
 }: {
   type: EntryType
   payload: Payload
   set: (key: string, value: unknown) => void
+  /** Project names to suggest (history, most used first). */
+  projects?: string[]
 }) {
   if (type === 'sleep') {
     return (
@@ -186,8 +192,14 @@ export function PayloadFields({
   if (type === 'work' || type === 'activity') {
     return (
       <Group title={type === 'work' ? 'Công việc' : 'Hoạt động'}>
+        <datalist id="project-suggestions">
+          {projects.map((p) => (
+            <option value={p} />
+          ))}
+        </datalist>
         <Text
           label="Dự án / hệ thống"
+          list="project-suggestions"
           value={payload.project}
           onChange={(v) => set('project', v || undefined)}
         />

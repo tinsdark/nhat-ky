@@ -84,6 +84,20 @@ describe('buildTimeline', () => {
   })
 })
 
+describe('coreProgress meals by slot', () => {
+  const meal = (over: Partial<Entry>) =>
+    entry({ start: atTime('2026-11-02', '12:00'), type: 'meal', ...over })
+  it('counts a meal by payload.mealSlot when it has no category, but never a drink', () => {
+    const done = (es: Entry[]) =>
+      coreProgress(es, undefined)
+        .filter((i) => i.done)
+        .map((i) => i.id)
+    expect(done([meal({ payload: { mealSlot: 'lunch' } })])).toEqual(['lunch'])
+    expect(done([meal({ payload: { mealSlot: 'lunch', drink: 'coffee' } })])).toEqual([])
+    expect(done([meal({ categoryId: 'cat-drink', payload: { mealSlot: 'lunch' } })])).toEqual([])
+  })
+})
+
 describe('coreProgress', () => {
   it('marks items by entry type and meal category', () => {
     const items = coreProgress(

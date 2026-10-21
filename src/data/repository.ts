@@ -1,5 +1,6 @@
 import { DEFAULT_SETTINGS } from '../core/settings'
 import { toDateKey, toIso } from '../core/date'
+import { isOvertime } from '../core/overtime'
 import type { Day, Defs, Entry, Settings } from '../core/types'
 import { db } from './db'
 
@@ -18,6 +19,24 @@ export type NewEntry = Pick<Entry, 'type' | 'start'> &
       | 'dirty'
     >
   >
+
+/**
+ * Final shape of an entry before it is stored: times always carry the +07:00 offset whatever form the
+ * caller passed (CLAUDE.md rule 7), and work blocks carry `payload.isOvertime`, derived from the
+ * working hours in Settings (SPEC 4.2).
+ */
+function withOvertime(input: Entry, settings: Settings): Entry {
+  const entry = {
+    ...input,
+    start: toIso(new Date(input.start)),
+    end: input.end ? toIso(new Date(input.end)) : null,
+  }
+  if (entry.type !== 'work' || entry.end === null) return entry
+  return {
+    ...entry,
+    payload: { ...entry.payload, isOvertime: isOvertime(entry.start, entry.end, settings) },
+  }
+}
 
 export async function getDeviceId(): Promise<string> {
   return db.transaction('rw', db.meta, async () => {
@@ -68,7 +87,8 @@ export async function saveDefs(defs: Defs): Promise<void> {
 
 export async function createEntry(input: NewEntry): Promise<Entry> {
   const now = toIso()
-  const { dayStartHour } = await getSettings()
+  const settings = await getSettings()
+  const { dayStartHour } = settings
   const entry: Entry = {
     end: null,
     categoryId: '',
@@ -90,8 +110,9 @@ export async function createEntry(input: NewEntry): Promise<Entry> {
     deleted: false,
     dirty: 1,
   }
-  await db.entries.add(entry)
-  return entry
+  const saved = withOvertime(entry, settings)
+  await db.entries.add(saved)
+  return saved
 }
 
 export async function updateEntry(id: string, patch: Partial<NewEntry>): Promise<Entry> {
@@ -104,11 +125,11 @@ export async function updateEntry(id: string, patch: Partial<NewEntry>): Promise
     deviceId: await getDeviceId(),
     dirty: 1,
   }
-  if (patch.start !== undefined) {
-    next.dateKey = toDateKey(next.start, (await getSettings()).dayStartHour)
-  }
-  await db.entries.put(next)
-  return next
+  const settings = await getSettings()
+  if (patch.start !== undefined) next.dateKey = toDateKey(next.start, settings.dayStartHour)
+  const saved = withOvertime(next, settings)
+  await db.entries.put(saved)
+  return saved
 }
 
 export async function softDeleteEntry(id: string): Promise<void> {
@@ -184,4 +205,30 @@ export async function getDay(dateKey: string): Promise<Day | undefined> {
 export async function getDaysInRange(from: string, to: string): Promise<Day[]> {
   const rows = await db.days.where('dateKey').between(from, to, true, true).toArray()
   return rows.filter((d) => !d.deleted)
+}
+
+/**
+ * Moves the day cut to `hour` (SPEC: "Giờ cắt chỉnh được trong cài đặt"). Every entry's `dateKey` is
+ * recomputed from its start, since the key is only ever derived from toDateKey. Day ratings stay under
+ * the dateKey they were given. Entries that move are marked dirty so other devices follow.
+ */
+export async function changeDayStartHour(hour: number): Promise<number> {
+  if (!Number.isInteger(hour) || hour < 0 || hour > 8)
+    throw new Error(`Invalid day start hour: ${hour}`)
+  const deviceId = await getDeviceId()
+  const stamp = toIso()
+  let moved = 0
+  await db.transaction('rw', db.entries, db.settings, db.meta, async () => {
+    const changed: Entry[] = []
+    await db.entries.each((e) => {
+      const dateKey = toDateKey(e.start, hour)
+      if (dateKey !== e.dateKey)
+        changed.push({ ...e, dateKey, updatedAt: stamp, deviceId, dirty: 1 })
+    })
+    await db.entries.bulkPut(changed)
+    moved = changed.length
+    const next = { ...(await getSettings()), dayStartHour: hour }
+    await db.settings.put({ ...next, key: 'settings', updatedAt: stamp, deviceId, dirty: 1 })
+  })
+  return moved
 }

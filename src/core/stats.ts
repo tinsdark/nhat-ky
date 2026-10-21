@@ -75,7 +75,22 @@ export function formatMetric(id: string, unit: string, value: number | null): st
   }
   if (unit === '0–1') return `${Math.round(value * 100)}%`
   if (unit === '0/1') return value >= 0.5 ? 'Có' : 'Không'
-  const text = Number.isInteger(value) ? String(value) : value.toFixed(1).replace('.', ',')
+  const whole = unit === 'ml' || unit === 'phút'
+  const shown = whole ? Math.round(value) : value
+  const text = Number.isInteger(shown) ? String(shown) : shown.toFixed(1).replace('.', ',')
   const short = unit.startsWith('giờ') ? 'giờ' : unit.startsWith('1–') ? '' : unit
   return short ? `${text} ${short}` : text
+}
+
+/** Sum of the non-null values of `metric` over the `days` days ending at `endKey`; null if the window has none. */
+export function windowSum(
+  metric: Metric,
+  ctx: MetricContext,
+  endKey: string,
+  days: number,
+): number | null {
+  const values = dateKeyRange(addDays(endKey, -(days - 1)), endKey)
+    .map((d) => metric.compute(d, ctx))
+    .filter((v): v is number => v !== null)
+  return values.length === 0 ? null : values.reduce((a, b) => a + b, 0)
 }

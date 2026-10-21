@@ -1,6 +1,7 @@
 import { addDays, dateKeyRange, weekday } from '../date'
 import { dayStatus, isScheduled } from '../habits'
 import type { Entry, Habit } from '../types'
+import { isAlcohol, isCoffee, isFood, slotIs } from './classify'
 import {
   blockHours,
   clockHours,
@@ -22,19 +23,8 @@ export interface Metric {
   compute(dateKey: string, ctx: MetricContext): number | null
 }
 
-// ---- entry classifiers -------------------------------------------------------------------------
+// ---- entry classifiers: see classify.ts ----
 
-const isMeal = (e: Entry) => e.type === 'meal'
-const isDrink = (e: Entry) =>
-  isMeal(e) && (Boolean(e.payload.drink) || e.categoryId === 'cat-drink')
-/** Solid food: a meal that is not a drink-only entry. */
-const isFood = (e: Entry) => isMeal(e) && !isDrink(e)
-const isCoffee = (e: Entry) =>
-  isDrink(e) &&
-  (e.payload.drink === 'coffee' || (!e.payload.drink && /cà phê|cafe|coffee/i.test(e.title)))
-const isAlcohol = (e: Entry) => isDrink(e) && e.payload.drink === 'alcohol'
-const slotIs = (e: Entry, slot: string, category: string) =>
-  e.payload.mealSlot === slot || e.categoryId === category
 const work = (ctx: MetricContext, d: string) => ctx.entriesOf(d).filter((e) => e.type === 'work')
 const sumHours = (es: Entry[]) => es.reduce((s, e) => s + blockHours(e), 0)
 

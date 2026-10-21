@@ -269,3 +269,32 @@ describe('registry', () => {
     expect(s.map((p) => p.value)).toEqual([7.5, 7, 7, 7, null, 8, 7])
   })
 })
+
+describe('habits that follow a metric', () => {
+  const auto = (id: string, metricRule: NonNullable<Habit['metricRule']>): Habit => ({
+    ...habit(id, { kind: 'daily' }),
+    metricRule,
+  })
+  const early = auto('early', { metricId: 'bedtime', op: '<=', value: 23.5 })
+  const wake7 = auto('wake7', { metricId: 'wake_time', op: '<=', value: 7, previousNight: true })
+  const c = createMetricContext({
+    entries,
+    days,
+    habits: [early, wake7],
+    settings: DEFAULT_SETTINGS,
+  })
+
+  it('1 on days the metric passes, 0 when it does not, absent when there is no value', () => {
+    const v = c.habitValues(early)
+    expect([MON, TUE, WED, THU, SAT, SUN].map((d) => v.get(d))).toEqual([1, 1, 0, 1, 0, 1])
+    expect(v.has(FRI)).toBe(false)
+  })
+  it('previousNight reads the night before: waking at 07:30 after Wednesday makes Thursday a miss', () => {
+    const v = c.habitValues(wake7)
+    expect([TUE, WED, THU, FRI].map((d) => v.get(d))).toEqual([1, 1, 0, 1])
+  })
+  it('works as a normal habit metric', () => {
+    expect(getMetric('habit:early', [early])!.compute(WED, c)).toBe(0)
+    expect(getMetric('habit:early', [early])!.compute(MON, c)).toBe(1)
+  })
+})
