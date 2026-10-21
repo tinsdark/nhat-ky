@@ -5,8 +5,8 @@ import { Icon } from '../Icon'
 const LONG_PRESS_MS = 500
 
 /**
- * Quick buttons as tiles: the icon sits in a circle tinted with its category colour. Tap = record now;
- * press and hold = open the form pre-filled. "Sửa" opens the editor, the last tile adds a new button.
+ * Quick buttons as tiles: the icon sits in a circle tinted with its category colour. Tap = pick what happened
+ * (water records at once). "Sửa" opens the editor, the last tile adds a new button.
  */
 export function QuickGrid({
   actions,
@@ -35,7 +35,12 @@ export function QuickGrid({
         {actions.map((a) => (
           <Tile
             action={a}
-            color={categories.find((c) => c.id === a.categoryId)?.color}
+            color={
+              (
+                categories.find((c) => c.id === a.categoryId) ??
+                categories.find((c) => c.entryType === a.type)
+              )?.color
+            }
             onTap={() => onTap(a)}
             onHold={() => onHold(a)}
           />
@@ -47,7 +52,9 @@ export function QuickGrid({
           Thêm nút
         </button>
       </div>
-      <p class="muted hint">Chạm để ghi ngay, giữ để chỉnh giờ hoặc ghi chú.</p>
+      <p class="muted hint">
+        Chạm để chọn việc, Uống nước thì ghi ngay. Việc kéo dài thì bấm Bắt đầu, xong bấm Kết thúc.
+      </p>
     </section>
   )
 }

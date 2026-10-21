@@ -3,7 +3,7 @@ import { backfillDefaults, roundHHmm } from '../../core/backfill'
 import { addDays, atTime, toDateKey, toHHmm } from '../../core/date'
 import { addMinutes, copyToDay } from '../../core/entryForm'
 import { buildTimeline, coreProgress } from '../../core/timeline'
-import type { Entry, QuickAction } from '../../core/types'
+import type { Category, Entry, QuickAction } from '../../core/types'
 import {
   createEntry,
   getDefs,
@@ -12,6 +12,7 @@ import {
   restoreEntry,
   softDeleteEntry,
 } from '../../data/repository'
+import { CategoryPicker } from '../CategoryPicker'
 import { DateNav } from '../DateNav'
 import { EntryDetail } from '../EntryDetail'
 import { Icon } from '../Icon'
@@ -47,6 +48,7 @@ export function Backfill() {
   const [form, setForm] = useState<FormDraft | null>(null)
   const [detail, setDetail] = useState<Entry | null>(null)
   const [toast, setToast] = useState<ToastData | null>(null)
+  const [pickFor, setPickFor] = useState<QuickAction | null>(null)
 
   // A gap on Hôm nay sends the user here with the day and the hours filled in.
   useEffect(() => {
@@ -119,10 +121,22 @@ export function Backfill() {
       .map((i) => i.id),
   )
   const lacks = (a: QuickAction) =>
-    (a.categoryId === 'cat-breakfast' && missing.has('breakfast')) ||
-    (a.categoryId === 'cat-lunch' && missing.has('lunch')) ||
-    (a.categoryId === 'cat-dinner' && missing.has('dinner')) ||
+    (a.type === 'meal' &&
+      (a.categoryId
+        ? (a.categoryId === 'cat-breakfast' && missing.has('breakfast')) ||
+          (a.categoryId === 'cat-lunch' && missing.has('lunch')) ||
+          (a.categoryId === 'cat-dinner' && missing.has('dinner'))
+        : missing.has('breakfast') || missing.has('lunch') || missing.has('dinner'))) ||
     (a.type === 'work' && missing.has('work'))
+  // A shortcut with its own category goes straight to the form; a type shortcut lists the categories first.
+  const press = (a: QuickAction) => {
+    if (a.categoryId || a.type === 'water') return setForm(draftFor(a))
+    setPickFor(a)
+  }
+  const pickCategory = (a: QuickAction, c: Category | null) => {
+    setPickFor(null)
+    setForm(draftFor({ ...a, categoryId: c?.id ?? '', title: c?.name ?? a.name }))
+  }
 
   return (
     <section class="screen">
@@ -164,12 +178,12 @@ export function Backfill() {
             <button
               type="button"
               class={lacks(a) ? 'quick suggest' : 'quick'}
-              onClick={() => setForm(draftFor(a))}
+              onClick={() => press(a)}
             >
               <span
                 class="ico"
                 style={{
-                  background: `color-mix(in srgb, ${defs.categories.find((c) => c.id === a.categoryId)?.color ?? 'var(--border)'} 22%, var(--card))`,
+                  background: `color-mix(in srgb, ${(defs.categories.find((c) => c.id === a.categoryId) ?? defs.categories.find((c) => c.entryType === a.type))?.color ?? 'var(--border)'} 22%, var(--card))`,
                 }}
               >
                 {a.icon}
@@ -242,6 +256,16 @@ export function Backfill() {
               onUndo: () => void softDeleteEntry(copy.id),
             })
           }}
+        />
+      )}
+      {pickFor && (
+        <CategoryPicker
+          title={pickFor.name}
+          type={pickFor.type}
+          categories={defs.categories}
+          onPick={(c) => pickCategory(pickFor, c)}
+          onOther={() => pickCategory(pickFor, null)}
+          onClose={() => setPickFor(null)}
         />
       )}
       {form && (

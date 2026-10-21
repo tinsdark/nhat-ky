@@ -11,11 +11,17 @@ describe('defaultDefs', () => {
     }
   })
 
-  it('every quick action points at an existing category of the same entry type', () => {
+  it('a quick action with a category points at one of the same entry type, and every type has categories to pick', () => {
     for (const q of defs.quickActions) {
-      const c = defs.categories.find((x) => x.id === q.categoryId)
-      expect(c, q.id).toBeDefined()
-      expect(c!.entryType, q.id).toBe(q.type)
+      if (q.categoryId) {
+        const c = defs.categories.find((x) => x.id === q.categoryId)
+        expect(c, q.id).toBeDefined()
+        expect(c!.entryType, q.id).toBe(q.type)
+      }
+      expect(
+        defs.categories.some((x) => x.entryType === q.type),
+        q.id,
+      ).toBe(true)
     }
   })
 

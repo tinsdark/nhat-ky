@@ -30,16 +30,16 @@ describe('defs helpers', () => {
   })
   it('moveItem swaps order with the neighbour and stops at the ends', () => {
     const q = defs.quickActions
-    const moved = moveItem(q, 'qa-lunch', -1)
+    const moved = moveItem(q, 'qa-work', -1)
     const order = (id: string) => moved.find((x) => x.id === id)!.order
-    expect(order('qa-lunch')).toBe(3)
-    expect(order('qa-breakfast')).toBe(4)
+    expect(order('qa-work')).toBe(3)
+    expect(order('qa-meal')).toBe(4)
     expect(moveItem(q, 'qa-wake', -1)).toBe(q)
-    expect(moveItem(q, 'qa-outdoor', 1)).toBe(q)
+    expect(moveItem(q, 'qa-water', 1)).toBe(q)
     expect(moveItem(q, 'nope', 1)).toBe(q)
   })
   it('nextOrder follows the largest order', () => {
-    expect(nextOrder(defs.quickActions)).toBe(10)
+    expect(nextOrder(defs.quickActions)).toBe(8)
     expect(nextOrder([])).toBe(1)
   })
   it('archives a category without removing it', () => {
@@ -48,18 +48,19 @@ describe('defs helpers', () => {
     expect(cats.find((c) => c.id === 'cat-fun')!.archived).toBe(true)
   })
   it('deletes only the quick action asked for', () => {
-    expect(removeQuickAction(defs, 'qa-coffee').quickActions.map((q) => q.id)).not.toContain(
-      'qa-coffee',
+    expect(removeQuickAction(defs, 'qa-exercise').quickActions.map((q) => q.id)).not.toContain(
+      'qa-exercise',
     )
-    expect(removeQuickAction(defs, 'qa-coffee').categories).toBe(defs.categories)
+    expect(removeQuickAction(defs, 'qa-exercise').categories).toBe(defs.categories)
   })
   it('validates the category matches the action type', () => {
-    const lunch = defs.quickActions.find((q) => q.id === 'qa-lunch')!
+    const lunch = { ...defs.quickActions.find((q) => q.id === 'qa-meal')!, categoryId: 'cat-lunch' }
     expect(validateQuickAction(lunch, defs.categories)).toBeNull()
     expect(validateQuickAction({ ...lunch, categoryId: 'cat-deep' }, defs.categories)).toMatch(
       /cùng loại/,
     )
     expect(validateQuickAction({ ...lunch, name: ' ' }, defs.categories)).toMatch(/tên/)
+    expect(validateQuickAction({ ...lunch, categoryId: '' }, defs.categories)).toBeNull()
   })
   it('tagName', () => {
     expect(tagName([{ id: 't1', name: 'OT', color: '' }], 't1')).toBe('OT')

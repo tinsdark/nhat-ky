@@ -8,7 +8,6 @@ import {
   formatDuration,
   resolveEnd,
   shiftHHmm,
-  suggestTitles,
 } from './entryForm'
 import type { Entry } from './types'
 
@@ -37,25 +36,6 @@ function e(over: Partial<Entry>): Entry {
     ...over,
   }
 }
-
-describe('suggestTitles', () => {
-  it('sorts by frequency, then recency, filtered by type', () => {
-    const h = [
-      e({ title: 'Phở bò', start: '2026-10-01T12:00:00.000+07:00' }),
-      e({ title: 'Cơm văn phòng', start: '2026-10-02T12:00:00.000+07:00' }),
-      e({ title: 'Cơm văn phòng', start: '2026-10-03T12:00:00.000+07:00' }),
-      e({ title: 'Bún chả', start: '2026-10-05T12:00:00.000+07:00' }),
-      e({ title: 'Code', type: 'work' }),
-      e({ title: '  ' }),
-      e({ title: 'Đã xoá', deleted: true }),
-    ]
-    expect(suggestTitles(h, 'meal')).toEqual(['Cơm văn phòng', 'Bún chả', 'Phở bò'])
-  })
-  it('respects the limit', () => {
-    const h = ['a', 'b', 'c'].map((title) => e({ title }))
-    expect(suggestTitles(h, 'meal', 2)).toHaveLength(2)
-  })
-})
 
 describe('shiftHHmm', () => {
   it('shifts and wraps around midnight', () => {

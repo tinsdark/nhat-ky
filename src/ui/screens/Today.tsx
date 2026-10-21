@@ -1,23 +1,26 @@
 import { useState } from 'preact/hooks'
 import { addDays, toDateKey } from '../../core/date'
-import { addMinutes, copyToDay } from '../../core/entryForm'
+import { copyToDay } from '../../core/entryForm'
 import { dueReminders } from '../../core/reminders'
 import { reviewPrompt } from '../../core/review'
+import { finishPatch, isRunning } from '../../core/running'
 import { buildTimeline, coreProgress } from '../../core/timeline'
-import type { Entry, Habit, QuickAction } from '../../core/types'
+import type { Category, Entry, Habit, QuickAction } from '../../core/types'
 import { tickHabit } from '../../data/habits'
 import {
   createEntry,
   getDay,
   getDefs,
   getEntriesByDateKey,
+  getRunningEntries,
   getSettings,
   restoreEntry,
   softDeleteEntry,
+  updateEntry,
 } from '../../data/repository'
 import { getOpenSleep, goToSleep, wakeUp } from '../../data/sleep'
 import { DateNav } from '../DateNav'
-import { DurationPicker } from '../DurationPicker'
+import { CategoryPicker } from '../CategoryPicker'
 import { EntryDetail } from '../EntryDetail'
 import { draftFromEntry, EntryForm, type FormDraft } from '../EntryForm'
 import { Icon } from '../Icon'
@@ -27,6 +30,7 @@ import { estimatedNote, SleepPrompt } from '../SleepPrompt'
 import { CheckinCard } from '../today/CheckinCard'
 import { Hero } from '../today/Hero'
 import { QuickGrid } from '../today/QuickGrid'
+import { RunningCard } from '../today/RunningCard'
 import { SleepCard } from '../today/SleepCard'
 import { Timeline } from '../today/Timeline'
 import { Toast, type ToastData } from '../Toast'
@@ -65,11 +69,12 @@ export function Today() {
   const [sleepPrompt, setSleepPrompt] = useState<{ id: string; note?: string } | null>(null)
   const [form, setForm] = useState<FormDraft | null>(null)
   const [detail, setDetail] = useState<Entry | null>(null)
-  const [durationFor, setDurationFor] = useState<QuickAction | null>(null)
+  const [pickFor, setPickFor] = useState<QuickAction | null>(null)
+  const running = useLive(getRunningEntries, [])
   const [managing, setManaging] = useState<{ startNew: boolean } | null>(null)
   const [toast, setToast] = useState<ToastData | null>(null)
 
-  if (!settings || !defs || !entries) return null
+  if (!settings || !defs || !entries || !running) return null
 
   const categories = defs.categories
   const now = Date.now()
@@ -92,25 +97,30 @@ export function Today() {
     setForm(null)
     setToast({
       id: Date.now(),
-      text: isNew ? `Đã ghi: ${entry.title || 'mục mới'}` : 'Đã lưu',
+      text: isNew
+        ? `${isRunning(entry) ? 'Đã bắt đầu' : 'Đã ghi'}: ${entry.title || 'mục mới'}`
+        : 'Đã lưu',
       onEdit: () => setForm(draftFromEntry(entry)),
       onUndo: isNew ? () => void softDeleteEntry(entry.id) : undefined,
     })
   }
 
-  /** A work block estimated after the fact: ends now, started `minutes` ago. */
-  const logWork = async (a: QuickAction, minutes: number) => {
-    const end = nowIso()
-    const entry = await createEntry({
-      type: 'work',
-      start: addMinutes(end, -minutes),
-      end,
-      categoryId: a.categoryId,
-      title: a.title,
-      source: 'quick',
+  /** The block starts as the form opens; pressing Kết thúc later stamps its end. */
+  const draftForCategory = (a: QuickAction, c: Category | null): FormDraft => ({
+    ...draftFor(a),
+    categoryId: c?.id ?? '',
+    title: c?.name ?? a.name,
+  })
+
+  const finish = async (e: Entry) => {
+    const patch = finishPatch(e, nowIso())
+    if (!patch) return setForm(draftFromEntry(e))
+    const done = await updateEntry(e.id, patch)
+    setToast({
+      id: Date.now(),
+      text: `Đã kết thúc: ${done.title}`,
+      onEdit: () => setForm(draftFromEntry(done)),
     })
-    setDurationFor(null)
-    showSaved(entry, true)
   }
 
   const pressSleep = async () => {
@@ -128,7 +138,7 @@ export function Today() {
   }
 
   const quickTap = async (a: QuickAction) => {
-    if (a.type === 'work') return setDurationFor(a)
+    if (a.type !== 'water') return setPickFor(a)
     const entry = await createEntry({
       type: a.type,
       start: nowIso(),
@@ -235,11 +245,17 @@ export function Today() {
             onSleep={() => void pressSleep()}
             onWake={() => void pressWake()}
           />
+          <RunningCard
+            entries={running}
+            categories={categories}
+            onFinish={(e) => void finish(e)}
+            onEdit={(e) => setForm(draftFromEntry(e))}
+          />
           <QuickGrid
             actions={actions}
             categories={categories}
             onTap={(a) => void quickTap(a)}
-            onHold={(a) => setForm(draftFor(a))}
+            onHold={(a) => (a.type === 'water' ? setForm(draftFor(a)) : setPickFor(a))}
             onEdit={() => setManaging({ startNew: false })}
             onAdd={() => setManaging({ startNew: true })}
           />
@@ -293,15 +309,20 @@ export function Today() {
           }}
         />
       )}
-      {durationFor && (
-        <DurationPicker
-          title={durationFor.name}
-          onPick={(m) => void logWork(durationFor, m)}
-          onMore={() => {
-            setForm({ ...draftFor(durationFor), start: nowIso() })
-            setDurationFor(null)
+      {pickFor && (
+        <CategoryPicker
+          title={pickFor.name}
+          type={pickFor.type}
+          categories={categories}
+          onPick={(c) => {
+            setForm(draftForCategory(pickFor, c))
+            setPickFor(null)
           }}
-          onClose={() => setDurationFor(null)}
+          onOther={() => {
+            setForm(draftForCategory(pickFor, null))
+            setPickFor(null)
+          }}
+          onClose={() => setPickFor(null)}
         />
       )}
       {form && (

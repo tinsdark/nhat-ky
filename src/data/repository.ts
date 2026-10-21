@@ -1,6 +1,7 @@
 import { DEFAULT_SETTINGS } from '../core/settings'
 import { toDateKey, toIso } from '../core/date'
 import { isOvertime } from '../core/overtime'
+import { runningEntries } from '../core/running'
 import type { Day, Defs, Entry, Settings } from '../core/types'
 import { db } from './db'
 
@@ -130,6 +131,11 @@ export async function updateEntry(id: string, patch: Partial<NewEntry>): Promise
   const saved = withOvertime(next, settings)
   await db.entries.put(saved)
   return saved
+}
+
+/** Blocks that were started and not yet ended, from any day. */
+export async function getRunningEntries(): Promise<Entry[]> {
+  return runningEntries(await db.entries.filter((e) => e.payload.running === true).toArray())
 }
 
 export async function softDeleteEntry(id: string): Promise<void> {

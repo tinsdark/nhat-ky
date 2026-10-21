@@ -118,9 +118,16 @@ Giao diện theo họ Sổ Tiền (giấy kem, thẻ bo 20px, pill chuyển mụ
 - Loại tự đặt: Cài đặt → Danh mục → Loại. Lưu ở `Defs.customTypes` (tuỳ chọn, id `x-…`, không cần migration); form cơ bản, không có chỉ số tự động. Bản app cũ đọc `defs` sẽ bỏ qua và có thể ghi đè mất trường này.
 - Thói quen liên kết với nút ghi nhanh: form thói quen → "Từ mục Hôm nay" (dùng `linkedRule` có sẵn).
 
+## Đã làm sau PR16: phím tắt theo Loại, Bắt đầu/Kết thúc (T6.1–T6.3)
+
+- Phím tắt trỏ vào Loại → lưới danh mục → "Ghi mới". Form không còn ô Loại/Danh mục/Nội dung. Entry cũ giữ nguyên tiêu đề.
+- Việc kéo dài ghi bằng "Bắt đầu" rồi "Kết thúc" (thẻ "Đang làm"); luật "không có timer" trong `CLAUDE.md` đã sửa theo. `DurationPicker` đã bỏ.
+- Nút nhanh trên máy đã có dữ liệu vẫn là bộ cũ (Ăn sáng, Ăn trưa, Cà phê…): bấm đều mở bảng chọn danh mục của loại đó, nên trùng nhau; xoá bớt ở Cài đặt → Danh mục → Nút nhanh. Bộ mới chỉ áp cho máy seed mới. Chưa viết migration (cần hỏi Đạt).
+- Chưa kiểm trên điện thoại thật; chưa tái hiện được lỗi "ô đè nhau" (chỉ thấy toast che nút tạm thời) và "lắc" (đã khoá cuộn ngang).
+
 ## Việc chờ Đạt quyết (chưa làm)
 
-**Ghi một việc không có nút nhanh ở Hôm nay.** Hiện có 23 danh mục nhưng 9 nút nhanh. Việc không có nút thì ghi bằng: (1) giữ một nút rồi đổi Loại/Danh mục trong form, (2) tab Ghi bù → ô "Việc khác", (3) nhân bản mục trên timeline. Hôm nay **không có** ô "Việc khác" như Ghi bù, nên trên điện thoại hơi bất tiện.
+**(Đã giải quyết bằng T6.1: phím tắt theo Loại, có ô "Khác")** Ghi một việc không có nút nhanh ở Hôm nay. Hiện có 23 danh mục nhưng 9 nút nhanh. Việc không có nút thì ghi bằng: (1) giữ một nút rồi đổi Loại/Danh mục trong form, (2) tab Ghi bù → ô "Việc khác", (3) nhân bản mục trên timeline. Hôm nay **không có** ô "Việc khác" như Ghi bù, nên trên điện thoại hơi bất tiện.
 
 Hướng đề xuất (chưa chốt): thêm ô "Việc khác" vào lưới Hôm nay, mở form trống, giờ bắt đầu là bây giờ. Cần phân tích thêm trước khi làm: có nên giới hạn ở "ghi thời gian thực" (đúng nguyên tắc không timer); danh mục nào nên có nút mặc định; có cần ẩn bớt danh mục ít dùng.
 

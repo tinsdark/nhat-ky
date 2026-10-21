@@ -63,7 +63,7 @@ src/
 - Chữ trên UI bằng tiếng Việt. Tên biến, hàm, comment code bằng tiếng Anh.
 - Mobile-first: thiết kế cho màn 360–430px trước. Nút chạm tối thiểu 44px.
 - Mục tiêu tốc độ: ghi một sự kiện ≤ 2 chạm từ màn Hôm nay.
-- **Không có timer** (Đạt không bật được liên tục): việc làm ghi bằng thời lượng ước lượng. Tab **Hôm nay** chỉ ghi thời gian thực (nút bấm); việc đã làm xong ghi ở tab **Ghi bù** (`source = 'backfill'`). "Đi ngủ"/"Thức dậy" chỉ cần bấm, không hỏi lại giờ.
+- **Không đếm giờ trên màn hình** (Đạt không bật được liên tục). Việc kéo dài (làm việc, hoạt động, vận động) ghi bằng hai lần bấm: lần 1 lưu giờ bắt đầu (`payload.running`), lần 2 "Kết thúc" lưu giờ kết thúc; việc dở nằm trong thẻ "Đang làm" và còn nguyên khi đóng app. Không có đồng hồ chạy, không cần mở app giữa hai lần bấm. Tab **Hôm nay** chỉ ghi thời gian thực; việc đã làm xong ghi ở tab **Ghi bù** (`source = 'backfill'`). "Đi ngủ"/"Thức dậy" và "Uống nước" chỉ cần bấm, ghi ngay.
 
 ## Cách làm việc
 
