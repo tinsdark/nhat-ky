@@ -117,7 +117,7 @@ Tham chiếu: repo `tinsdark/so-chi-tieu` (nền kem, thẻ bo tròn 20px, tab �
 - [x] **T5.1 Hệ thiết kế + khung app.** Bảng màu kem/nâu-xanh sáng và tối, thẻ, nút, ô nhập, sheet, icon SVG, tab đáy có icon, header có dòng trạng thái đồng bộ.
 - [x] **T5.2 Hôm nay.** Thẻ tổng quan (ngày, tiến độ, danh sách mục cốt lõi), thẻ "Đang ngủ" + Thức dậy, nút nhanh dạng ô có biểu tượng + ô "Thêm" + "Sửa", check-in năng lượng/tâm trạng cân đối, thói quen hôm nay tick ngay tại đây, timeline gọn.
 - [x] **T5.3 Ghi bù** cùng ngôn ngữ thiết kế.
-- [ ] **T5.4 Thói quen.** Thẻ tổng quan, vòng tiến độ, streak, tick lớn, gợi ý thói quen mẫu, heatmap gập.
+- [x] **T5.4 Thói quen.** Thẻ tổng quan, vòng tiến độ, streak, tick lớn, gợi ý thói quen mẫu, heatmap gập.
 - [ ] **T5.5 Cài đặt chia mục** (Danh mục · Mục tiêu · Cảnh báo · Hiển thị · Dữ liệu · Ứng dụng).
 - [ ] **T5.6 Thống kê** thanh tab con dạng viên thuốc, thẻ tổng quan, thẻ số liệu, biểu đồ cùng bảng màu.
 

@@ -207,3 +207,39 @@ export function heatmap(
     }),
   )
 }
+
+const DAY_NAMES = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+
+/** "Hằng ngày", "T2–T6", "T2, T4, T6", "3 lần/tuần". */
+export function describeSchedule(schedule: Habit['schedule']): string {
+  if (schedule.kind === 'daily') return 'Hằng ngày'
+  if (schedule.kind === 'timesPerWeek') return `${schedule.times} lần/tuần`
+  const days = [...schedule.days].sort((a, b) => a - b)
+  if (days.length === 7) return 'Hằng ngày'
+  const contiguous = days.length > 2 && days.every((d, i) => i === 0 || d === days[i - 1]! + 1)
+  return contiguous
+    ? `${DAY_NAMES[days[0]!]}–${DAY_NAMES[days[days.length - 1]!]}`
+    : days.map((d) => DAY_NAMES[d]).join(', ')
+}
+
+/** Unit shown next to a habit's numbers. */
+export function habitUnit(h: Habit): string {
+  if (h.kind === 'duration') return 'phút'
+  if (h.linkedRule?.entryType === 'water') return 'ml'
+  if (h.kind === 'count') return 'lần'
+  return ''
+}
+
+/** "≥ 20 phút", "= 0 lần", "" for a plain yes/no habit. */
+export function describeTarget(h: Habit): string {
+  if (h.kind === 'check' || h.metricRule) return ''
+  const unit = habitUnit(h)
+  return `${h.target.op === '>=' ? '≥' : h.target.op === '<=' ? '≤' : '='} ${h.target.value}${unit ? ` ${unit}` : ''}`
+}
+
+/** 0–1 progress toward a "reach it" target; met/not-met (1 or 0) for "stay under" and "exactly" targets. */
+export function habitProgress(h: Habit, value: number): number {
+  if (h.target.op === '>=')
+    return h.target.value <= 0 ? (value > 0 ? 1 : 0) : Math.min(1, value / h.target.value)
+  return isMet(h, value) ? 1 : 0
+}

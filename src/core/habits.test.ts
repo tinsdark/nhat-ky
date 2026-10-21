@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { atTime } from './date'
-import { completionRate, dayStatus, heatmap, isMet, streaks, valuesByDate } from './habits'
+import {
+  completionRate,
+  dayStatus,
+  describeSchedule,
+  describeTarget,
+  habitProgress,
+  heatmap,
+  isMet,
+  streaks,
+  valuesByDate,
+} from './habits'
 import type { Entry, Habit } from './types'
 
 // 2026-11-02 is a Monday.
@@ -195,5 +205,46 @@ describe('heatmap', () => {
     expect(last[0]!.dateKey).toBe('2026-11-02')
     expect(last[2]).toEqual({ dateKey: '2026-11-04', status: 'met' })
     expect(last[3]!.status).toBe('future')
+  })
+})
+
+describe('habit labels', () => {
+  it('describeSchedule', () => {
+    expect(describeSchedule({ kind: 'daily' })).toBe('Hằng ngày')
+    expect(describeSchedule({ kind: 'weekdays', days: [0, 1, 2, 3, 4] })).toBe('T2–T6')
+    expect(describeSchedule({ kind: 'weekdays', days: [4, 0, 2] })).toBe('T2, T4, T6')
+    expect(describeSchedule({ kind: 'weekdays', days: [5, 6] })).toBe('T7, CN')
+    expect(describeSchedule({ kind: 'weekdays', days: [0, 1, 2, 3, 4, 5, 6] })).toBe('Hằng ngày')
+    expect(describeSchedule({ kind: 'timesPerWeek', times: 3 })).toBe('3 lần/tuần')
+  })
+  it('describeTarget and habitUnit', () => {
+    expect(describeTarget(habit({ kind: 'duration', target: { op: '>=', value: 20 } }))).toBe(
+      '≥ 20 phút',
+    )
+    expect(
+      describeTarget(habit({ kind: 'count', target: { op: '=', value: 0 }, direction: 'quit' })),
+    ).toBe('= 0 lần')
+    expect(
+      describeTarget(
+        habit({
+          kind: 'count',
+          target: { op: '>=', value: 2000 },
+          linkedRule: { entryType: 'water' },
+        }),
+      ),
+    ).toBe('≥ 2000 ml')
+    expect(describeTarget(habit({}))).toBe('')
+    expect(
+      describeTarget(habit({ metricRule: { metricId: 'bedtime', op: '<=', value: 23.5 } })),
+    ).toBe('')
+  })
+  it('habitProgress: ratio toward a minimum, 0/1 for other targets', () => {
+    const read = habit({ kind: 'duration', target: { op: '>=', value: 20 } })
+    expect(habitProgress(read, 0)).toBe(0)
+    expect(habitProgress(read, 10)).toBe(0.5)
+    expect(habitProgress(read, 45)).toBe(1)
+    const quit = habit({ kind: 'count', direction: 'quit', target: { op: '=', value: 0 } })
+    expect(habitProgress(quit, 0)).toBe(1)
+    expect(habitProgress(quit, 2)).toBe(0)
   })
 })
