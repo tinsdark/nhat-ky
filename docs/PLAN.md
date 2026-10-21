@@ -110,6 +110,17 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
 - [x] **T4.12 Khoá app bằng passkey/Face ID** (Module 9.4, tuỳ chọn).
 - [x] **T4.13 Cập nhật SPEC và HANDOFF** theo các thay đổi trên.
 
+## P5 — Làm lại giao diện (Đạt nhận xét 21/10: quá đơn giản, mất cân đối; học theo Sổ Tiền)
+
+Tham chiếu: repo `tinsdark/so-chi-tieu` (nền kem, thẻ bo tròn 20px, tab đáy có icon, thanh tab con dạng viên thuốc, Cài đặt chia mục, thẻ tổng quan số lớn).
+
+- [x] **T5.1 Hệ thiết kế + khung app.** Bảng màu kem/nâu-xanh sáng và tối, thẻ, nút, ô nhập, sheet, icon SVG, tab đáy có icon, header có dòng trạng thái đồng bộ.
+- [ ] **T5.2 Hôm nay.** Thẻ tổng quan (ngày, tiến độ, danh sách mục cốt lõi), thẻ "Đang ngủ" + Thức dậy, nút nhanh dạng ô có biểu tượng + ô "Thêm" + "Sửa", check-in năng lượng/tâm trạng cân đối, thói quen hôm nay tick ngay tại đây, timeline gọn.
+- [ ] **T5.3 Ghi bù** cùng ngôn ngữ thiết kế.
+- [ ] **T5.4 Thói quen.** Thẻ tổng quan, vòng tiến độ, streak, tick lớn, gợi ý thói quen mẫu, heatmap gập.
+- [ ] **T5.5 Cài đặt chia mục** (Danh mục · Mục tiêu · Cảnh báo · Hiển thị · Dữ liệu · Ứng dụng).
+- [ ] **T5.6 Thống kê** thanh tab con dạng viên thuốc, thẻ tổng quan, thẻ số liệu, biểu đồ cùng bảng màu.
+
 ## Sau 1/11 (P4)
 
 - [ ] Push nhắc nhở (phương án C: Cloudflare Workers + cron).

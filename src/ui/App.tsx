@@ -10,6 +10,7 @@ import { Habits } from './screens/Habits'
 import { Stats } from './screens/Stats'
 import { Settings } from './screens/Settings'
 import { Today } from './screens/Today'
+import { Icon } from './Icon'
 import { SyncIndicator } from './SyncIndicator'
 import { parseHash, TABS } from './route'
 
@@ -80,8 +81,13 @@ export function App() {
   return (
     <div class="shell">
       <header class="topbar">
-        <strong>Nhật ký</strong>
-        <SyncIndicator onLogin={() => setGate(true)} />
+        <div class="brand">
+          <img src={`${import.meta.env.BASE_URL}icon-192.png`} alt="" width="34" height="34" />
+          <div>
+            <strong>Nhật ký</strong>
+            <SyncIndicator onLogin={() => setGate(true)} />
+          </div>
+        </div>
       </header>
       <main class="content">
         {tab === 'today' && <Today />}
@@ -104,9 +110,7 @@ export function App() {
             class={t.id === tab ? 'active' : ''}
             aria-current={t.id === tab ? 'page' : undefined}
           >
-            <span class="ico" aria-hidden="true">
-              {t.icon}
-            </span>
+            <Icon name={t.icon} />
             {t.label}
           </a>
         ))}
