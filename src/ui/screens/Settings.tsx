@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'preact/compat'
 import { signOut } from '../../auth'
 import { RULES, resolveThresholds } from '../../core/rules'
 import type { Settings as SettingsData } from '../../core/types'
@@ -5,6 +6,8 @@ import { getSettings, saveSettings } from '../../data/repository'
 import { engine } from '../../sync'
 import { Choice } from '../Choice'
 import { useLive } from '../useLive'
+
+const DevPanel = import.meta.env.DEV ? lazy(() => import('../DevPanel')) : null
 
 const DAY_LABELS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
 
@@ -189,6 +192,12 @@ export function Settings({ onSignedOut }: { onSignedOut: () => void }) {
           )
         })}
       </div>
+
+      {DevPanel && (
+        <Suspense fallback={null}>
+          <DevPanel />
+        </Suspense>
+      )}
 
       <h2 class="sub">Tài khoản</h2>
       <div class="stack">

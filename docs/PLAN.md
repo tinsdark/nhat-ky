@@ -72,7 +72,7 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
 
 ## P3 — Phân tích (29–31/10) — SPEC Module 8, 9
 
-- [ ] **T3.1 Sinh dữ liệu giả** (`src/dev/`). Script sinh 60 ngày có quy luật cài sẵn: ngủ trước 23h30 → năng lượng hôm sau +1; cà phê sau 15h → chất lượng ngủ −1; còn lại ngẫu nhiên. Chỉ chạy khi `import.meta.env.DEV`; có nút "Xoá dữ liệu test".
+- [x] **T3.1 Sinh dữ liệu giả** (`src/dev/`). Script sinh 60 ngày có quy luật cài sẵn: ngủ trước 23h30 → năng lượng hôm sau +1; cà phê sau 15h → chất lượng ngủ −1; còn lại ngẫu nhiên. Chỉ chạy khi `import.meta.env.DEV`; có nút "Xoá dữ liệu test".
 - [ ] **T3.2 Engine tương quan** (Module 8.1, 8.3). Kết quả Y × yếu tố X, cùng ngày + trễ 1 ngày, chia nhóm (nhị phân / 1/3 thấp–cao), Cohen's d, lọc: mỗi nhóm ≥ 7 ngày, |d| ≥ 0,5, hai nửa thời gian cùng chiều, loại ngày sick/travel/holiday. Mức tin cậy Yếu/Vừa/Mạnh. Tự bật theo số ngày có dữ liệu (bảng 8.1).
     - Xong khi: trên dữ liệu T3.1 tìm ra đúng 2 quy luật cài sẵn và báo ≤ 2 quy luật giả.
 - [ ] **T3.3 Lời khuyên** (Module 8.4). Insight → mẫu câu có số + hành động. Xếp hạng, tối đa 3/ngày, nút Thử / Hữu ích / Không đúng / Ẩn 2 tuần. Lưu `nk_insights.json`. Hiện trên Dashboard.
