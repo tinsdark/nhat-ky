@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'preact/hooks'
 import { hasSession } from '../auth'
 import { Login } from './screens/Login'
+import { Backfill } from './screens/Backfill'
 import { Habits } from './screens/Habits'
 import { Stats } from './screens/Stats'
 import { Settings } from './screens/Settings'
@@ -59,6 +60,7 @@ export function App() {
       </header>
       <main class="content">
         {tab === 'today' && <Today />}
+        {tab === 'backfill' && <Backfill />}
         {tab === 'habits' && <Habits />}
         {tab === 'stats' && <Stats />}
         {tab === 'settings' && (

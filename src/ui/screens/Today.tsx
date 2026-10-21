@@ -222,41 +222,32 @@ export function Today() {
         </div>
       </div>
 
-      <div class="quickgrid">
-        {[...defs.quickActions]
-          .sort((a, b) => a.order - b.order)
-          .map((a) => (
-            <QuickButton
-              action={a}
-              onTap={() => void quickTap(a)}
-              onHold={() => setForm(draftFor(a))}
-            />
-          ))}
-      </div>
+      {isToday ? (
+        <div class="quickgrid">
+          {[...defs.quickActions]
+            .sort((a, b) => a.order - b.order)
+            .map((a) => (
+              <QuickButton
+                action={a}
+                onTap={() => void quickTap(a)}
+                onHold={() => setForm(draftFor(a))}
+              />
+            ))}
+        </div>
+      ) : (
+        <p class="muted hint">
+          Đây là ngày đã qua: nút bấm nhanh chỉ dùng cho hôm nay. Muốn ghi thêm thì sang tab{' '}
+          <a href={`#/backfill?d=${dateKey}&s=12:00`}>Ghi bù</a>.
+        </p>
+      )}
 
       <div class="timeline">
         {rows.length === 0 && <p class="muted">Chưa ghi gì cho ngày này.</p>}
         {rows.map((r) =>
           r.kind === 'gap' ? (
-            <button
-              type="button"
-              class="gap"
-              onClick={() =>
-                setForm({
-                  dateKey,
-                  type: 'activity',
-                  categoryId: '',
-                  title: '',
-                  value: null,
-                  unit: '',
-                  note: '',
-                  start: r.start,
-                  end: r.end,
-                })
-              }
-            >
-              chưa ghi · {toHHmm(r.start)}–{toHHmm(r.end)}
-            </button>
+            <a class="gap" href={`#/backfill?d=${dateKey}&s=${toHHmm(r.start)}&e=${toHHmm(r.end)}`}>
+              chưa ghi · {toHHmm(r.start)}–{toHHmm(r.end)} · chạm để ghi bù
+            </a>
           ) : (
             <button
               type="button"
@@ -271,7 +262,10 @@ export function Today() {
                 {toHHmm(r.entry.start)}
                 {r.entry.end ? `–${toHHmm(r.entry.end)}` : ''}
               </span>
-              <span>{r.entry.title || labelOf(categories, r.entry)}</span>
+              <span>
+                {r.entry.title || labelOf(categories, r.entry)}{' '}
+                {r.entry.source === 'backfill' && <span class="tag">ghi bù</span>}
+              </span>
               {r.entry.value != null && (
                 <span class="muted">
                   {r.entry.value} {r.entry.unit}
@@ -288,27 +282,6 @@ export function Today() {
           ),
         )}
       </div>
-
-      <button
-        type="button"
-        class="fab"
-        aria-label="Ghi mới"
-        onClick={() =>
-          setForm({
-            dateKey,
-            type: 'activity',
-            categoryId: '',
-            title: '',
-            value: null,
-            unit: '',
-            note: '',
-            start: nowIso(),
-            end: null,
-          })
-        }
-      >
-        +
-      </button>
 
       {detail && (
         <EntryDetail

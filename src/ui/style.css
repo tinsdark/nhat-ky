@@ -153,7 +153,7 @@ h1 {
   right: 0;
   bottom: 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   padding-bottom: env(safe-area-inset-bottom);
   background: var(--bg);
   border-top: 1px solid var(--border);
@@ -277,6 +277,10 @@ h1 {
   font-size: 0.75rem;
 }
 .gap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
   min-height: 44px;
   border: 1px dashed var(--border);
   border-radius: 8px;
@@ -784,4 +788,14 @@ details.card summary {
   min-width: 72px;
   min-height: 56px;
   font-size: 1rem;
+}
+
+.tag {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.65rem;
 }
