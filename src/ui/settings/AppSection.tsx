@@ -1,6 +1,7 @@
-import { useState } from 'preact/hooks'
+import { useEffect, useState } from 'preact/hooks'
 import { signOut } from '../../auth'
 import { appLock } from '../../lock'
+import { applyUpdate, checkForUpdate, getUpdateState, subscribeUpdate } from '../../pwa'
 import { engine } from '../../sync'
 import { Choice } from '../Choice'
 import { Icon } from '../Icon'
@@ -12,6 +13,8 @@ const build = new Date(__BUILD_TIME__)
 export function AppSection({ onSignedOut }: { onSignedOut: () => void }) {
   const [lockOn, setLockOn] = useState(() => appLock.isEnabled())
   const [lockMsg, setLockMsg] = useState('')
+  const [update, setUpdate] = useState(getUpdateState())
+  useEffect(() => subscribeUpdate(setUpdate), [])
   return (
     <>
       <Section title="Tài khoản và đồng bộ">
@@ -72,6 +75,32 @@ export function AppSection({ onSignedOut }: { onSignedOut: () => void }) {
             {build.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
           </span>
         </SetRow>
+        <div class="btnlist">
+          {update === 'available' ? (
+            <button type="button" class="btn btn-primary" onClick={() => void applyUpdate()}>
+              <Icon name="refresh" size={16} /> Cập nhật và tải lại
+            </button>
+          ) : (
+            <button
+              type="button"
+              class="btn"
+              disabled={update === 'checking'}
+              onClick={() => void checkForUpdate()}
+            >
+              <Icon name="refresh" size={16} />{' '}
+              {update === 'checking' ? 'Đang kiểm tra…' : 'Kiểm tra bản mới'}
+            </button>
+          )}
+        </div>
+        <p class="muted hint">
+          {update === 'available'
+            ? 'Có bản mới. Bấm để cập nhật, app sẽ tải lại (dữ liệu giữ nguyên).'
+            : update === 'latest'
+              ? 'Đang dùng bản mới nhất.'
+              : update === 'unsupported'
+                ? 'Chỉ kiểm tra được trên bản đã cài (không phải khi chạy dev).'
+                : 'Bản mới sẽ không tự áp dụng, bấm nút khi muốn cập nhật.'}
+        </p>
       </Section>
     </>
   )
