@@ -119,7 +119,7 @@ Tham chiếu: repo `tinsdark/so-chi-tieu` (nền kem, thẻ bo tròn 20px, tab �
 - [x] **T5.3 Ghi bù** cùng ngôn ngữ thiết kế.
 - [x] **T5.4 Thói quen.** Thẻ tổng quan, vòng tiến độ, streak, tick lớn, gợi ý thói quen mẫu, heatmap gập.
 - [x] **T5.5 Cài đặt chia mục** (Danh mục · Mục tiêu · Cảnh báo · Hiển thị · Dữ liệu · Ứng dụng).
-- [ ] **T5.6 Thống kê** thanh tab con dạng viên thuốc, thẻ tổng quan, thẻ số liệu, biểu đồ cùng bảng màu.
+- [x] **T5.6 Thống kê** thanh tab con dạng viên thuốc, thẻ tổng quan, thẻ số liệu, biểu đồ cùng bảng màu.
 
 ## Sau 1/11 (P4)
 

@@ -1791,3 +1791,22 @@ form.sheet > .row:last-child {
 .ruleline summary .grow {
   flex: 1;
 }
+
+/* ---- Thống kê ---- */
+.cards .card {
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+.cards .card strong {
+  font-size: 1.35rem;
+  color: var(--accent);
+}
+.cards .card.advice strong {
+  font-size: inherit;
+  color: inherit;
+}
+.screen .pills {
+  margin-bottom: 12px;
+}
