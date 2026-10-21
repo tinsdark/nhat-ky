@@ -14,7 +14,10 @@ const LABEL: Record<SyncStatus['state'], string> = {
 // Temporary shell for T0.6; replaced by the real app shell in T1.1.
 export function App() {
   const [status, setStatus] = useState(engine.getStatus())
-  useEffect(() => engine.subscribe(setStatus), [])
+  useEffect(() => {
+    setStatus(engine.getStatus()) // startSync() may have changed it before this effect ran
+    return engine.subscribe(setStatus)
+  }, [])
 
   const login = () =>
     signIn()
