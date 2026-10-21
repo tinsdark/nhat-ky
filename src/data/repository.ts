@@ -79,7 +79,6 @@ export async function createEntry(input: NewEntry): Promise<Entry> {
     photoIds: [],
     payload: {},
     source: 'manual',
-    sotienRef: null,
     note: '',
     ...input,
     id: crypto.randomUUID(),

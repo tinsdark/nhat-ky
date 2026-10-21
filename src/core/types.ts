@@ -12,7 +12,7 @@ export interface SyncFields {
 export type EntryType =
   'sleep' | 'meal' | 'work' | 'habit' | 'exercise' | 'activity' | 'water' | 'note'
 
-export type EntrySource = 'manual' | 'timer' | 'quick' | 'sotien'
+export type EntrySource = 'manual' | 'timer' | 'quick'
 
 export type Rating = 1 | 2 | 3 | 4 | 5
 
@@ -34,7 +34,6 @@ export interface Entry extends SyncFields {
   /** Per-type fields, typed per module later. */
   payload: Record<string, unknown>
   source: EntrySource
-  sotienRef: string | null
   note: string
 }
 
@@ -116,7 +115,6 @@ export interface Settings {
   sleepTargetHours: number
   waterTargetMl: number
   exerciseTargetMinPerWeek: number
-  sotien: { enabled: boolean; categoryMap: Record<string, string> }
   theme: 'light' | 'dark' | 'system'
 }
 

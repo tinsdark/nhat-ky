@@ -11,12 +11,11 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
 
 - [ ] Tạo repo GitHub `nhat-ky`, clone về máy.
 - [ ] Xuất doc plan ra Markdown, lưu thành `docs/SPEC.md`. Copy `CLAUDE.md` vào gốc repo, file này vào `docs/PLAN.md`.
-- [ ] Google Cloud Console, project của Sổ Tiền:
-    - [ ] OAuth client của Sổ Tiền → Authorized JavaScript origins: thêm `http://localhost:5173` (origin `https://<user>.github.io` chắc đã có sẵn).
+- [ ] Google Cloud Console, project chứa OAuth client đang dùng:
+    - [ ] OAuth client → Authorized JavaScript origins: thêm `http://localhost:5173` (origin `https://<user>.github.io` chắc đã có sẵn).
     - [ ] Drive API đã bật.
     - [ ] OAuth consent screen: chế độ Testing, email của mày nằm trong Test users. Kiểm tra scope `drive.appdata` có trong danh sách.
     - [ ] Copy Client ID để đưa cho Claude Code ở T0.4.
-- [ ] Đẩy repo `so-chi-tieu` lên GitHub, cho Claude Code đọc ở T2.4 (cần sớm để biết giao dịch có lưu giờ không).
 - [ ] Repo `nhat-ky` → Settings → Pages → Source: GitHub Actions.
 
 ## Cách giao việc cho Claude Code
@@ -61,14 +60,14 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
 
 **Cổng P1:** dùng thử 1 ngày trọn vẹn trên điện thoại: ngủ, 3 bữa, 2 khối làm việc, tick thói quen, chấm ngày — không cần mở PC.
 
-## P2 — Thống kê, ảnh, Sổ Tiền, luật (27–28/10) — SPEC Module 6, 7, 10, 8.2
+## P2 — Thống kê, ảnh, luật (27–28/10) — SPEC Module 7, 10, 8.2
 
 - [ ] **T2.1 Metric registry** (Module 7.2, 5.5, 3.4, 4.5). Mỗi chỉ số: `id`, nhãn, đơn vị, `compute(dateKey, ctx) → number | null`. Gồm cả chỉ số đồng hồ sinh hoạt: điểm giữa giấc ngủ, lệch ngày thường/cuối tuần, độ đều giờ ngủ, khung ăn, bữa cuối → ngủ, cà phê cuối → ngủ.
     - Xong khi: test từng chỉ số trên 7 ngày mẫu tính tay; ngày thiếu dữ liệu trả `null`.
 - [ ] **T2.2 Dashboard** (Module 7.1). Thẻ tuần (so 7 ngày trước), xu hướng 90 ngày + TB trượt 7 ngày, lịch tháng tô màu, theo thứ trong tuần. Chỗ cho thẻ lời khuyên (điền ở T3.3).
 - [ ] **T2.3 Ảnh** (Module 10). Chọn/chụp ảnh → đọc giờ chụp (EXIF DateTimeOriginal; iPhone có thể là HEIC — nếu trình duyệt không vẽ được HEIC lên canvas thì báo lỗi rõ ràng) → canvas → WebP 0,7, cạnh dài 1280px + thumb 320px → lưu IndexedDB → hàng đợi tải lên Drive `nkp_/nkt_` (tuỳ chọn chỉ Wi-Fi). Tối đa 3 ảnh/Entry. Giờ chụp gợi ý giờ ăn (`timeSource = photo`). Xoá Entry → xoá ảnh. Cache ảnh lớn ≤ 200 MB.
     - Xong khi: ảnh lưu < 300 KB, không còn GPS; sync dữ liệu không chờ ảnh.
-- [ ] **T2.4 Đọc Sổ Tiền** (Module 6). Interface `SoTienSource { listMealEvents(month): { id, at, category, note }[] }` — không có trường tiền. Cài đặt ánh xạ danh mục. Ghép Entry bữa ăn lệch ≤ 90 phút; không có thì tạo khối "chờ xác nhận". **Nếu chưa có repo `so-chi-tieu`: làm với mock, dừng và báo Đạt.** Có repo rồi: đọc source, báo lại cho Đạt giao dịch có lưu giờ không trước khi viết adapter thật.
+- [x] ~~**T2.4 Đọc Sổ Tiền**~~ — bỏ (21/10): Sổ Tiền chỉ ghi giờ thanh toán, không phải giờ ăn. Giữ số thứ tự để T2.5 không đổi tên.
 - [ ] **T2.5 Luật cảnh báo** (Module 8.2). Định nghĩa luật dạng dữ liệu (điều kiện trên metric, cửa sổ ngày, ưu tiên, mẫu câu, thời gian chờ). Đủ 11 luật mặc định. Ngưỡng sửa trong Cài đặt.
 
 ## P3 — Phân tích (29–31/10) — SPEC Module 8, 9
@@ -90,7 +89,6 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
 - [ ] Token hết hạn giữa chừng → không mất dữ liệu, tự sync lại sau khi đăng nhập.
 - [ ] Cài PWA lên màn hình chính, mở offline được.
 - [ ] Streak đúng với lịch T2–T6 và "3 lần/tuần".
-- [ ] Mốc giờ Sổ Tiền hiện "chờ xác nhận"; không có số tiền nào trong IndexedDB hay file `nk_*`.
 - [ ] Ảnh < 300 KB, giờ Entry = giờ chụp, không có GPS.
 - [ ] Engine tương quan qua bộ dữ liệu giả 60 ngày.
 - [ ] Dashboard < 1 giây với 1 năm dữ liệu giả (~11.000 Entry).
