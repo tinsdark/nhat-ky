@@ -123,6 +123,19 @@ export async function softDeleteEntry(id: string): Promise<void> {
   })
 }
 
+/** Undo for softDeleteEntry. */
+export async function restoreEntry(id: string): Promise<void> {
+  const current = await db.entries.get(id)
+  if (!current) throw new Error(`Entry not found: ${id}`)
+  await db.entries.put({
+    ...current,
+    deleted: false,
+    updatedAt: toIso(),
+    deviceId: await getDeviceId(),
+    dirty: 1,
+  })
+}
+
 export function getEntriesByDateKey(dateKey: string): Promise<Entry[]> {
   return getEntriesInRange(dateKey, dateKey)
 }

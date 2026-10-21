@@ -33,20 +33,28 @@ Test hiện có: 107 test pass (`npm run test`), `lint` và `build` pass.
 - Điều kiện trước khi thử: consent screen của OAuth client phải có scope `drive.appdata`; origin `http://localhost:5173` và origin GitHub Pages nằm trong Authorized JavaScript origins; email của Đạt trong Test users; Drive API đã bật.
 - iOS: PWA cài vào màn hình chính dùng lưu trữ tách khỏi Safari, lần mở đầu phải đăng nhập lại.
 
-## Đang dở: T1.1 Khung app (chưa code, chờ Đạt OK hai câu)
+## Đã xong: P1 (T1.1–T1.9), nhánh `claude/eloquent-albattani-7k3kmg`, chưa mở PR
 
-Kế hoạch: header có chỉ báo sync, thanh tab dưới (Hôm nay · Thói quen · Thống kê · Cài đặt), điều hướng bằng hash (không thêm router), 4 màn khung trống (Cài đặt có nút Đăng xuất và Đồng bộ ngay), màn đăng nhập lần đầu, mở rộng theme sáng/tối. Kiểm tra bằng test hàm phân tích hash và ảnh chụp Chromium 390×844 sáng/tối. Hai câu chờ trả lời:
+- **T1.1** khung app: tab dưới, hash route, chỉ báo sync, màn đăng nhập có "Dùng ngay, đăng nhập sau" (cờ `nk_skipLogin`).
+- **T1.2** seed `src/data/seed.ts` + `src/core/defaults.ts`: stamp epoch, `dirty = 0`. Có 9 nút nhanh (8 của Module 1.1 + "Ra ngoài trời"), lưới đang 3 cột. 3 thói quen bật: nước (tự tính từ `water`), đọc sách, vận động (tự tính từ `exercise`).
+- **T1.3** màn Hôm nay: `src/core/timeline.ts` (gap > 2h, tiến độ 6 mục), nút nhanh chạm/giữ, toast Sửa/Hoàn tác, form, FAB.
+- **T1.4** timer = Entry `work` mở (`source = timer`, `end = null`), `src/data/timer.ts`. `isOvertime`: khối không nằm trọn trong giờ làm của ngày làm việc (qua nửa đêm luôn là OT).
+- **T1.5** form đầy đủ: payload theo loại (`src/ui/PayloadFields.tsx`), gợi ý title, nút −15p/−30p/−1h, cảnh báo trùng giờ.
+- **T1.6** giấc ngủ: Đi ngủ mở Entry, Thức dậy đóng + hỏi chất lượng, hỏi bù khi quên (gợi ý TB 7 ngày). Ngủ trưa `payload.nap`.
+- **T1.7** chấm ngày: `src/core/review.ts`, banner sau `settings.reviewTime` (21:30), hôm sau hỏi lại một lần (cờ `nk_reviewAsked_<dateKey>`). Thêm Settings `reviewTime`, `skipRestDays`; `getSettings` điền mặc định cho trường thiếu.
+- **T1.8** thói quen: `src/core/habits.ts` (đạt ngày, streak ngày/tuần, tỷ lệ, heatmap), tick = Entry `habit` + `payload.habitId`. Thói quen liên kết (nước, vận động) không có nút tick.
+- **T1.9** chi tiết khối: Sửa / Nhân bản / Xoá (Hoàn tác = `restoreEntry`) / Chép sang hôm nay (khi xem ngày khác).
 
-1. Màn đăng nhập lần đầu có nút "Dùng ngay, đăng nhập sau" không (đề xuất: có)?
-2. Điều hướng bằng hash, không thêm router ngoài: OK không?
+Test: 182 pass, lint và build pass. Đã chạy từng task trong Chromium 390×844 (Playwright), chưa thử trên điện thoại thật.
 
-## Lưu ý cho T1.2 (dữ liệu mặc định)
-
-Nếu máy thứ hai tự seed danh mục mặc định trước khi kéo từ Drive thì có thể đè danh mục Đạt đã chỉnh, vì `defs` sync cả file theo `updatedAt`. Đề xuất: dữ liệu seed gắn `updatedAt` rất cũ (epoch) và `dirty = 0` để bản thật luôn thắng.
+Chưa làm / cần để ý:
+- Chưa có UI sửa Settings (đổi giờ chấm ngày, `skipRestDays`) và sửa danh mục/nút nhanh.
+- Entry ăn uống không chọn danh mục thì không tính vào "x/6 mục cốt lõi" (đếm theo `categoryId` Ăn sáng/trưa/tối).
+- Cổng P1: thử trên điện thoại thật.
 
 ## Tiếp theo theo PLAN
 
-T1.1 → T1.2 (seed: danh mục, 8 nút nhanh, 6 thói quen mẫu bật 3, settings mặc định) → T1.3 màn Hôm nay (task lớn, nên bật Plan mode) → T1.4–T1.9. Cổng P0 và P1 thử trên điện thoại thật.
+P2: T2.1 metric registry → T2.2 dashboard → T2.3 ảnh → T2.5 luật cảnh báo.
 
 ## Ghi chú
 

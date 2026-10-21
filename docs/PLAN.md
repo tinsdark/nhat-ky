@@ -56,7 +56,7 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
 - [x] **T1.7 Chấm cuối ngày** (Module 1.4). Màn chấm Day: 4 thanh 1–5, điểm ngày 1–10, highlight, loại ngày, thói quen chưa tick. Banner trong app sau 21:30; sáng hôm sau hỏi lại một lần.
 - [x] **T1.8 Thói quen** (Module 2). CRUD định nghĩa, tick/+1, `linkedRule` cho nước uống. `src/core/habits.ts`: đạt ngày, streak (ngày không có lịch không đứt; lịch x lần/tuần tính theo tuần; tuỳ chọn bỏ qua ngày sick/travel), tỷ lệ 7/30/90 ngày. Heatmap 12 tuần.
     - Xong khi: test streak với lịch T2–T6, "3 lần/tuần", thói quen `quit`.
-- [ ] **T1.9 Sửa/xoá** (Module 1.5). Chạm khối → chi tiết → Sửa / Nhân bản / Xoá (mềm, có Hoàn tác). Chép khối từ hôm qua.
+- [x] **T1.9 Sửa/xoá** (Module 1.5). Chạm khối → chi tiết → Sửa / Nhân bản / Xoá (mềm, có Hoàn tác). Chép khối từ hôm qua.
 
 **Cổng P1:** dùng thử 1 ngày trọn vẹn trên điện thoại: ngủ, 3 bữa, 2 khối làm việc, tick thói quen, chấm ngày — không cần mở PC.
 

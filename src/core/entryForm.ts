@@ -1,3 +1,4 @@
+import { atTime, toHHmm } from './date'
 import type { Entry, EntryType } from './types'
 
 /** Titles used before for this entry type, most frequent first (ties: most recently used first). */
@@ -59,4 +60,22 @@ export function autoMealSlot(categoryId: string, hhmm: string): MealSlot {
   if (fromCategory) return fromCategory
   const hour = Number(hhmm.slice(0, 2))
   return hour >= 22 || hour < 4 ? 'late' : 'snack'
+}
+
+/** Fields for a copy of `entry` placed on `targetDateKey` at the same clock times. */
+export function copyToDay(entry: Entry, targetDateKey: string, dayStartHour: number) {
+  return {
+    type: entry.type,
+    categoryId: entry.categoryId,
+    title: entry.title,
+    value: entry.value,
+    unit: entry.unit,
+    rating: entry.rating,
+    tags: [...entry.tags],
+    payload: { ...entry.payload },
+    note: entry.note,
+    start: atTime(targetDateKey, toHHmm(entry.start), dayStartHour),
+    end: entry.end ? atTime(targetDateKey, toHHmm(entry.end), dayStartHour) : null,
+    source: 'manual' as const,
+  }
 }

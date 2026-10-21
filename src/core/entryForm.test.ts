@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { atTime } from './date'
-import { autoMealSlot, findOverlaps, shiftHHmm, suggestTitles } from './entryForm'
+import { autoMealSlot, copyToDay, findOverlaps, shiftHHmm, suggestTitles } from './entryForm'
 import type { Entry } from './types'
 
 function e(over: Partial<Entry>): Entry {
@@ -91,5 +91,28 @@ describe('autoMealSlot', () => {
     expect(autoMealSlot('cat-drink', '22:30')).toBe('late')
     expect(autoMealSlot('', '01:00')).toBe('late')
     expect(autoMealSlot('', '15:00')).toBe('snack')
+  })
+})
+
+describe('copyToDay', () => {
+  it('keeps clock times (including past midnight) on the target day and drops sync fields', () => {
+    const src = e({
+      id: 'x',
+      type: 'work',
+      title: 'Code',
+      start: atTime('2026-11-02', '23:00'),
+      end: atTime('2026-11-02', '01:00'),
+      source: 'timer',
+      photoIds: ['p1'],
+    })
+    const copy = copyToDay(src, '2026-11-03', 4)
+    expect(copy.start).toBe('2026-11-03T23:00:00.000+07:00')
+    expect(copy.end).toBe('2026-11-04T01:00:00.000+07:00')
+    expect(copy.source).toBe('manual')
+    expect(copy).not.toHaveProperty('id')
+    expect(copy).not.toHaveProperty('photoIds')
+  })
+  it('copies an open entry as open', () => {
+    expect(copyToDay(e({ start: atTime('2026-11-02', '08:00') }), '2026-11-03', 4).end).toBeNull()
   })
 })

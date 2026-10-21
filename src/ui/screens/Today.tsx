@@ -8,8 +8,11 @@ import {
   getDefs,
   getEntriesByDateKey,
   getSettings,
+  restoreEntry,
   softDeleteEntry,
 } from '../../data/repository'
+import { copyToDay } from '../../core/entryForm'
+import { EntryDetail } from '../EntryDetail'
 import { draftFromEntry, EntryForm, type FormDraft } from '../EntryForm'
 import { SleepPrompt, type SleepPromptState } from '../SleepPrompt'
 import { getRecentSleep, goToSleep, suggestBedtime, wakeUp } from '../../data/sleep'
@@ -49,6 +52,7 @@ export function Today() {
   const recentSleep = useLive(getRecentSleep, [])
   const [sleepPrompt, setSleepPrompt] = useState<SleepPromptState | null>(null)
   const [form, setForm] = useState<FormDraft | null>(null)
+  const [detail, setDetail] = useState<Entry | null>(null)
   const [toast, setToast] = useState<ToastData | null>(null)
 
   if (!settings || !defs || !entries) return null
@@ -275,7 +279,7 @@ export function Today() {
                 minHeight: `${blockHeight(r.minutes)}px`,
                 borderLeftColor: colorOf(categories, r.entry),
               }}
-              onClick={() => setForm(draftFromEntry(r.entry))}
+              onClick={() => setDetail(r.entry)}
             >
               <span class="time">
                 {toHHmm(r.entry.start)}
@@ -313,6 +317,38 @@ export function Today() {
         +
       </button>
 
+      {detail && (
+        <EntryDetail
+          entry={detail}
+          categories={categories}
+          canCopyToToday={!isToday}
+          onClose={() => setDetail(null)}
+          onEdit={() => {
+            setForm(draftFromEntry(detail))
+            setDetail(null)
+          }}
+          onDuplicate={() => {
+            setForm({ ...draftFromEntry(detail), id: undefined })
+            setDetail(null)
+          }}
+          onDelete={() => {
+            const id = detail.id
+            void softDeleteEntry(id)
+            setDetail(null)
+            setToast({ id: Date.now(), text: 'Đã xoá', onUndo: () => void restoreEntry(id) })
+          }}
+          onCopyToToday={async () => {
+            const copy = await createEntry(copyToDay(detail, todayKey, dayStartHour))
+            setDetail(null)
+            setToast({
+              id: Date.now(),
+              text: 'Đã chép sang hôm nay',
+              onEdit: () => setForm(draftFromEntry(copy)),
+              onUndo: () => void softDeleteEntry(copy.id),
+            })
+          }}
+        />
+      )}
       {form && (
         <EntryForm
           draft={form}

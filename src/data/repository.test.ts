@@ -10,6 +10,7 @@ import {
   getEntriesByDateKey,
   getEntriesInRange,
   getSettings,
+  restoreEntry,
   saveDay,
   saveDefs,
   saveSettings,
@@ -154,5 +155,17 @@ describe('settings & defs', () => {
     await saveDefs(defs)
     expect(await getDefs()).toEqual(defs)
     expect((await db.defs.get('defs'))?.dirty).toBe(1)
+  })
+})
+
+describe('restoreEntry', () => {
+  it('brings a soft-deleted entry back and marks it dirty', async () => {
+    const e = await createEntry({ type: 'note', start: '2026-11-02T10:00:00.000+07:00' })
+    await softDeleteEntry(e.id)
+    expect(await getEntriesByDateKey(e.dateKey)).toHaveLength(0)
+    await db.entries.update(e.id, { dirty: 0 })
+    await restoreEntry(e.id)
+    expect(await getEntriesByDateKey(e.dateKey)).toHaveLength(1)
+    expect((await db.entries.get(e.id))?.dirty).toBe(1)
   })
 })
