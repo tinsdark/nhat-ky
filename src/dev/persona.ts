@@ -537,9 +537,16 @@ export function generatePersonaMonth(opts: PersonaOptions): FakeData {
       )
       energies.push(e)
       moods.push(mood)
-      add(d, 'note', m + r.int(-15, 20), null, {
-        title: 'Check-in',
-        payload: { checkin: { energy: e, mood } },
+      // The app records energy and mood as two separate quick check-ins.
+      const t = m + r.int(-15, 20)
+      add(d, 'note', t, null, {
+        title: 'Check-in năng lượng',
+        payload: { checkin: { energy: e } },
+        source: 'quick',
+      })
+      add(d, 'note', t + 1, null, {
+        title: 'Check-in tâm trạng',
+        payload: { checkin: { mood } },
         source: 'quick',
       })
     }
