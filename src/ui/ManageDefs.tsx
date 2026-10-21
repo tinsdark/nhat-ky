@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks'
+import { useEffect, useRef, useState } from 'preact/hooks'
 import {
   ENTRY_TYPES,
   moveItem,
@@ -19,12 +19,40 @@ type Tab = 'cat' | 'quick' | 'tag'
 const typeLabel = (t: EntryType) => ENTRY_TYPES.find((x) => x.id === t)?.label ?? t
 
 /** Full-screen editor for categories, quick buttons and tags (SPEC 9.1). */
-export function ManageDefs({ onClose }: { onClose: () => void }) {
+export function ManageDefs({
+  onClose,
+  initialTab = 'quick',
+  startNew = false,
+}: {
+  onClose: () => void
+  initialTab?: Tab
+  /** Open the "new quick button" editor straight away (the "+ Thêm" tile on Hôm nay). */
+  startNew?: boolean
+}) {
   const defs = useLive(getDefs, [])
-  const [tab, setTab] = useState<Tab>('quick')
+  const [tab, setTab] = useState<Tab>(initialTab)
+  const openedNew = useRef(false)
   const [editing, setEditing] = useState<{ kind: Tab; item: Category | QuickAction | Tag } | null>(
     null,
   )
+  useEffect(() => {
+    if (!startNew || !defs || openedNew.current) return
+    openedNew.current = true
+    setEditing({
+      kind: 'quick',
+      item: {
+        id: newId('qa'),
+        name: '',
+        icon: '⭐',
+        order: nextOrder(defs.quickActions),
+        type: 'activity',
+        categoryId: '',
+        title: '',
+        value: null,
+        unit: '',
+      },
+    })
+  }, [defs, startNew])
   if (!defs) return null
   const save = (next: Defs) => void saveDefs(next)
 

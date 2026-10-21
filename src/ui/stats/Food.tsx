@@ -30,7 +30,7 @@ export function Food({ data }: { data: StatsData }) {
         <span class="muted">
           Nước: {t.waterMl}/{t.waterTargetMl} ml · Cà phê: {t.coffee} ly
         </span>
-        <div class="bar">
+        <div class="meter">
           <div style={{ width: `${waterPct}%` }} />
         </div>
       </div>

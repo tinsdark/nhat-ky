@@ -54,7 +54,7 @@ export function Time({ data }: { data: StatsData }) {
                 {b.label}: <strong>{h(b.hours)}</strong> / {b.kind === 'min' ? '≥' : '≤'} {b.budget}
                 h
               </span>
-              <div class={bad ? 'bar over' : 'bar'}>
+              <div class={bad ? 'meter over' : 'meter'}>
                 <div style={{ width: `${pct}%` }} />
               </div>
             </div>
