@@ -108,7 +108,7 @@ Thứ tự ưu tiên nếu trễ: P0–P1 (ghi chép) bắt buộc xong 31/10. P
 - [x] **T4.10 Tương quan trên Dashboard, theo thứ trong tuần, Báo cáo tuần** (Module 7.1, 7.3, 8.1).
 - [x] **T4.11 Nhập CSV, xuất kèm ảnh (zip), dọn ảnh lớn sau 12 tháng** (Module 9.3, 10.3, 10.4).
 - [x] **T4.12 Khoá app bằng passkey/Face ID** (Module 9.4, tuỳ chọn).
-- [ ] **T4.13 Cập nhật SPEC và HANDOFF** theo các thay đổi trên.
+- [x] **T4.13 Cập nhật SPEC và HANDOFF** theo các thay đổi trên.
 
 ## Sau 1/11 (P4)
 

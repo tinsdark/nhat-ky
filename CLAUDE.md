@@ -63,6 +63,7 @@ src/
 - Chữ trên UI bằng tiếng Việt. Tên biến, hàm, comment code bằng tiếng Anh.
 - Mobile-first: thiết kế cho màn 360–430px trước. Nút chạm tối thiểu 44px.
 - Mục tiêu tốc độ: ghi một sự kiện ≤ 2 chạm từ màn Hôm nay.
+- **Không có timer** (Đạt không bật được liên tục): việc làm ghi bằng thời lượng ước lượng. Tab **Hôm nay** chỉ ghi thời gian thực (nút bấm); việc đã làm xong ghi ở tab **Ghi bù** (`source = 'backfill'`). "Đi ngủ"/"Thức dậy" chỉ cần bấm, không hỏi lại giờ.
 
 ## Cách làm việc
 
