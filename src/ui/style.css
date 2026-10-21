@@ -1635,3 +1635,159 @@ form.sheet > .row:last-child {
   color: var(--muted);
   font-size: 0.85rem;
 }
+
+/* ---- Cài đặt ---- */
+.hint.top {
+  margin: 0 0 10px;
+}
+.setrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  min-height: 48px;
+}
+.setrow:first-of-type {
+  border-top: 0;
+}
+.setrow .grow {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.setrow .title {
+  font-weight: 600;
+}
+.setrow .sub {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+.setrow .ctl {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.setrow.stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.setrow.stacked .ctl {
+  flex: 1;
+  flex-wrap: wrap;
+}
+.numin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.numin input {
+  width: 72px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--input-bg);
+  color: var(--fg);
+  text-align: center;
+  font: inherit;
+}
+.switch {
+  flex: none;
+  width: 52px;
+  height: 32px;
+  border-radius: 16px;
+  border: 0;
+  padding: 3px;
+  background: var(--surface);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.switch span {
+  display: block;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  transition: transform 0.15s;
+}
+.switch.on {
+  background: var(--accent);
+}
+.switch.on span {
+  transform: translateX(20px);
+}
+.btnlist {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.btnlist .btn {
+  width: 100%;
+}
+.notice-line {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  font-size: 0.875rem;
+}
+.ruleline {
+  list-style: none;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+.ruleline:first-child {
+  border-top: 0;
+}
+.thresholds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+.ruleline summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+  min-height: 48px;
+}
+.ruleline summary::-webkit-details-marker {
+  display: none;
+}
+.ruleline summary .grow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ruleline summary .title {
+  font-weight: 600;
+}
+.ruleline summary .sub {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+.thresholds {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+.form .row > label {
+  min-width: 0;
+  flex: 1;
+}
+.form .row input[type='date'] {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.ruleline summary .grow {
+  flex: 1;
+}

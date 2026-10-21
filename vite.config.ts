@@ -7,6 +7,7 @@ const THEME_COLOR = '#2f5d50'
 
 export default defineConfig({
   base: '/nhat-ky/',
+  define: { __BUILD_TIME__: JSON.stringify(new Date().toISOString()) },
   plugins: [
     preact(),
     VitePWA({
