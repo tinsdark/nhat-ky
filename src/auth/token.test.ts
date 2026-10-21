@@ -3,6 +3,7 @@ import {
   AuthNetworkError,
   AuthRequiredError,
   SIGNED_IN_FLAG,
+  TOKEN_KEY,
   createAuth,
   type TokenRequester,
 } from './token'
@@ -10,8 +11,7 @@ import {
 let t = 0
 const now = () => t
 
-function setup(request: TokenRequester) {
-  const store = new Map<string, string>()
+function setup(request: TokenRequester, store = new Map<string, string>()) {
   const setItem = vi.fn((k: string, v: string) => void store.set(k, v))
   const storage = {
     getItem: (k: string) => store.get(k) ?? null,
@@ -168,14 +168,65 @@ describe('sign-in / restore / sign-out', () => {
 })
 
 describe('storage', () => {
-  it('never writes the token to storage', async () => {
+  it('only writes the flag and the token key', async () => {
     const { auth, setItem } = setup(async () => ok(1))
     await auth.signIn()
-    await auth.getToken()
-    for (const [key, value] of setItem.mock.calls) {
-      expect(key).toBe(SIGNED_IN_FLAG)
-      expect(value).toBe('1')
-    }
+    const keys = new Set(setItem.mock.calls.map(([key]) => key))
+    expect(keys).toEqual(new Set([SIGNED_IN_FLAG, TOKEN_KEY]))
+  })
+
+  it('a new page load reuses a saved fresh token without any request', async () => {
+    const first = setup(async () => ok(1))
+    await first.auth.signIn()
+    t += 30 * 60_000
+    const request = vi.fn(async () => ok(2))
+    const second = setup(request, first.store)
+    expect(await second.auth.restoreSession()).toBe(true)
+    expect(await second.auth.getToken()).toBe('tok1')
+    expect(request).not.toHaveBeenCalled()
+  })
+
+  it('ignores and removes a saved token that is expired or about to expire', async () => {
+    const first = setup(async () => ok(1))
+    await first.auth.signIn()
+    t += 3600_000 - 59_000
+    const request = vi.fn(async () => ok(2))
+    const second = setup(request, first.store)
+    expect(first.store.has(TOKEN_KEY)).toBe(false)
+    expect(await second.auth.getToken()).toBe('tok2')
+    expect(request).toHaveBeenCalledWith({ prompt: '' })
+  })
+
+  it('ignores corrupted saved data', async () => {
+    const store = new Map([[TOKEN_KEY, '{not json']])
+    const request = vi.fn(async () => ok(1))
+    const { auth } = setup(request, store)
+    expect(await auth.getToken()).toBe('tok1')
+  })
+
+  it('invalidateToken and signOut remove the saved token', async () => {
+    const a = setup(async () => ok(1))
+    await a.auth.signIn()
+    a.auth.invalidateToken()
+    expect(a.store.has(TOKEN_KEY)).toBe(false)
+    await a.auth.signIn()
+    expect(a.store.has(TOKEN_KEY)).toBe(true)
+    await a.auth.signOut()
+    expect(a.store.has(TOKEN_KEY)).toBe(false)
+    expect(a.store.has(SIGNED_IN_FLAG)).toBe(false)
+  })
+
+  it('a failed refresh removes the saved token', async () => {
+    const request = vi
+      .fn<TokenRequester>()
+      .mockResolvedValueOnce(ok(1))
+      .mockRejectedValueOnce(new AuthRequiredError())
+    const a = setup(request)
+    await a.auth.signIn()
+    expect(a.store.has(TOKEN_KEY)).toBe(true)
+    t += 3600_000 - 59_000
+    await expect(a.auth.getToken()).rejects.toThrow()
+    expect(a.store.has(TOKEN_KEY)).toBe(false)
   })
 
   it('works when storage throws', async () => {

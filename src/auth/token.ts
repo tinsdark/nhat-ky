@@ -1,5 +1,7 @@
 // Token lifecycle, independent of Google Identity Services so it can be unit-tested.
-// The access token lives only in memory; the only thing persisted is a "signed in before" flag.
+// The access token is kept in memory and mirrored to localStorage with its expiry (same trade-off as
+// Sổ Tiền): reopening the app within ~1h needs no Google call, which matters on iOS home-screen apps
+// where silent popups are often blocked. The token only grants drive.appdata and lives <= 1h.
 
 export class AuthRequiredError extends Error {
   constructor(reason = 'auth required') {
@@ -25,6 +27,7 @@ export interface TokenResponse {
 export type TokenRequester = (opts: { prompt: '' | 'select_account' }) => Promise<TokenResponse>
 
 export const SIGNED_IN_FLAG = 'nk_signedIn'
+export const TOKEN_KEY = 'nk_tok_v1'
 export const REFRESH_MARGIN_MS = 60_000
 export const SILENT_TIMEOUT_MS = 15_000
 
@@ -49,6 +52,29 @@ export function createAuth({ request, revoke, storage, now = Date.now }: AuthDep
 
   const isFresh = () => token !== null && now() < expiresAt - REFRESH_MARGIN_MS
 
+  const saved = {
+    save: () =>
+      safe(() => storage?.setItem(TOKEN_KEY, JSON.stringify({ t: token, exp: expiresAt }))),
+    clear: () => safe(() => storage?.removeItem(TOKEN_KEY)),
+  }
+
+  function forget() {
+    token = null
+    expiresAt = 0
+    saved.clear()
+  }
+
+  // Reuse a token saved by a previous page load if it is still fresh.
+  const raw = safe(() => storage?.getItem(TOKEN_KEY))
+  if (raw) {
+    const parsed = safe(() => JSON.parse(raw) as { t?: unknown; exp?: unknown })
+    if (parsed && typeof parsed.t === 'string' && typeof parsed.exp === 'number') {
+      token = parsed.t
+      expiresAt = parsed.exp
+    }
+    if (!isFresh()) forget()
+  }
+
   function refresh(interactive: boolean): Promise<string> {
     if (pending) return pending
     const req = request({ prompt: interactive ? 'select_account' : '' })
@@ -68,11 +94,12 @@ export function createAuth({ request, revoke, storage, now = Date.now }: AuthDep
       .then((res) => {
         token = res.accessToken
         expiresAt = now() + res.expiresInSec * 1000
+        saved.save()
         flag.set()
         return token
       })
       .catch((err) => {
-        token = null
+        forget()
         if (err instanceof AuthRequiredError) listeners.forEach((cb) => cb())
         throw err
       })
@@ -92,12 +119,12 @@ export function createAuth({ request, revoke, storage, now = Date.now }: AuthDep
 
     /** Drop the cached token, e.g. after Drive answers 401. The next getToken() asks for a new one. */
     invalidateToken(): void {
-      token = null
-      expiresAt = 0
+      forget()
     },
 
     /** On app start: silently get a token if the user has signed in before. */
     async restoreSession(): Promise<boolean> {
+      if (isFresh()) return true
       if (!flag.get()) return false
       try {
         await refresh(false)
@@ -109,8 +136,7 @@ export function createAuth({ request, revoke, storage, now = Date.now }: AuthDep
 
     async signOut(): Promise<void> {
       const old = token
-      token = null
-      expiresAt = 0
+      forget()
       flag.clear()
       if (old && revoke) await revoke(old).catch(() => {})
     },

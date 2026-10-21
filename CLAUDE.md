@@ -27,7 +27,7 @@ Không thêm dependency mới ngoài danh sách trên mà không hỏi Đạt.
 
 1. **Local-first.** UI chỉ đọc/ghi IndexedDB qua lớp `src/data/`. Không component nào gọi Drive trực tiếp.
 2. **Sync engine** (`src/sync/`) đẩy/kéo IndexedDB ↔ Google Drive `appDataFolder`. Merge từng bản ghi theo `updatedAt`; xoá là xoá mềm (`deleted: true`).
-3. **Đăng nhập**: Google Identity Services token client, scope duy nhất `https://www.googleapis.com/auth/drive.appdata`. Token chỉ giữ trong bộ nhớ, không lưu localStorage. Lỗi 401 → xin token im lặng (`prompt: ''`), thất bại mới hiện nút "Đăng nhập lại". Dữ liệu vẫn ghi local trong lúc chờ.
+3. **Đăng nhập**: Google Identity Services token client, scope duy nhất `https://www.googleapis.com/auth/drive.appdata`. Token giữ trong bộ nhớ và lưu kèm giờ hết hạn vào localStorage (khoá `nk_tok_v1`, sống ≤ 1 giờ, scope chỉ `drive.appdata`) để mở lại app trong ~1 giờ vào thẳng, như Sổ Tiền; đăng xuất thì xoá. Lỗi 401 → xin token im lặng (`prompt: ''`), thất bại mới hiện nút "Đăng nhập lại". Dữ liệu vẫn ghi local trong lúc chờ.
 4. **Client ID dùng lại cái đang có** (cùng project Google với Sổ Tiền cho tiện; hai app không đọc, không ghi dữ liệu của nhau). Client ID để trong `src/config.ts` — public, không phải secret. Không có secret nào trong repo.
 5. **File trên Drive**: mọi file của Nhật ký có tiền tố `nk_` (`nkp_`/`nkt_` cho ảnh). Không đụng file của app khác.
 6. **Không tiền**: app không theo dõi và không lưu số tiền dưới bất kỳ hình thức nào.
