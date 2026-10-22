@@ -7,6 +7,8 @@ import {
   newCustomType,
   nextOrder,
   quickActionCategory,
+  quickActionChoices,
+  cleanCategoryIds,
   removeQuickAction,
   setArchived,
   tagName,
@@ -70,6 +72,27 @@ describe('defs helpers', () => {
     expect(quickActionCategory('work', '', cats)).toBe('')
     expect(quickActionCategory('water', '', cats)).toBe('cat-water')
     expect(quickActionCategory('x-new', '', cats)).toBe('')
+  })
+  it('quickActionChoices lists the type, narrowed to the chosen categories when there are any', () => {
+    const cats = defs.categories
+    const moving = cats.find((c) => c.entryType === 'activity')!
+    const all = quickActionChoices({ type: 'activity' }, cats).map((c) => c.id)
+    expect(all).toContain(moving.id)
+    expect(all.length).toBeGreaterThan(1)
+    expect(
+      quickActionChoices({ type: 'activity', categoryIds: [moving.id] }, cats).map((c) => c.id),
+    ).toEqual([moving.id])
+    // a stale id (deleted or other type) falls back to the whole type
+    expect(
+      quickActionChoices({ type: 'activity', categoryIds: ['cat-deep'] }, cats).map((c) => c.id),
+    ).toEqual(all)
+  })
+  it('cleanCategoryIds keeps own-type ids, and means "all" (undefined) for none or every one', () => {
+    const cats = defs.categories
+    const own = cats.filter((c) => c.entryType === 'activity' && !c.archived).map((c) => c.id)
+    expect(cleanCategoryIds('activity', [own[0]!, 'cat-deep'], cats)).toEqual([own[0]])
+    expect(cleanCategoryIds('activity', [], cats)).toBeUndefined()
+    expect(cleanCategoryIds('activity', own, cats)).toBeUndefined()
   })
   it('study is a built-in type, offered next to the others', () => {
     expect(ENTRY_TYPES.map((t) => t.id)).toContain('study')

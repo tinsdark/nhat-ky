@@ -133,6 +133,8 @@ Tham chiếu: repo `tinsdark/so-chi-tieu` (nền kem, thẻ bo tròn 20px, tab �
 ## P7 — Dữ liệu mẫu, UI/UX, báo cáo (Đạt giao tối 21/10, làm qua đêm)
 
 - [x] **T7.1 Bộ sinh dữ liệu theo người dùng mẫu.** `src/dev/persona.ts`: 18 giả định hành vi (H1–H18) là dữ liệu, mô phỏng tháng 10/2026 (ốm 8–9, đi xa 17–18, nước rút 19–23). Nút "Sinh tháng 10/2026" ở Cài đặt → Dữ liệu (chỉ dev), có test.
+- [x] **T7.8 Màn Quản lý: ghim đầu và đáy.** Tiêu đề + tab ghim trên, nút "+ … mới" ghim dưới, chỉ danh sách cuộn; bảng sửa nằm ngoài vùng cuộn; khoá cuộn trang nền khi có bảng mở.
+- [x] **T7.9 Nút nhanh chọn danh mục hiện khi bấm.** `QuickAction.categoryIds?` (tuỳ chọn, không cần migration): sửa nút nhanh tick/bỏ tick danh mục của loại; bỏ trống hoặc chọn hết = hiện tất cả. Helper `quickActionChoices`, `cleanCategoryIds` có test.
 
 
 - [ ] Push nhắc nhở (phương án C: Cloudflare Workers + cron).

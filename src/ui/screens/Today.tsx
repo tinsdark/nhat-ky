@@ -344,7 +344,7 @@ export function Today() {
       {pickFor && (
         <CategoryPicker
           title={pickFor.name}
-          type={pickFor.type}
+          action={pickFor}
           categories={categories}
           onPick={(c) => {
             setForm(draftForCategory(pickFor, c))

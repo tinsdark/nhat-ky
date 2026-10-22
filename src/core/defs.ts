@@ -88,6 +88,27 @@ export function quickActionCategory(
   return type === 'water' ? (own[0]?.id ?? '') : ''
 }
 
+/** Categories a shortcut offers when pressed: its type's, narrowed to `categoryIds` when it has any. */
+export function quickActionChoices(
+  action: Pick<QuickAction, 'type' | 'categoryIds'>,
+  categories: Category[],
+): Category[] {
+  const own = categories.filter((c) => c.entryType === action.type && !c.archived)
+  const chosen = own.filter((c) => action.categoryIds?.includes(c.id))
+  return (chosen.length > 0 ? chosen : own).sort((a, b) => a.order - b.order)
+}
+
+/** Selection to store: only ids of the type, and undefined (= all, including future ones) for none or every one. */
+export function cleanCategoryIds(
+  type: EntryType,
+  ids: string[],
+  categories: Category[],
+): string[] | undefined {
+  const own = categories.filter((c) => c.entryType === type && !c.archived)
+  const kept = own.filter((c) => ids.includes(c.id)).map((c) => c.id)
+  return kept.length === 0 || kept.length === own.length ? undefined : kept
+}
+
 /** A quick action must point at a category of its own entry type; returns the problem, or null. */
 export function validateQuickAction(a: QuickAction, categories: Category[]): string | null {
   if (a.name.trim() === '') return 'Nhập tên nút.'

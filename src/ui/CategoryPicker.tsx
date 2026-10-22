@@ -1,25 +1,24 @@
-import type { Category, EntryType } from '../core/types'
+import { quickActionChoices } from '../core/defs'
+import type { Category, QuickAction } from '../core/types'
 
 /** After a shortcut for a type is pressed: pick what exactly happened, as tiles rather than a long list. */
 export function CategoryPicker({
   title,
-  type,
+  action,
   categories,
   onPick,
   onOther,
   onClose,
 }: {
   title: string
-  type: EntryType
+  action: Pick<QuickAction, 'type' | 'categoryIds'>
   categories: Category[]
   onPick: (c: Category) => void
   /** Used when the type has no category yet, or none fits. */
   onOther: () => void
   onClose: () => void
 }) {
-  const list = categories
-    .filter((c) => c.entryType === type && !c.archived)
-    .sort((a, b) => a.order - b.order)
+  const list = quickActionChoices(action, categories)
   return (
     <div class="sheet-backdrop" onClick={onClose}>
       <div class="sheet" onClick={(e) => e.stopPropagation()}>

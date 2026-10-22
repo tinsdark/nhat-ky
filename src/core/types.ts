@@ -28,6 +28,8 @@ export interface Entry extends SyncFields {
   start: string
   end: string | null
   categoryId: string
+  /** Categories the button offers when pressed; absent = every category of the type. */
+  categoryIds?: string[]
   title: string
   value: number | null
   unit: string
@@ -82,6 +84,8 @@ export interface QuickAction {
   order: number
   type: EntryType
   categoryId: string
+  /** Categories the button offers when pressed; absent = every category of the type. */
+  categoryIds?: string[]
   title: string
   value: number | null
   unit: string

@@ -5,6 +5,7 @@ import {
   newCustomType,
   newId,
   nextOrder,
+  cleanCategoryIds,
   quickActionCategory,
   removeQuickAction,
   setArchived,
@@ -358,6 +359,13 @@ function DefEditor({
       title: name,
       type: buttonType,
       categoryId: quickActionCategory(buttonType, str('categoryId'), defs.categories),
+      categoryIds: created
+        ? undefined
+        : cleanCategoryIds(
+            buttonType,
+            (draft.categoryIds as string[] | undefined) ?? [],
+            defs.categories,
+          ),
       value: buttonType === 'water' ? value : null,
       unit: buttonType === 'water' ? str('unit') : '',
     } as unknown as QuickAction
@@ -418,7 +426,10 @@ function DefEditor({
               value={type}
               onChange={(e) => {
                 set(kind === 'cat' ? 'entryType' : 'type', e.currentTarget.value)
-                if (kind === 'quick') set('categoryId', '')
+                if (kind === 'quick') {
+                  set('categoryId', '')
+                  set('categoryIds', undefined)
+                }
               }}
             >
               {entryTypeOptions(defs).map((t) => (
@@ -434,6 +445,39 @@ function DefEditor({
               ? `Tạo Loại "${str('name').trim() || '…'}". Thêm danh mục cho loại này ở tab Danh mục.`
               : 'Bấm nút ở Hôm nay sẽ hiện các danh mục của loại này để chọn.'}
           </p>
+        )}
+        {kind === 'quick' && type !== 'water' && str('type') !== NEW_TYPE && (
+          <div>
+            Danh mục hiện khi bấm nút
+            <div class="choice">
+              {defs.categories
+                .filter((c) => c.entryType === type && !c.archived)
+                .sort((a, b) => a.order - b.order)
+                .map((c) => {
+                  const ids = (draft.categoryIds as string[] | undefined) ?? []
+                  const on = ids.length === 0 || ids.includes(c.id)
+                  return (
+                    <button
+                      type="button"
+                      class={on ? 'on' : ''}
+                      aria-pressed={on}
+                      onClick={() => {
+                        const own = defs.categories.filter(
+                          (x) => x.entryType === type && !x.archived,
+                        )
+                        const base = ids.length === 0 ? own.map((x) => x.id) : ids
+                        set('categoryIds', on ? base.filter((i) => i !== c.id) : [...base, c.id])
+                      }}
+                    >
+                      {c.icon} {c.name}
+                    </button>
+                  )
+                })}
+            </div>
+            <span class="muted hint">
+              Bỏ chọn danh mục không liên quan; chọn hết = hiện tất cả.
+            </span>
+          </div>
         )}
         {kind === 'cat' && (
           <label>
