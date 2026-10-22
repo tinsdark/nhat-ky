@@ -167,6 +167,21 @@ describe('streaks — quit habit', () => {
   })
 })
 
+describe('quit habit with loggedDays', () => {
+  const h = habit({ direction: 'quit', kind: 'count', target: { op: '=', value: 0 } })
+  it('days nothing was logged neither extend nor break the streak', () => {
+    const logged = new Set(['2026-11-02', '2026-11-04'])
+    const opts = { loggedDays: logged }
+    expect(dayStatus(h, '2026-11-03', new Map(), opts)).toBe('rest')
+    expect(dayStatus(h, '2026-11-04', new Map(), opts)).toBe('met')
+    expect(streaks(h, new Map(), '2026-11-05', opts)).toEqual({ current: 2, longest: 2 })
+  })
+  it('a slip on a day with a record still counts even if the day has no other entry', () => {
+    const slip = new Map([['2026-11-03', 1]])
+    expect(dayStatus(h, '2026-11-03', slip, { loggedDays: new Set() })).toBe('missed')
+  })
+})
+
 describe('rest days', () => {
   const h = habit()
   const dayTypes = new Map([['2026-11-03', 'sick' as const]])

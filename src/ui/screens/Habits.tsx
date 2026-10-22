@@ -46,6 +46,7 @@ export function Habits() {
   const opts: HabitOptions = {
     skipRestDays: settings.skipRestDays,
     dayTypes: new Map(days.map((d) => [d.dateKey, d.dayType])),
+    loggedDays: new Set(entries.map((e) => e.dateKey)),
   }
   const active = defs.habits.filter((h) => !h.archived)
   const archived = defs.habits.filter((h) => h.archived)

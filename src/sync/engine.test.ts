@@ -394,6 +394,45 @@ describe('defs and settings', () => {
     expect(drive.json('nk_defs.json').habits).toEqual([{ id: 'real-habit' }])
   })
 
+  it('both devices changed defs: the newer wins but a habit only the other added is kept and pushed', async () => {
+    const drive = fakeDrive()
+    const base = { categories: [], quickActions: [], tags: [] }
+    const a = device(drive)
+    const b = device(drive)
+    await a.db.defs.put({
+      key: 'defs',
+      ...base,
+      habits: [],
+      updatedAt: t(1),
+      deviceId: 'A',
+      dirty: 1,
+    })
+    await a.engine.run()
+    await b.engine.run()
+    await a.db.defs.put({
+      key: 'defs',
+      ...base,
+      habits: [{ id: 'from-a' }],
+      updatedAt: t(5),
+      deviceId: 'A',
+      dirty: 1,
+    } as never)
+    await b.db.defs.put({
+      key: 'defs',
+      ...base,
+      habits: [{ id: 'from-b' }],
+      updatedAt: t(9),
+      deviceId: 'B',
+      dirty: 1,
+    } as never)
+    await a.engine.run()
+    await b.engine.run()
+    await a.engine.run()
+    const ids = (r: { habits: { id: string }[] }) => r.habits.map((h) => h.id).sort()
+    expect(ids(drive.json('nk_defs.json'))).toEqual(['from-a', 'from-b'])
+    expect(ids((await a.db.defs.get('defs')) as never)).toEqual(['from-a', 'from-b'])
+  })
+
   it('after the first sync a newer local edit still wins', async () => {
     const drive = fakeDrive()
     drive.put('nk_settings.json', { dayStartHour: 4, updatedAt: t(1), deviceId: 'B' })

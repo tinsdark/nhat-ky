@@ -4,8 +4,9 @@ import type { Table } from 'dexie'
 import { AuthNetworkError, AuthRequiredError } from '../auth/token'
 import { toIso } from '../core/date'
 import { compareVersion, mergeRecords, type Versioned } from '../core/merge'
+import { mergeDefs } from '../core/mergeDefs'
 import { isDay, isDocStamp, isEntry } from '../core/validate'
-import type { Day, Entry } from '../core/types'
+import type { Day, Defs, Entry } from '../core/types'
 import type { DocStamp, NhatKyDB } from '../data/db'
 import type { DriveClient } from '../drive/client'
 
@@ -40,6 +41,7 @@ type DocRecord = DocStamp & { key: string }
 
 const MONTH_FILE = /^nk_(\d{4}-\d{2})\.json$/
 const MAX_CONFLICT_RETRIES = 3
+const DEFS_FILE = 'nk_defs.json'
 
 const monthOf = (dateKey: string) => dateKey.slice(0, 7)
 const monthFileName = (month: string) => `nk_${month}.json`
@@ -143,18 +145,35 @@ export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive
     listedMt: string | null,
     attempt = 0,
   ): Promise<void> {
-    const local = await table.get(key)
+    let local = await table.get(key)
     if (local?.dirty !== 1 && (listedMt === null || listedMt === (await getMt(name)))) return
 
     const remote = listedMt ? await drive.readJson<Versioned & Record<string, unknown>>(name) : null
 
-    // This device has never synced the file, so any local row is the seed (or an edit made on top of it
-    // before sign-in): the copy on Drive is the real one and must not be overwritten by it.
     if (remote && !isDocStamp(remote)) {
       console.warn(`Ignoring ${name} on Drive: invalid stamp`)
       return
     }
+    // This device has never synced the file, so any local row is the seed (or an edit made on top of it
+    // before sign-in): the copy on Drive is the real one and must not be overwritten by it.
     const firstSync = remote !== null && (await getMt(name)) === null
+
+    // Both sides changed defs: keep what only the losing side added, then push the union as a new version.
+    if (name === DEFS_FILE && remote && local?.dirty === 1 && !firstSync) {
+      const remoteWins = compareVersion(remote, local) > 0
+      const winner = (remoteWins ? remote : local) as unknown as Defs
+      const merged = mergeDefs(winner, (remoteWins ? local : remote) as unknown as Defs)
+      if (merged !== winner) {
+        local = {
+          ...merged,
+          key,
+          updatedAt: toIso(),
+          deviceId: local.deviceId,
+          dirty: 1,
+        } as unknown as typeof local
+        await table.put(local as T)
+      }
+    }
 
     if (remote && (firstSync || !local || compareVersion(remote, local) > 0)) {
       const cur = await table.get(key)
@@ -209,7 +228,7 @@ export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive
     for (const month of [...months].sort()) {
       await syncMonth(month, remoteFiles.get(monthFileName(month)) ?? null)
     }
-    await syncDoc('nk_defs.json', db.defs, 'defs', remoteFiles.get('nk_defs.json') ?? null)
+    await syncDoc(DEFS_FILE, db.defs, 'defs', remoteFiles.get('nk_defs.json') ?? null)
     await syncDoc(
       'nk_settings.json',
       db.settings,

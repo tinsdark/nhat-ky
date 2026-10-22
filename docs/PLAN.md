@@ -142,3 +142,4 @@ Tham chiếu: repo `tinsdark/so-chi-tieu` (nền kem, thẻ bo tròn 20px, tab �
 - [ ] Gọi Claude API trực tiếp (cách B) — tuỳ gói Claude của Đạt.
 - [ ] Nhập bằng câu tự nhiên.
 - [x] **T7.11 Sửa lỗi rà soát 22/10 (A1–A6).** Sync đầu tiên của một file defs/settings/insights: bản trên Drive thắng, không để seed đã sửa ghi đè; bản ghi từ Drive/file sao lưu bị kiểm hình dạng (`core/validate.ts`) và bỏ nếu hỏng hoặc `updatedAt` quá 1 ngày sau hiện tại; yếu tố "đêm sau ngày d" không ghép tương quan với kết quả cùng ngày; "Đi ngủ"/"Thức dậy" bỏ entry mở quá 16h; `habit_rate`, `habit:<id>` trả `null` ở ngày không ghi; `copyToDay` giữ nguyên độ dài khối.
+- [x] **T7.12 Hai việc còn lại của T7.11.** Hai máy cùng sửa defs: giữ bản mới hơn nhưng không làm mất danh mục/thói quen/loại tự đặt chỉ có ở bản kia (`core/mergeDefs.ts`; nút nhanh và tag xoá thật nên theo bản thắng). Thói quen quit: ngày không ghi gì không tính vào streak/tỷ lệ (`HabitOptions.loggedDays`).

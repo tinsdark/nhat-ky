@@ -17,6 +17,11 @@ export interface HabitOptions {
   /** Days with dayType sick or travel neither break a streak nor count against the rate. */
   skipRestDays?: boolean
   dayTypes?: Map<string, DayType | null>
+  /**
+   * Days with any entry. When given, a quit habit with no record on a day nothing was logged is 'rest':
+   * not opening the app is not proof of no slips, so it neither extends a streak nor counts in the rate.
+   */
+  loggedDays?: Set<string>
 }
 
 /** Minutes of a block; open blocks count as 0. */
@@ -75,6 +80,13 @@ export function dayStatus(
 ): DayStatus {
   if (!isScheduled(habit, dateKey)) return 'off'
   if (isRest(dateKey, opts)) return 'rest'
+  if (
+    habit.direction === 'quit' &&
+    opts.loggedDays &&
+    !opts.loggedDays.has(dateKey) &&
+    !values.has(dateKey)
+  )
+    return 'rest'
   // A quit habit with no record means no slips; a build habit with no record means nothing done.
   const value = values.get(dateKey) ?? 0
   if (isMet(habit, value)) return 'met'
