@@ -7,6 +7,11 @@ import { startPhotoQueue } from './photos'
 import { startSync } from './sync'
 import './ui/style.css'
 
+// Pinch zoom is off on purpose (one user, phone only). iOS Safari ignores the viewport flags for
+// accessibility, but not these gesture events and touch-action (see style.css).
+for (const type of ['gesturestart', 'gesturechange', 'gestureend'])
+  document.addEventListener(type, (e) => e.preventDefault())
+
 void seedDefaults().finally(() => {
   render(<App />, document.getElementById('app')!)
   startSync()
