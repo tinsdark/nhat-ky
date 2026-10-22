@@ -58,244 +58,241 @@ export function ManageDefs({
   if (!defs) return null
   const save = (next: Defs) => void saveDefs(next)
 
+  const addNew: Record<
+    Tab,
+    { label: string; item: () => Category | QuickAction | Tag | CustomType }
+  > = {
+    quick: {
+      label: '+ Nút nhanh mới',
+      item: () => ({
+        id: newId('qa'),
+        name: '',
+        icon: '⭐',
+        order: nextOrder(defs.quickActions),
+        type: 'activity',
+        categoryId: '',
+        title: '',
+        value: null,
+        unit: '',
+      }),
+    },
+    cat: {
+      label: '+ Danh mục mới',
+      item: () => ({
+        id: newId('cat'),
+        name: '',
+        entryType: 'activity',
+        color: '#3b4a9e',
+        icon: '📌',
+        order: nextOrder(defs.categories),
+        archived: false,
+      }),
+    },
+    type: { label: '+ Loại mới', item: () => newCustomType('', '📌') },
+    tag: { label: '+ Tag mới', item: () => ({ id: newId('tag'), name: '', color: '#6c6c70' }) },
+  }
+
   return (
-    <div class="fullscreen">
-      <div class="topbar">
-        <strong>Danh mục, nút nhanh, tag</strong>
-        <button type="button" class="btn" onClick={onClose}>
-          Xong
-        </button>
-      </div>
-      <div class="content">
-        <Choice
-          label=""
-          options={[
-            { id: 'quick', label: 'Nút nhanh' },
-            { id: 'cat', label: 'Danh mục' },
-            { id: 'type', label: 'Loại' },
-            { id: 'tag', label: 'Tag' },
-          ]}
-          value={tab}
-          onChange={(v) => v && setTab(v)}
-        />
+    <>
+      <div class="fullscreen manage">
+        <div class="topbar">
+          <strong>Danh mục, nút nhanh, tag</strong>
+          <button type="button" class="btn" onClick={onClose}>
+            Xong
+          </button>
+        </div>
+        <div class="manage-tabs">
+          <Choice
+            label=""
+            options={[
+              { id: 'quick', label: 'Nút nhanh' },
+              { id: 'cat', label: 'Danh mục' },
+              { id: 'type', label: 'Loại' },
+              { id: 'tag', label: 'Tag' },
+            ]}
+            value={tab}
+            onChange={(v) => v && setTab(v)}
+          />
+        </div>
+        <div class="manage-body">
+          <div class="content">
+            {tab === 'quick' && (
+              <>
+                <ul class="habits">
+                  {[...defs.quickActions]
+                    .sort((a, b) => a.order - b.order)
+                    .map((a) => (
+                      <li class="habit">
+                        <div class="habit-main">
+                          <button
+                            type="button"
+                            class="habit-name"
+                            onClick={() => setEditing({ kind: 'quick', item: a })}
+                          >
+                            <strong>
+                              {a.icon} {a.name}
+                            </strong>
+                            <span class="muted">{typeLabel(defs, a.type)}</span>
+                          </button>
+                          <div class="mini">
+                            <button
+                              type="button"
+                              aria-label="Lên"
+                              onClick={() =>
+                                save({
+                                  ...defs,
+                                  quickActions: moveItem(defs.quickActions, a.id, -1),
+                                })
+                              }
+                            >
+                              ↑
+                            </button>
+                            <button
+                              type="button"
+                              aria-label="Xuống"
+                              onClick={() =>
+                                save({
+                                  ...defs,
+                                  quickActions: moveItem(defs.quickActions, a.id, 1),
+                                })
+                              }
+                            >
+                              ↓
+                            </button>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                </ul>
+              </>
+            )}
 
-        {tab === 'quick' && (
-          <>
-            <ul class="habits">
-              {[...defs.quickActions]
-                .sort((a, b) => a.order - b.order)
-                .map((a) => (
-                  <li class="habit">
-                    <div class="habit-main">
-                      <button
-                        type="button"
-                        class="habit-name"
-                        onClick={() => setEditing({ kind: 'quick', item: a })}
-                      >
-                        <strong>
-                          {a.icon} {a.name}
-                        </strong>
-                        <span class="muted">{typeLabel(defs, a.type)}</span>
-                      </button>
-                      <div class="mini">
-                        <button
-                          type="button"
-                          aria-label="Lên"
-                          onClick={() =>
-                            save({ ...defs, quickActions: moveItem(defs.quickActions, a.id, -1) })
-                          }
-                        >
-                          ↑
-                        </button>
-                        <button
-                          type="button"
-                          aria-label="Xuống"
-                          onClick={() =>
-                            save({ ...defs, quickActions: moveItem(defs.quickActions, a.id, 1) })
-                          }
-                        >
-                          ↓
-                        </button>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-            </ul>
-            <button
-              type="button"
-              class="btn btn-primary block-btn"
-              onClick={() =>
-                setEditing({
-                  kind: 'quick',
-                  item: {
-                    id: newId('qa'),
-                    name: '',
-                    icon: '⭐',
-                    order: nextOrder(defs.quickActions),
-                    type: 'activity',
-                    categoryId: '',
-                    title: '',
-                    value: null,
-                    unit: '',
-                  },
-                })
-              }
-            >
-              + Nút nhanh mới
-            </button>
-          </>
-        )}
-
-        {tab === 'cat' && (
-          <>
-            <ul class="habits">
-              {[...defs.categories]
-                .sort((a, b) => a.order - b.order)
-                .map((c) => (
-                  <li class={c.archived ? 'habit archived' : 'habit'}>
-                    <div class="habit-main">
-                      <button
-                        type="button"
-                        class="habit-name"
-                        onClick={() => setEditing({ kind: 'cat', item: c })}
-                      >
-                        <strong>
-                          <span class="swatch" style={{ background: c.color }} /> {c.icon} {c.name}
-                        </strong>
-                        <span class="muted">
-                          {typeLabel(defs, c.entryType)}
-                          {c.archived ? ' · đã ẩn' : ''}
-                        </span>
-                      </button>
-                      <div class="mini">
-                        <button
-                          type="button"
-                          aria-label="Lên"
-                          onClick={() =>
-                            save({ ...defs, categories: moveItem(defs.categories, c.id, -1) })
-                          }
-                        >
-                          ↑
-                        </button>
-                        <button
-                          type="button"
-                          aria-label="Xuống"
-                          onClick={() =>
-                            save({ ...defs, categories: moveItem(defs.categories, c.id, 1) })
-                          }
-                        >
-                          ↓
-                        </button>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-            </ul>
-            <button
-              type="button"
-              class="btn btn-primary block-btn"
-              onClick={() =>
-                setEditing({
-                  kind: 'cat',
-                  item: {
-                    id: newId('cat'),
-                    name: '',
-                    entryType: 'activity',
-                    color: '#3b4a9e',
-                    icon: '📌',
-                    order: nextOrder(defs.categories),
-                    archived: false,
-                  },
-                })
-              }
-            >
-              + Danh mục mới
-            </button>
-            <p class="muted hint">
-              Danh mục đã có dữ liệu không xoá được, chỉ ẩn đi để thống kê cũ không mất tên.
-            </p>
-          </>
-        )}
-
-        {tab === 'type' && (
-          <>
-            <ul class="habits">
-              {entryTypeOptions(null).map((t) => (
-                <li class="habit archived">
-                  <div class="habit-main">
-                    <span class="habit-name">
-                      <strong>{t.label}</strong>
-                      <span class="muted">có sẵn, có form và chỉ số riêng</span>
-                    </span>
-                  </div>
-                </li>
-              ))}
-              {(defs.customTypes ?? []).map((t) => (
-                <li class={t.archived ? 'habit archived' : 'habit'}>
-                  <div class="habit-main">
-                    <button
-                      type="button"
-                      class="habit-name"
-                      onClick={() => setEditing({ kind: 'type', item: t })}
-                    >
-                      <strong>
-                        {t.icon} {t.name}
-                      </strong>
-                      <span class="muted">{t.archived ? 'đã ẩn' : 'tự đặt'}</span>
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <button
-              type="button"
-              class="btn btn-primary block-btn"
-              onClick={() => setEditing({ kind: 'type', item: newCustomType('', '📌') })}
-            >
-              + Loại mới
-            </button>
-            <p class="muted hint">
-              Loại tự đặt dùng form cơ bản (giờ, giá trị, đơn vị, ghi chú, tag) và không có chỉ số
-              tự động. Loại đã dùng không xoá được, chỉ ẩn đi.
-            </p>
-          </>
-        )}
-
-        {tab === 'tag' && (
-          <>
-            <ul class="habits">
-              {defs.tags.map((t) => (
-                <li class="habit">
-                  <div class="habit-main">
-                    <button
-                      type="button"
-                      class="habit-name"
-                      onClick={() => setEditing({ kind: 'tag', item: t })}
-                    >
-                      <strong>
-                        <span class="swatch" style={{ background: t.color }} /> {t.name}
-                      </strong>
-                    </button>
-                  </div>
-                </li>
-              ))}
-              {defs.tags.length === 0 && (
-                <p class="muted">
-                  Chưa có tag nào. Tag dùng để gắn nhãn Entry, ví dụ "ăn ngoài", "OT".
+            {tab === 'cat' && (
+              <>
+                <ul class="habits">
+                  {[...defs.categories]
+                    .sort((a, b) => a.order - b.order)
+                    .map((c) => (
+                      <li class={c.archived ? 'habit archived' : 'habit'}>
+                        <div class="habit-main">
+                          <button
+                            type="button"
+                            class="habit-name"
+                            onClick={() => setEditing({ kind: 'cat', item: c })}
+                          >
+                            <strong>
+                              <span class="swatch" style={{ background: c.color }} /> {c.icon}{' '}
+                              {c.name}
+                            </strong>
+                            <span class="muted">
+                              {typeLabel(defs, c.entryType)}
+                              {c.archived ? ' · đã ẩn' : ''}
+                            </span>
+                          </button>
+                          <div class="mini">
+                            <button
+                              type="button"
+                              aria-label="Lên"
+                              onClick={() =>
+                                save({ ...defs, categories: moveItem(defs.categories, c.id, -1) })
+                              }
+                            >
+                              ↑
+                            </button>
+                            <button
+                              type="button"
+                              aria-label="Xuống"
+                              onClick={() =>
+                                save({ ...defs, categories: moveItem(defs.categories, c.id, 1) })
+                              }
+                            >
+                              ↓
+                            </button>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                </ul>
+                <p class="muted hint">
+                  Danh mục đã có dữ liệu không xoá được, chỉ ẩn đi để thống kê cũ không mất tên.
                 </p>
-              )}
-            </ul>
-            <button
-              type="button"
-              class="btn btn-primary block-btn"
-              onClick={() =>
-                setEditing({ kind: 'tag', item: { id: newId('tag'), name: '', color: '#6c6c70' } })
-              }
-            >
-              + Tag mới
-            </button>
-          </>
-        )}
+              </>
+            )}
+
+            {tab === 'type' && (
+              <>
+                <ul class="habits">
+                  {entryTypeOptions(null).map((t) => (
+                    <li class="habit archived">
+                      <div class="habit-main">
+                        <span class="habit-name">
+                          <strong>{t.label}</strong>
+                          <span class="muted">có sẵn, có form và chỉ số riêng</span>
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                  {(defs.customTypes ?? []).map((t) => (
+                    <li class={t.archived ? 'habit archived' : 'habit'}>
+                      <div class="habit-main">
+                        <button
+                          type="button"
+                          class="habit-name"
+                          onClick={() => setEditing({ kind: 'type', item: t })}
+                        >
+                          <strong>
+                            {t.icon} {t.name}
+                          </strong>
+                          <span class="muted">{t.archived ? 'đã ẩn' : 'tự đặt'}</span>
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <p class="muted hint">
+                  Loại tự đặt dùng form cơ bản (giờ, giá trị, đơn vị, ghi chú, tag) và không có chỉ
+                  số tự động. Loại đã dùng không xoá được, chỉ ẩn đi.
+                </p>
+              </>
+            )}
+
+            {tab === 'tag' && (
+              <>
+                <ul class="habits">
+                  {defs.tags.map((t) => (
+                    <li class="habit">
+                      <div class="habit-main">
+                        <button
+                          type="button"
+                          class="habit-name"
+                          onClick={() => setEditing({ kind: 'tag', item: t })}
+                        >
+                          <strong>
+                            <span class="swatch" style={{ background: t.color }} /> {t.name}
+                          </strong>
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                  {defs.tags.length === 0 && (
+                    <p class="muted">
+                      Chưa có tag nào. Tag dùng để gắn nhãn Entry, ví dụ "ăn ngoài", "OT".
+                    </p>
+                  )}
+                </ul>
+              </>
+            )}
+          </div>
+        </div>
+        <div class="manage-add">
+          <button
+            type="button"
+            class="btn btn-primary block-btn"
+            onClick={() => setEditing({ kind: tab, item: addNew[tab].item() })}
+          >
+            {addNew[tab].label}
+          </button>
+        </div>
       </div>
 
       {editing && (
@@ -310,7 +307,7 @@ export function ManageDefs({
           }}
         />
       )}
-    </div>
+    </>
   )
 }
 
@@ -384,7 +381,7 @@ function DefEditor({
           : defs.tags.some((t) => t.id === item.id)
 
   return (
-    <div class="sheet-backdrop" onClick={onClose}>
+    <div class="sheet-backdrop above" onClick={onClose}>
       <form
         class="sheet"
         onClick={(e) => e.stopPropagation()}
