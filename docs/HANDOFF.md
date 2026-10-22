@@ -137,6 +137,13 @@ Giao diện theo họ Sổ Tiền (giấy kem, thẻ bo 20px, pill chuyển mụ
 - **Chưa kiểm:** iPhone thật (độ mượt animation, form vuốt ngang), dữ liệu mẫu chưa có rượu bia, ngủ trưa, ngày bỏ ghi.
 - Repo `tinsdark/so-chi-tieu` đã được đọc (chỉ đọc) để tham khảo chuyển động.
 
+## Sau PR21: loại Học tập và uống nước chọn lượng (T7.6, T7.7)
+
+- **Học tập** là loại có sẵn (`study`): form riêng, tính vào "Phát triển bản thân", chỉ số `study_hours`, dòng báo cáo tuần. Mục cũ giữ loại Hoạt động khi đổi loại của danh mục; chưa có chức năng chuyển mục cũ.
+- **Uống nước:** chạm nút mở `WaterPicker` (các ô lượng từ `Settings.waterSizes`), mỗi lần vẫn một Entry; `groupWater` (core/timeline.ts) gộp thành một dòng ở Hôm nay, `WaterList` mở từng lần. Ghi bù vẫn dùng form (giá trị mặc định của nút).
+- **Check-in:** mỗi lần chạm là một Entry loại note; chỉ vẽ đường năng lượng trong ngày. Điểm năng lượng/tâm trạng của ngày lấy từ Chấm ngày.
+- Báo cáo (PDF và bản web) đã sửa câu sai về check-in và cập nhật phần nước.
+
 ## Việc chờ Đạt quyết (chưa làm)
 
 **(Đã giải quyết bằng T6.1: phím tắt theo Loại, có ô "Khác")** Ghi một việc không có nút nhanh ở Hôm nay. Hiện có 23 danh mục nhưng 9 nút nhanh. Việc không có nút thì ghi bằng: (1) giữ một nút rồi đổi Loại/Danh mục trong form, (2) tab Ghi bù → ô "Việc khác", (3) nhân bản mục trên timeline. Hôm nay **không có** ô "Việc khác" như Ghi bù, nên trên điện thoại hơi bất tiện.

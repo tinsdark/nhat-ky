@@ -1,4 +1,5 @@
 import type { Settings } from './types'
+import { DEFAULT_WATER_SIZES } from './water'
 
 export const DEFAULT_SETTINGS: Settings = {
   dayStartHour: 4,
@@ -7,6 +8,7 @@ export const DEFAULT_SETTINGS: Settings = {
   workDays: [0, 1, 2, 3, 4],
   sleepTargetHours: 7.5,
   waterTargetMl: 2000,
+  waterSizes: DEFAULT_WATER_SIZES,
   exerciseTargetMinPerWeek: 150,
   reviewTime: '21:30',
   skipRestDays: false,

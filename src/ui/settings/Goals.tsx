@@ -1,5 +1,6 @@
 import type { Settings } from '../../core/types'
 import { saveSettings } from '../../data/repository'
+import { formatWaterSizes, parseWaterSizes } from '../../core/water'
 import { NumberInput, Section, SetRow } from './fields'
 
 const DAY_LABELS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
@@ -65,6 +66,22 @@ export function Goals({ settings }: { settings: Settings }) {
             value={settings.waterTargetMl}
             unit="ml"
             onSave={(v) => save({ waterTargetMl: v })}
+          />
+        </SetRow>
+        <SetRow
+          title="Các mức lượng khi uống nước"
+          hint="Cách nhau dấu phẩy: 2–8 mức, mỗi mức 10–3000 ml."
+          stacked
+        >
+          <input
+            key={formatWaterSizes(settings.waterSizes)}
+            aria-label="Các mức lượng nước (ml)"
+            defaultValue={formatWaterSizes(settings.waterSizes)}
+            onBlur={(e) => {
+              const sizes = parseWaterSizes(e.currentTarget.value)
+              if (sizes) save({ waterSizes: sizes })
+              else e.currentTarget.value = formatWaterSizes(settings.waterSizes)
+            }}
           />
         </SetRow>
         <SetRow title="Vận động mỗi tuần">

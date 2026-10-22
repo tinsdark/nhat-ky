@@ -137,6 +137,8 @@ export interface Settings {
   workDays: number[]
   sleepTargetHours: number
   waterTargetMl: number
+  /** Amounts (ml) offered when "Uống nước" is pressed. */
+  waterSizes: number[]
   exerciseTargetMinPerWeek: number
   /** HH:mm after which the in-app "rate the day" banner appears. */
   reviewTime: string

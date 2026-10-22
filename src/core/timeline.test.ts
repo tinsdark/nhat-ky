@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { atTime, toDateKey, toHHmm } from './date'
-import { buildTimeline, coreProgress } from './timeline'
+import { buildTimeline, coreProgress, groupWater } from './timeline'
 import type { Day, Entry } from './types'
 
 function entry(over: Partial<Entry> & Pick<Entry, 'start'>): Entry {
@@ -118,5 +118,34 @@ describe('coreProgress', () => {
     expect(coreProgress([], { dayScore: null } as Day).find((i) => i.id === 'rating')?.done).toBe(
       false,
     )
+  })
+})
+
+describe('groupWater', () => {
+  const w = (hhmm: string, value: number) =>
+    entry({ start: atTime('2026-11-02', hhmm), type: 'water', value, unit: 'ml' })
+  it('replaces all water rows of the day by one at the first drink, with count and total', () => {
+    const rows = groupWater(
+      buildTimeline([
+        w('08:00', 250),
+        entry({ start: atTime('2026-11-02', '09:00'), type: 'meal' }),
+        w('10:30', 500),
+        w('11:00', 330),
+      ]),
+    )
+    expect(rows.map((r) => r.kind)).toEqual(['water', 'entry'])
+    const g = rows[0]!
+    if (g.kind !== 'water') throw new Error('expected a water row')
+    expect(g.entries).toHaveLength(3)
+    expect(g.ml).toBe(1080)
+    expect(g.start).toBe(atTime('2026-11-02', '08:00'))
+  })
+  it('leaves a day without water untouched, and counts a drink with no amount as zero millilitres', () => {
+    const plain = buildTimeline([entry({ start: atTime('2026-11-02', '09:00'), type: 'meal' })])
+    expect(groupWater(plain)).toEqual(plain)
+    const rows = groupWater(
+      buildTimeline([entry({ start: atTime('2026-11-02', '08:00'), type: 'water' })]),
+    )
+    expect(rows[0]).toMatchObject({ kind: 'water', ml: 0 })
   })
 })
