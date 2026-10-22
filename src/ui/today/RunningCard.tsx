@@ -20,12 +20,14 @@ export function RunningCard({
   onFinish: (e: Entry) => void
   onEdit: (e: Entry) => void
 }) {
-  const [now, setNow] = useState(Date.now())
+  const [, setTick] = useState(0) // re-render every 30 s so the minutes keep moving
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 30_000)
+    const t = setInterval(() => setTick((n) => n + 1), 30_000)
     return () => clearInterval(t)
   }, [])
   if (entries.length === 0) return null
+  // Read at render time: a block started a moment ago must not look "in the future" against a stale clock.
+  const now = Date.now()
   const nowIso = new Date(now).toISOString()
   return (
     <section class="panel running">
