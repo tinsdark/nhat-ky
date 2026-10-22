@@ -2286,3 +2286,17 @@ html:has(.sheet-backdrop, .fullscreen) {
 .swipe-bg.on {
   opacity: 1;
 }
+
+/* Warning box for a destructive step (delete by date range) */
+.warn-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--danger);
+  border-radius: 12px;
+  background: var(--danger-soft);
+}
+.warn-box p {
+  margin: 0;
+}
