@@ -411,12 +411,12 @@ export const METRICS: Metric[] = [
     label: 'Tỷ lệ thói quen đạt',
     unit: '0–1',
     group: 'habit',
-    compute: (d, ctx) => {
+    compute: whenLogged((d, ctx) => {
       const due = ctx.habits.filter((h) => !h.archived && isScheduled(h, d))
       if (due.length === 0) return null
       const met = due.filter((h) => dayStatus(h, d, ctx.habitValues(h)) === 'met').length
       return met / due.length
-    },
+    }),
   },
 
   // Subjective
@@ -436,7 +436,7 @@ export const METRICS: Metric[] = [
   },
 ]
 
-/** One 0/1 metric per habit (`habit:<id>`): null on days the habit is not scheduled. */
+/** One 0/1 metric per habit (`habit:<id>`): null on days the habit is not scheduled or nothing was logged. */
 export function habitMetrics(habits: Habit[]): Metric[] {
   return habits.map((h) => ({
     id: `habit:${h.id}`,
@@ -444,6 +444,7 @@ export function habitMetrics(habits: Habit[]): Metric[] {
     unit: '0/1',
     group: 'habit' as const,
     compute: (d: string, ctx: MetricContext) => {
+      if (!ctx.logged(d)) return null
       const s = dayStatus(h, d, ctx.habitValues(h))
       return s === 'off' || s === 'rest' ? null : s === 'met' ? 1 : 0
     },

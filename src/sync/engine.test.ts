@@ -365,6 +365,44 @@ describe('defs and settings', () => {
     expect((await a.db.defs.get('defs'))?.updatedAt).toBe(t(20))
     expect(drive.writes).toEqual([])
   })
+
+  it('first sync on a device: the Drive copy wins even over a newer local edit of the seed', async () => {
+    const drive = fakeDrive()
+    drive.put('nk_defs.json', {
+      categories: [],
+      habits: [{ id: 'real-habit' }],
+      quickActions: [],
+      tags: [],
+      updatedAt: t(1),
+      deviceId: 'B',
+    })
+    const a = device(drive)
+    // "Dùng ngay, đăng nhập sau": seed row edited before the first sign-in
+    await a.db.defs.put({
+      key: 'defs',
+      categories: [],
+      habits: [],
+      quickActions: [],
+      tags: [],
+      updatedAt: t(30),
+      deviceId: 'A',
+      dirty: 1,
+    })
+    await a.engine.run()
+    expect((await a.db.defs.get('defs'))?.habits).toEqual([{ id: 'real-habit' }])
+    expect(drive.writes).toEqual([])
+    expect(drive.json('nk_defs.json').habits).toEqual([{ id: 'real-habit' }])
+  })
+
+  it('after the first sync a newer local edit still wins', async () => {
+    const drive = fakeDrive()
+    drive.put('nk_settings.json', { dayStartHour: 4, updatedAt: t(1), deviceId: 'B' })
+    const a = device(drive)
+    await a.engine.run()
+    await a.db.settings.put(settings(t(30), 6) as never)
+    await a.engine.run()
+    expect(drive.json('nk_settings.json').dayStartHour).toBe(6)
+  })
 })
 
 describe('status and failures', () => {

@@ -80,6 +80,18 @@ describe('findCorrelations on 60 fake days', () => {
   }
 })
 
+describe('night factors', () => {
+  const NIGHT = ['bedtime', 'wake_time', 'sleep_hours', 'sleep_midpoint', 'last_coffee_to_bed']
+  it('are never paired with the same day outcome (the night comes after the day is rated)', () => {
+    for (const seed of [1, 2, 3]) {
+      const bad = run(60, seed).filter(
+        (f) => f.lag === 0 && f.outcomeId !== 'sleep_quality' && NIGHT.includes(f.factorId),
+      )
+      expect(bad).toEqual([])
+    }
+  })
+})
+
 describe('data gates', () => {
   it('reports nothing before 28 logged days, and no next-day findings before 60', () => {
     expect(run(20, 1)).toEqual([])

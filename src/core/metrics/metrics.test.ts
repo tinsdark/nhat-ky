@@ -259,6 +259,10 @@ describe('exercise, habits, subjective', () => {
     expect(v('habit:h2', MON)).toBeNull()
     expect(v('habit:h2', SAT)).toBe(0)
   })
+  it('habit metrics are null on a day with nothing logged, not 0 or 1', () => {
+    expect(v('habit:h1', FRI)).toBeNull()
+    expect(v('habit_rate', FRI)).toBeNull()
+  })
   it('habit rate over habits due that day', () => {
     expect(v('habit_rate', MON)).toBe(1) // only h1 due
     expect(v('habit_rate', WED)).toBe(0)

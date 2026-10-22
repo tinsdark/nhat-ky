@@ -27,6 +27,24 @@ const NOT_FACTORS: Record<string, string[]> = {
   focus: ['focus_avg'],
 }
 
+/**
+ * Factors read off "the night that starts on day d" (or the evening of d). That night comes after the
+ * day's mood/score/focus are rated, so a same-day pairing would run cause and effect backwards: these
+ * are only paired with the next day's outcome (SPEC 8.3). Exception: the sleep quality of that same night.
+ */
+const NIGHT_FACTORS = new Set([
+  'bedtime',
+  'wake_time',
+  'sleep_hours',
+  'bedtime_sd7',
+  'screen_before_bed',
+  'sleep_midpoint',
+  'social_jetlag',
+  'last_meal_to_bed',
+  'last_coffee_to_bed',
+  'late_eating',
+])
+
 export type Confidence = 'weak' | 'medium' | 'strong'
 
 export interface Finding {
@@ -188,6 +206,7 @@ export function findCorrelations(ctx: MetricContext, metrics: Metric[], opts: Op
       const ys = seriesOf(y)
       for (const f of factors) {
         if (NOT_FACTORS[y.id]?.includes(f.id)) continue
+        if (lag === 0 && y.id !== 'sleep_quality' && NIGHT_FACTORS.has(f.id)) continue
         const xs = seriesOf(f)
         const pairs: Pair[] = []
         for (let i = 0; i + lag < keys.length; i++) {

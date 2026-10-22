@@ -104,6 +104,16 @@ describe('copyToDay', () => {
     expect(copy).not.toHaveProperty('id')
     expect(copy).not.toHaveProperty('photoIds')
   })
+  it('keeps end after start when the block crosses the day start hour', () => {
+    const src = e({
+      type: 'work',
+      start: atTime('2026-11-02', '02:00'),
+      end: atTime('2026-11-03', '05:00'),
+    })
+    const copy = copyToDay(src, '2026-11-03', 4)
+    expect(copy.start).toBe('2026-11-04T02:00:00.000+07:00')
+    expect(copy.end).toBe('2026-11-04T05:00:00.000+07:00')
+  })
   it('copies an open entry as open', () => {
     expect(copyToDay(e({ start: atTime('2026-11-02', '08:00') }), '2026-11-03', 4).end).toBeNull()
   })

@@ -1,4 +1,5 @@
 import { addDays, toHHmm, toIso } from './date'
+import { MAX_BLOCK_HOURS } from './entryForm'
 import type { Entry } from './types'
 
 /** Minutes since 18:00, so bedtimes either side of midnight sit next to each other (23:30 → 330, 01:00 → 420). */
@@ -25,11 +26,14 @@ export function bedtimeBefore(now: number, hhmm: string): string {
   return `${date}T${hhmm}:00.000+07:00`
 }
 
-/** Night sleep still open (no `end`), started within the last `maxHours`. Naps are ignored. */
+/**
+ * Night sleep still open (no `end`), started within the last `maxHours` (same cap as a form block).
+ * An older open entry is a forgotten "Thức dậy": it must not be closed into a 30-hour night. Naps are ignored.
+ */
 export function findOpenNightSleep(
   entries: Entry[],
   now: number,
-  maxHours = 24,
+  maxHours = MAX_BLOCK_HOURS,
 ): Entry | undefined {
   return entries
     .filter(

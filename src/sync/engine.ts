@@ -4,6 +4,7 @@ import type { Table } from 'dexie'
 import { AuthNetworkError, AuthRequiredError } from '../auth/token'
 import { toIso } from '../core/date'
 import { compareVersion, mergeRecords, type Versioned } from '../core/merge'
+import { isDay, isDocStamp, isEntry } from '../core/validate'
 import type { Day, Entry } from '../core/types'
 import type { DocStamp, NhatKyDB } from '../data/db'
 import type { DriveClient } from '../drive/client'
@@ -76,7 +77,7 @@ export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive
     // An entry edited into another month leaves a stale copy here; drop it instead of letting it win.
     let droppedStale = false
     const remoteEntries: Entry[] = []
-    for (const r of remote.entries ?? []) {
+    for (const r of (remote.entries ?? []).filter((x) => isEntry(x))) {
       const l = await db.entries.get(r.id)
       if (l && monthOf(l.dateKey) !== month && compareVersion(l, r) >= 0) {
         droppedStale = true
@@ -84,7 +85,9 @@ export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive
       }
       remoteEntries.push({ ...r, dirty: 0 })
     }
-    const remoteDays = (remote.days ?? []).map((d) => ({ ...d, dirty: 0 as const }))
+    const remoteDays = (remote.days ?? [])
+      .filter((x) => isDay(x))
+      .map((d) => ({ ...d, dirty: 0 as const }))
 
     const e = mergeRecords(localEntries, remoteEntries, (x) => x.id)
     const d = mergeRecords(localDays, remoteDays, (x) => x.dateKey)
@@ -145,9 +148,20 @@ export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive
 
     const remote = listedMt ? await drive.readJson<Versioned & Record<string, unknown>>(name) : null
 
-    if (remote && (!local || compareVersion(remote, local) > 0)) {
+    // This device has never synced the file, so any local row is the seed (or an edit made on top of it
+    // before sign-in): the copy on Drive is the real one and must not be overwritten by it.
+    if (remote && !isDocStamp(remote)) {
+      console.warn(`Ignoring ${name} on Drive: invalid stamp`)
+      return
+    }
+    const firstSync = remote !== null && (await getMt(name)) === null
+
+    if (remote && (firstSync || !local || compareVersion(remote, local) > 0)) {
       const cur = await table.get(key)
-      if (!cur || compareVersion(remote, cur) > 0) {
+      if (
+        !cur ||
+        (firstSync ? cur.updatedAt === local?.updatedAt : compareVersion(remote, cur) > 0)
+      ) {
         await table.put({ ...remote, key, dirty: 0 } as unknown as T)
       }
       await setMt(name, listedMt!)

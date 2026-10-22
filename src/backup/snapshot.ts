@@ -1,5 +1,6 @@
 import { compareVersion } from '../core/merge'
 import { toIso } from '../core/date'
+import { isDay, isDocStamp, isEntry, keepValid } from '../core/validate'
 import type { Day, Entry } from '../core/types'
 import { db } from '../data/db'
 import { getDeviceId } from '../data/repository'
@@ -71,6 +72,8 @@ export interface RestoreResult {
   entries: number
   days: number
   docs: number
+  /** Records dropped for a wrong shape or an `updatedAt` far in the future. */
+  skipped: number
 }
 
 /**
@@ -78,16 +81,19 @@ export interface RestoreResult {
  * as sync), and marked dirty so it uploads. Nothing local is deleted.
  */
 export async function restoreSnapshot(snap: Snapshot): Promise<RestoreResult> {
-  const result: RestoreResult = { entries: 0, days: 0, docs: 0 }
+  const result: RestoreResult = { entries: 0, days: 0, docs: 0, skipped: 0 }
+  const entries = keepValid(snap.entries, isEntry)
+  const days = keepValid(snap.days, isDay)
+  result.skipped = entries.skipped + days.skipped
   await db.transaction('rw', [db.entries, db.days, db.defs, db.settings, db.insights], async () => {
-    for (const e of snap.entries) {
+    for (const e of entries.valid) {
       const cur = await db.entries.get(e.id)
       if (!cur || compareVersion(e, cur) > 0) {
         await db.entries.put({ ...e, dirty: 1 })
         result.entries++
       }
     }
-    for (const d of snap.days) {
+    for (const d of days.valid) {
       const cur = await db.days.get(d.dateKey)
       if (!cur || compareVersion(d, cur) > 0) {
         await db.days.put({ ...d, dirty: 1 })
@@ -102,6 +108,10 @@ export async function restoreSnapshot(snap: Snapshot): Promise<RestoreResult> {
     for (const [key, table] of docs) {
       const incoming = snap.docs[key] as { updatedAt: string; deviceId: string } | undefined
       if (!incoming) continue
+      if (!isDocStamp(incoming)) {
+        result.skipped++
+        continue
+      }
       const cur = await table.get(key)
       if (!cur || compareVersion(incoming, cur) > 0) {
         await (table as typeof db.defs).put({ ...incoming, key, dirty: 1 } as never)
