@@ -89,6 +89,10 @@ describe('csvToEntries', () => {
       ['2026-11-03T09:00:00.000+07:00', '2026-11-03'],
     ])
   })
+  it('accepts the study type', () => {
+    const r = csvToEntries(parseCsv('start,type,title\n2026-11-03 20:00,study,Học BA'), ctx)
+    expect(r.entries.map((x) => x.type)).toEqual(['study'])
+  })
   it('matches category names case-insensitively, keeps unknown ones, resolves known tags and lists new ones', () => {
     const r = csvToEntries(
       parseCsv(

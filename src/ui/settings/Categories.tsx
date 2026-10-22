@@ -1,4 +1,5 @@
 import { useState } from 'preact/hooks'
+import { ENTRY_TYPES } from '../../core/defs'
 import { getDefs } from '../../data/repository'
 import { Icon } from '../Icon'
 import { ManageDefs } from '../ManageDefs'
@@ -29,7 +30,7 @@ export function Categories() {
       tab: 'type',
       title: 'Loại',
       sub: 'Loại có sẵn và loại tự đặt (thuốc, cân nặng…)',
-      count: 7 + (defs.customTypes ?? []).filter((t) => !t.archived).length,
+      count: ENTRY_TYPES.length + (defs.customTypes ?? []).filter((t) => !t.archived).length,
     },
     {
       tab: 'tag',

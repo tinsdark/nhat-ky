@@ -71,6 +71,11 @@ describe('defs helpers', () => {
     expect(quickActionCategory('water', '', cats)).toBe('cat-water')
     expect(quickActionCategory('x-new', '', cats)).toBe('')
   })
+  it('study is a built-in type, offered next to the others', () => {
+    expect(ENTRY_TYPES.map((t) => t.id)).toContain('study')
+    expect(typeLabel(undefined, 'study')).toBe('Học tập')
+    expect(entryTypeOptions(undefined).map((t) => t.id)).toContain('study')
+  })
   it('tagName', () => {
     expect(tagName([{ id: 't1', name: 'OT', color: '' }], 't1')).toBe('OT')
     expect(tagName([], 't1')).toBeNull()

@@ -6,6 +6,7 @@ export function isTimedType(type: EntryType): boolean {
   return (
     type === 'meal' ||
     type === 'work' ||
+    type === 'study' ||
     type === 'activity' ||
     type === 'exercise' ||
     type.startsWith('x-')

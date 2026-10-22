@@ -66,6 +66,7 @@ const ACTIONS: Record<string, { hi?: string; lo?: string }> = {
   outdoor_morning: { hi: 'Thử ra ngoài trời trước 10h sáng trong 5 ngày tới.' },
   screen_before_bed: { lo: 'Thử tắt màn hình 30 phút trước khi ngủ trong 5 ngày tới.' },
   water_ml: { hi: 'Thử uống đủ nước (2 lít) trong 5 ngày tới.' },
+  study_hours: { hi: 'Thử dành thêm 30 phút học mỗi ngày trong 5 ngày tới.' },
   social_hours: { lo: 'Thử giảm mạng xã hội còn một nửa trong 5 ngày tới.' },
 }
 /** Alias members of a cluster may hold the action even when another member is the label shown. */

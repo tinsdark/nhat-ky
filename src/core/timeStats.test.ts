@@ -71,6 +71,10 @@ describe('groupOfEntry / hoursByGroup', () => {
       'personal',
     )
   })
+  it('study blocks count as self-development unless their category says otherwise', () => {
+    expect(groupOfEntry(e('2026-11-02', 'study', '20:00', '21:00', 'custom'), cats)).toBe('growth')
+    expect(groupOfEntry(e('2026-11-02', 'study', '20:00', '21:00', 'cat-chat'), cats)).toBe('work')
+  })
   it('sums hours per group for a day (Monday: 3.5 / 1.5 / 0.5)', () => {
     expect(hoursByGroup(ctx, cats, '2026-11-02')).toEqual({ work: 3.5, growth: 1.5, personal: 0.5 })
   })

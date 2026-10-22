@@ -10,7 +10,7 @@ export interface SyncFields {
 }
 
 export type BuiltinEntryType =
-  'sleep' | 'meal' | 'work' | 'habit' | 'exercise' | 'activity' | 'water' | 'note'
+  'sleep' | 'meal' | 'work' | 'study' | 'habit' | 'exercise' | 'activity' | 'water' | 'note'
 
 /** User-defined types (Defs.customTypes) use ids of the form `x-…`; they share the generic form and no built-in metric. */
 export type EntryType = BuiltinEntryType | `x-${string}`

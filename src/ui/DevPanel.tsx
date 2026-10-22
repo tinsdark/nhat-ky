@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks'
-import { addFakeData, clearFakeData } from '../dev/panel'
+import { addFakeData, addPersonaMonth, clearFakeData } from '../dev/panel'
 import { Section } from './settings/fields'
 
 /** Only reachable in `npm run dev`; the production build never includes it. */
@@ -16,6 +16,13 @@ export default function DevPanel() {
       hint="Chỉ có khi chạy npm run dev. Bản deploy không chứa phần này."
     >
       <div class="btnlist">
+        <button
+          type="button"
+          class="btn"
+          onClick={() => void run('Tháng 10/2026', () => addPersonaMonth())}
+        >
+          Sinh tháng 10/2026 (người dùng mẫu)
+        </button>
         <button
           type="button"
           class="btn"

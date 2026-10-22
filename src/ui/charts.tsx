@@ -39,6 +39,8 @@ export function TrendChart({
             )}
             <polyline
               points={line}
+              pathLength="1"
+              class="draw"
               fill="none"
               stroke={s.color}
               stroke-width="2"
@@ -70,6 +72,8 @@ export function WeekdayBars({ values }: { values: (number | null)[] }) {
               width="24"
               height={Math.max(h, v === null ? 0 : 2)}
               rx="3"
+              class="grow-up"
+              style={{ animationDelay: `${i * 40}ms` }}
               fill="var(--accent)"
             />
             <text x={i * 40 + 20} y="108" text-anchor="middle" font-size="11" fill="var(--muted)">
@@ -182,7 +186,15 @@ export function StackedColumns({
               const h = (v / max) * 90
               y -= h
               return h > 0 ? (
-                <rect x={i * step + 6} y={y} width={step - 12} height={h} fill={GROUP_COLORS[k]} />
+                <rect
+                  x={i * step + 6}
+                  y={y}
+                  width={step - 12}
+                  height={h}
+                  class="grow-up"
+                  style={{ animationDelay: `${i * 45}ms` }}
+                  fill={GROUP_COLORS[k]}
+                />
               ) : null
             })}
             <text
@@ -254,26 +266,40 @@ export function SleepChart({
   days: number
 }) {
   const W2 = 340
-  const H2 = 170
-  const top = 14
-  const bottom = 24
+  const H2 = 196
+  const gutter = 30 // hour labels live here, so they never sit on top of the bars
+  const top = 10
+  const bottom = 50
   const span = 18 // 18:00 → 12:00 next day
   const y = (h: number) => top + (Math.min(h, span) / span) * (H2 - top - bottom)
-  const step = W2 / days
+  const step = (W2 - gutter) / days
   const dayIndex = (key: string) =>
     Math.round((Date.parse(`${key}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000)
+  const ticks = Array.from({ length: Math.ceil(days / 7) }, (_, i) => i * 7)
+  const label = (i: number) => {
+    const d = new Date(Date.parse(`${from}T00:00:00Z`) + i * 86_400_000)
+    return `${d.getUTCDate()}/${d.getUTCMonth() + 1}`
+  }
   return (
     <svg viewBox={`0 0 ${W2} ${H2}`} class="chart" role="img" aria-label="Giờ ngủ 30 ngày">
       {[0, 6, 12, 18].map((h) => (
         <g>
-          <line x1="0" x2={W2} y1={y(h)} y2={y(h)} stroke="var(--border)" stroke-width="0.5" />
-          <text x="2" y={y(h) - 2} font-size="8" fill="var(--muted)">
+          <line
+            x1={gutter}
+            x2={W2}
+            y1={y(h)}
+            y2={y(h)}
+            stroke="var(--border)"
+            stroke-width="0.6"
+            stroke-dasharray="2 3"
+          />
+          <text x={gutter - 5} y={y(h) + 3} font-size="9" text-anchor="end" fill="var(--muted)">
             {String((18 + h) % 24).padStart(2, '0')}h
           </text>
         </g>
       ))}
-      {bars.map((b) => {
-        const x = dayIndex(b.dateKey) * step
+      {bars.map((b, n) => {
+        const x = gutter + dayIndex(b.dateKey) * step
         return (
           <g>
             <rect
@@ -282,22 +308,35 @@ export function SleepChart({
               width={Math.max(2, step - 2)}
               height={Math.max(2, y(b.endH) - y(b.startH))}
               rx="2"
+              class="grow-down"
+              style={{ animationDelay: `${Math.min(n, 30) * 12}ms` }}
               fill="var(--accent)"
-              opacity="0.8"
+              opacity="0.85"
             />
             {b.quality !== null && (
               <circle
                 cx={x + step / 2}
-                cy={H2 - 10}
-                r="2"
+                cy={H2 - 34}
+                r="2.4"
                 fill="var(--warn)"
-                opacity={0.3 + b.quality * 0.14}
+                opacity={0.25 + b.quality * 0.15}
               />
             )}
           </g>
         )
       })}
-      <text x="2" y={H2 - 1} font-size="8" fill="var(--muted)">
+      {ticks.map((i) => (
+        <text
+          x={gutter + i * step + step / 2}
+          y={H2 - 20}
+          font-size="9"
+          text-anchor="middle"
+          fill="var(--muted)"
+        >
+          {label(i)}
+        </text>
+      ))}
+      <text x={gutter} y={H2 - 4} font-size="9" fill="var(--muted)">
         chấm vàng = chất lượng ngủ (đậm = tốt)
       </text>
     </svg>
@@ -308,7 +347,7 @@ export function SleepChart({
 export function EnergyLine({ points }: { points: { hour: number; mean: number | null }[] }) {
   const W3 = 340
   const H3 = 120
-  const x = (h: number) => 10 + (h / 23) * (W3 - 20)
+  const x = (h: number) => 26 + (h / 23) * (W3 - 40)
   const y = (v: number) => 10 + ((5 - v) / 4) * (H3 - 30)
   const path = points
     .filter((p): p is { hour: number; mean: number } => p.mean !== null)
@@ -322,14 +361,35 @@ export function EnergyLine({ points }: { points: { hour: number; mean: number | 
       aria-label="Đường năng lượng trong ngày"
     >
       {[1, 3, 5].map((v) => (
-        <line x1="10" x2={W3 - 10} y1={y(v)} y2={y(v)} stroke="var(--border)" stroke-width="0.5" />
+        <g>
+          <line
+            x1="22"
+            x2={W3 - 10}
+            y1={y(v)}
+            y2={y(v)}
+            stroke="var(--border)"
+            stroke-width="0.6"
+            stroke-dasharray="2 3"
+          />
+          <text x="16" y={y(v) + 3} font-size="9" text-anchor="end" fill="var(--muted)">
+            {v}
+          </text>
+        </g>
       ))}
       {[0, 6, 12, 18, 23].map((h) => (
         <text x={x(h)} y={H3 - 4} font-size="9" text-anchor="middle" fill="var(--muted)">
           {h}h
         </text>
       ))}
-      <path d={path} fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" />
+      <path
+        d={path}
+        pathLength="1"
+        class="draw"
+        fill="none"
+        stroke="var(--accent)"
+        stroke-width="2"
+        stroke-linejoin="round"
+      />
       {points.map((p) =>
         p.mean === null ? null : (
           <circle cx={x(p.hour)} cy={y(p.mean)} r="2.5" fill="var(--accent)" />

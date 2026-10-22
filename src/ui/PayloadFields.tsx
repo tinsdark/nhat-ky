@@ -189,16 +189,16 @@ export function PayloadFields({
     )
   }
 
-  if (type === 'work' || type === 'activity') {
+  if (type === 'work' || type === 'activity' || type === 'study') {
     return (
-      <Group title={type === 'work' ? 'Công việc' : 'Hoạt động'}>
+      <Group title={type === 'work' ? 'Công việc' : type === 'study' ? 'Học tập' : 'Hoạt động'}>
         <datalist id="project-suggestions">
           {projects.map((p) => (
             <option value={p} />
           ))}
         </datalist>
         <Text
-          label="Dự án / hệ thống"
+          label={type === 'study' ? 'Môn / khoá học' : 'Dự án / hệ thống'}
           list="project-suggestions"
           value={payload.project}
           onChange={(v) => set('project', v || undefined)}

@@ -42,6 +42,7 @@ const ROWS: { id: string; mode: 'mean' | 'sum' }[] = [
   { id: 'work_hours', mode: 'sum' },
   { id: 'deep_work_hours', mode: 'sum' },
   { id: 'overtime_hours', mode: 'sum' },
+  { id: 'study_hours', mode: 'sum' },
   { id: 'exercise_min', mode: 'sum' },
   { id: 'water_ml', mode: 'mean' },
   { id: 'coffee_count', mode: 'mean' },

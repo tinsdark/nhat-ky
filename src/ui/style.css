@@ -736,7 +736,7 @@ h2.sub {
 }
 .month {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
 }
 .month .mh {
@@ -1879,4 +1879,219 @@ form.sheet > .row:last-child {
 .running-row .btn {
   flex: none;
   min-height: 44px;
+}
+
+/* =====================================================================
+   Chuyển động. Một đường cong chung, chỉ dùng transform/opacity (mượt trên iPhone).
+   Tắt hết khi máy bật "Giảm chuyển động" (khối cuối file). Học theo lớp chuyển động của Sổ Tiền.
+   ===================================================================== */
+:root {
+  --ease: cubic-bezier(0.22, 0.8, 0.3, 1);
+  --spring: cubic-bezier(0.34, 1.45, 0.5, 1);
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes fs-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.97);
+  }
+}
+@keyframes pop {
+  0% {
+    transform: scale(0.8);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+}
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes grow-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+@keyframes ring-fill {
+  from {
+    stroke-dasharray: 0 999;
+  }
+}
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+  60% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+
+/* Màn hình vào lần lượt từng thẻ (bảng nổi và toast không tính). */
+.screen > :not(.sheet-backdrop, .fullscreen, .toast) {
+  animation: rise 0.42s var(--ease) both;
+}
+.screen > :nth-child(2) {
+  animation-delay: 40ms;
+}
+.screen > :nth-child(3) {
+  animation-delay: 80ms;
+}
+.screen > :nth-child(4) {
+  animation-delay: 120ms;
+}
+.screen > :nth-child(5) {
+  animation-delay: 160ms;
+}
+.screen > :nth-child(6) {
+  animation-delay: 200ms;
+}
+.screen > :nth-child(n + 7) {
+  animation-delay: 240ms;
+}
+
+/* Bảng trượt lên, nền mờ dần. */
+.sheet-backdrop {
+  animation: fade 0.2s ease-out both;
+}
+.sheet-backdrop > .sheet {
+  animation: sheet-up 0.34s var(--ease) both;
+}
+.fullscreen {
+  animation: fs-in 0.28s var(--ease) both;
+}
+.toast {
+  animation: toast-in 0.34s var(--spring) both;
+}
+
+/* Chạm: lún nhẹ, đổi màu mượt. */
+.btn,
+.quick,
+.pills button,
+.core,
+.choice button,
+.tabbar a,
+.mini button,
+.habit-name {
+  transition:
+    transform 0.14s var(--ease),
+    background-color 0.2s,
+    color 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.btn:active,
+.quick:active,
+.pills button:active,
+.choice button:active,
+.mini button:active {
+  transform: scale(0.96);
+}
+.tabbar a:active {
+  transform: scale(0.92);
+}
+.tabbar a.active svg {
+  animation: pop 0.38s var(--spring);
+}
+.core.done {
+  animation: pop 0.4s var(--spring);
+}
+.choice button.on {
+  animation: pop 0.3s var(--spring);
+}
+
+/* Tiến độ: vòng và thanh chạy từ 0 tới giá trị. */
+.ring circle:nth-of-type(2) {
+  animation: ring-fill 0.9s var(--ease) 0.15s both;
+}
+.meter div {
+  transform-origin: left;
+  animation: grow-x 0.8s var(--ease) 0.15s both;
+}
+
+/* Biểu đồ vẽ dần. */
+.chart .draw {
+  stroke-dasharray: 1;
+  animation: draw 1s var(--ease) 0.1s both;
+}
+.chart .grow-up,
+.chart .grow-down {
+  transform-box: fill-box;
+  animation: grow-y 0.6s var(--ease) both;
+}
+.chart .grow-up {
+  transform-origin: bottom;
+}
+.chart .grow-down {
+  transform-origin: top;
+}
+
+/* Việc đang chạy: biểu tượng nhịp nhẹ để biết nó còn mở. */
+.running .running-info .ico {
+  animation: pulse 2.2s ease-in-out infinite;
+}
+
+/* Ngày cách và chữ số. */
+body {
+  font-variant-numeric: tabular-nums;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Thẻ tổng quan có chút chiều sâu; thanh tab mờ nền. */
+.hero {
+  background: linear-gradient(
+    165deg,
+    var(--card) 40%,
+    color-mix(in srgb, var(--accent-soft) 70%, var(--card))
+  );
+}
+.quick {
+  box-shadow: var(--shadow);
+}
+.tabbar {
+  background: color-mix(in srgb, var(--card) 90%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

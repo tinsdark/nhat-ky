@@ -39,6 +39,7 @@ const TYPES: EntryType[] = [
   'sleep',
   'meal',
   'work',
+  'study',
   'habit',
   'exercise',
   'activity',
