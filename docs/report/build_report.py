@@ -2,6 +2,7 @@
 """Dựng báo cáo PDF từ số liệu thật trong docs/report/data và ảnh trong docs/report/img.
 
 Chạy: python3 docs/report/build_report.py && PW=... node docs/report/to_pdf.cjs
+Bản web đọc thẳng trong trình duyệt/app: python3 docs/report/build_web.py [đường-dẫn-ra.html]
 Mọi con số trong báo cáo đọc từ file JSON do docs/report/analysis.run.ts ghi ra, không gõ tay.
 """
 import html
@@ -52,6 +53,24 @@ def esc(s):
 
 def val(mid, i):
     return M[mid]["values"][i]
+
+
+EMBED = False  # web build: images become data: URIs (a page cannot load local files)
+
+
+def img_url(fp):
+    if not EMBED:
+        return f"file://{fp}"
+    import base64
+    import io
+
+    im = Image.open(fp).convert("RGB")
+    target = 1100 if im.width > im.height else 540
+    if im.width > target:
+        im = im.resize((target, int(im.height * target / im.width)), Image.LANCZOS)
+    buf = io.BytesIO()
+    im.save(buf, "JPEG", quality=72, optimize=True)
+    return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
 
 
 # ------------------------------------------------------------------ SVG helpers
@@ -231,7 +250,7 @@ def shots(folder, names, captions, per_row=3):
     cells = []
     for idx, (nm, k, fp) in enumerate(flat):
         cap = captions.get((nm, k)) or captions.get(nm) or ""
-        cells.append(f'<div class="shot"><img src="file://{fp}"/><div class="cap">{cap}</div></div>')
+        cells.append(f'<div class="shot"><img src="{img_url(fp)}"/><div class="cap">{cap}</div></div>')
     rows = [cells[i : i + per_row] for i in range(0, len(cells), per_row)]
     return "".join(f'<div class="shotrow {"three" if per_row == 3 else ""}">{"".join(r)}</div>' for r in rows)
 
@@ -909,8 +928,8 @@ def crop_css(folder, name, y0, y1, tag):
 def pair(before_fp, after_fp, cap_b, cap_a):
     return (
         '<div class="shotrow">'
-        f'<div class="shot"><div class="tagb">TRƯỚC</div><img src="file://{before_fp}"/><div class="cap">{cap_b}</div></div>'
-        f'<div class="shot"><div class="taga">SAU</div><img src="file://{after_fp}"/><div class="cap">{cap_a}</div></div>'
+        f'<div class="shot"><div class="tagb">TRƯỚC</div><img src="{img_url(before_fp)}"/><div class="cap">{cap_b}</div></div>'
+        f'<div class="shot"><div class="taga">SAU</div><img src="{img_url(after_fp)}"/><div class="cap">{cap_a}</div></div>'
         "</div>"
     )
 
@@ -926,7 +945,7 @@ def motion_strip(prefix, times, tag):
         x += i.width + 10
     fp = f"{SLICES}/{tag}.jpg"
     s.save(fp, quality=82)
-    return f'<figure class="fig"><img class="wide" src="file://{fp}"/>', fp
+    return f'<figure class="fig"><img class="wide" src="{img_url(fp)}"/>', fp
 
 
 def part5():

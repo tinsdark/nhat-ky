@@ -3,3 +3,4 @@ dist
 *.local
 docs/report/report.html
 docs/report/img/slices/
+docs/report/report-web.html
