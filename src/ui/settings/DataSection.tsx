@@ -3,6 +3,7 @@ import type { Settings } from '../../core/types'
 import { saveSettings } from '../../data/repository'
 import { BackupSection } from '../BackupSection'
 import { Choice } from '../Choice'
+import { PurgeSection } from '../PurgeSection'
 import { Section, SetRow } from './fields'
 
 const DevPanel = import.meta.env.DEV ? lazy(() => import('../DevPanel')) : null
@@ -40,6 +41,7 @@ export function DataSection({ settings }: { settings: Settings }) {
         </SetRow>
       </Section>
       <BackupSection dayStartHour={settings.dayStartHour} />
+      <PurgeSection dayStartHour={settings.dayStartHour} />
       {DevPanel && (
         <Suspense fallback={null}>
           <DevPanel />
