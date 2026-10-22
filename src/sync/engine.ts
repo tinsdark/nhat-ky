@@ -79,8 +79,10 @@ export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive
     // An entry edited into another month leaves a stale copy here; drop it instead of letting it win.
     let droppedStale = false
     const remoteEntries: Entry[] = []
-    for (const r of (remote.entries ?? []).filter((x) => isEntry(x))) {
-      const l = await db.entries.get(r.id)
+    const validRemote = (remote.entries ?? []).filter((x) => isEntry(x))
+    const locals = await db.entries.bulkGet(validRemote.map((r) => r.id))
+    for (const [i, r] of validRemote.entries()) {
+      const l = locals[i]
       if (l && monthOf(l.dateKey) !== month && compareVersion(l, r) >= 0) {
         droppedStale = true
         continue

@@ -16,6 +16,7 @@ import { Experiments } from '../Experiments'
 import { Correlations } from './Correlations'
 import { MonthCalendar, TrendChart, WeekdayBars } from '../charts'
 import type { StatsData } from './shared'
+import { Icon } from '../Icon'
 
 const TREND_DAYS = 90
 const CARD_IDS = [
@@ -51,6 +52,9 @@ export function Overview({ data }: { data: StatsData }) {
     trendB ? series(trendB, 'var(--warn)') : null,
   ].filter((s): s is NonNullable<typeof s> => s !== null)
 
+  const trendMetrics = [trendA, trendB]
+    .map((id) => (id ? get(id) : undefined))
+    .filter((m): m is Metric => !!m)
   const view = get(viewId)
   const monthEnd = `${month}-${String(lastDay(month)).padStart(2, '0')}`
   const monthPoints = view ? computeSeries(view, ctx, `${month}-01`, monthEnd) : []
@@ -108,7 +112,10 @@ export function Overview({ data }: { data: StatsData }) {
           {select(trendA, setTrendA)}
           {select(trendB, setTrendB, true)}
         </div>
-        <TrendChart series={trend} />
+        <TrendChart
+          series={trend}
+          format={(i, v) => formatMetric(trendMetrics[i]!.id, trendMetrics[i]!.unit, v)}
+        />
         <p class="muted legend">Chấm = từng ngày, đường = trung bình trượt 7 ngày.</p>
       </section>
 
@@ -123,7 +130,7 @@ export function Overview({ data }: { data: StatsData }) {
             aria-label="Tháng trước"
             onClick={() => setMonth(addMonths(month, -1))}
           >
-            ◀
+            <Icon name="chevL" size={18} />
           </button>
           <strong>
             Tháng {month.slice(5)}/{month.slice(0, 4)}
@@ -134,7 +141,7 @@ export function Overview({ data }: { data: StatsData }) {
             disabled={month >= today.slice(0, 7)}
             onClick={() => setMonth(addMonths(month, 1))}
           >
-            ▶
+            <Icon name="chevR" size={18} />
           </button>
         </div>
         <MonthCalendar month={month} points={monthPoints} />
@@ -144,7 +151,10 @@ export function Overview({ data }: { data: StatsData }) {
         <div class="panel-head">
           <h2>Theo thứ trong tuần (90 ngày)</h2>
         </div>
-        <WeekdayBars values={weekdayValues} />
+        <WeekdayBars
+          values={weekdayValues}
+          format={(v) => (view ? formatMetric(view.id, view.unit, v) : String(v))}
+        />
       </section>
 
       <AskClaude ctx={ctx} metrics={metrics} today={today} />

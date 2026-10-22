@@ -15,46 +15,75 @@ function scale(values: number[]): (v: number) => number {
 /** Raw days as dots, trailing average as a line. Each series is scaled to its own min–max. */
 export function TrendChart({
   series,
+  format = (v) => String(Math.round(v * 10) / 10).replace('.', ','),
 }: {
   series: { raw: Point[]; avg: Point[]; color: string; label: string }[]
+  format?: (seriesIndex: number, v: number) => string
 }) {
+  const range = series.map((s) => {
+    const present = s.raw.map((p) => p.value).filter((v): v is number => v !== null)
+    return present.length ? { min: Math.min(...present), max: Math.max(...present) } : null
+  })
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Xu hướng 90 ngày">
-      {series.map((s) => {
-        const n = s.raw.length
-        const x = (i: number) => PAD + (i / Math.max(1, n - 1)) * (W - 2 * PAD)
-        const present = s.raw.map((p) => p.value).filter((v): v is number => v !== null)
-        if (present.length === 0) return null
-        const y = scale(present)
-        const line = s.avg
-          .map((p, i) => (p.value === null ? null : `${x(i).toFixed(1)},${y(p.value).toFixed(1)}`))
-          .filter(Boolean)
-          .join(' ')
-        return (
-          <g>
-            {s.raw.map((p, i) =>
-              p.value === null ? null : (
-                <circle cx={x(i)} cy={y(p.value)} r="1.6" fill={s.color} opacity="0.35" />
-              ),
+    <>
+      <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Xu hướng 90 ngày">
+        {series.map((s) => {
+          const n = s.raw.length
+          const x = (i: number) => PAD + (i / Math.max(1, n - 1)) * (W - 2 * PAD)
+          const present = s.raw.map((p) => p.value).filter((v): v is number => v !== null)
+          if (present.length === 0) return null
+          const y = scale(present)
+          const line = s.avg
+            .map((p, i) =>
+              p.value === null ? null : `${x(i).toFixed(1)},${y(p.value).toFixed(1)}`,
+            )
+            .filter(Boolean)
+            .join(' ')
+          return (
+            <g>
+              {s.raw.map((p, i) =>
+                p.value === null ? null : (
+                  <circle cx={x(i)} cy={y(p.value)} r="1.6" fill={s.color} opacity="0.35" />
+                ),
+              )}
+              <polyline
+                points={line}
+                pathLength="1"
+                class="draw"
+                fill="none"
+                stroke={s.color}
+                stroke-width="2"
+                stroke-linejoin="round"
+              />
+            </g>
+          )
+        })}
+      </svg>
+      <ul class="legend-list inline">
+        {series.map((s, i) => (
+          <li>
+            <span class="swatch" style={{ background: s.color }} /> {s.label}
+            {range[i] && (
+              <span class="muted">
+                {' '}
+                (thấp nhất {format(i, range[i]!.min)}, cao nhất {format(i, range[i]!.max)})
+              </span>
             )}
-            <polyline
-              points={line}
-              pathLength="1"
-              class="draw"
-              fill="none"
-              stroke={s.color}
-              stroke-width="2"
-              stroke-linejoin="round"
-            />
-          </g>
-        )
-      })}
-    </svg>
+          </li>
+        ))}
+      </ul>
+    </>
   )
 }
 
 /** Seven bars, Monday first. */
-export function WeekdayBars({ values }: { values: (number | null)[] }) {
+export function WeekdayBars({
+  values,
+  format = (v) => String(Math.round(v * 10) / 10).replace('.', ','),
+}: {
+  values: (number | null)[]
+  format?: (v: number) => string
+}) {
   const labels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
   const present = values.filter((v): v is number => v !== null)
   const max = present.length ? Math.max(...present, 0) : 1
@@ -76,6 +105,17 @@ export function WeekdayBars({ values }: { values: (number | null)[] }) {
               style={{ animationDelay: `${i * 40}ms` }}
               fill="var(--accent)"
             />
+            {v !== null && (
+              <text
+                x={i * 40 + 20}
+                y={Math.max(10, 86 - h)}
+                text-anchor="middle"
+                font-size="10"
+                fill="var(--fg)"
+              >
+                {format(v)}
+              </text>
+            )}
             <text x={i * 40 + 20} y="108" text-anchor="middle" font-size="11" fill="var(--muted)">
               {labels[i]}
             </text>
@@ -143,7 +183,7 @@ export function MonthCalendar({ month, points }: { month: string; points: Point[
   )
 }
 
-const GROUP_COLORS = ['var(--accent)', 'var(--ok)', 'var(--warn)']
+const GROUP_COLORS = ['var(--accent)', 'var(--info)', 'var(--warn)']
 
 /** Ring split by value; `values` in the same order as `colors`. */
 export function Donut({ values, colors = GROUP_COLORS }: { values: number[]; colors?: string[] }) {

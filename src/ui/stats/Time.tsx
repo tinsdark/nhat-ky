@@ -13,7 +13,7 @@ import { Donut, HourHeatmap, StackedColumns } from '../charts'
 import type { StatsData } from './shared'
 
 const DAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
-const COLORS = ['var(--accent)', 'var(--ok)', 'var(--warn)']
+const COLORS = ['var(--accent)', 'var(--info)', 'var(--warn)']
 const h = (hours: number) => formatDuration(Math.round(hours * 60))
 
 /** SPEC 4.3 and 4.4: where the time goes today and this week, when deep work happens, per project, budgets. */

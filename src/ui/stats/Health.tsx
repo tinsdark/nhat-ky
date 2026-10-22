@@ -5,6 +5,7 @@ import { energyCurve, energyHighlights, healthWeek, sleepBars } from '../../core
 import { formatChange, formatMetric, labelWithScale } from '../../core/stats'
 import { EnergyLine, MonthCalendar, SleepChart } from '../charts'
 import type { StatsData } from './shared'
+import { Icon } from '../Icon'
 
 const DAYS_SHOWN = 30
 
@@ -74,7 +75,7 @@ export function Health({ data }: { data: StatsData }) {
           aria-label="Tháng trước"
           onClick={() => setMonth(addMonths(month, -1))}
         >
-          ◀
+          <Icon name="chevL" size={18} />
         </button>
         <strong>
           Tháng {month.slice(5)}/{month.slice(0, 4)}
@@ -85,7 +86,7 @@ export function Health({ data }: { data: StatsData }) {
           disabled={month >= today.slice(0, 7)}
           onClick={() => setMonth(addMonths(month, 1))}
         >
-          ▶
+          <Icon name="chevR" size={18} />
         </button>
       </div>
       <MonthCalendar month={month} points={points} />

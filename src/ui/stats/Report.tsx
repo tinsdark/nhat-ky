@@ -6,6 +6,7 @@ import { weeklyReport } from '../../core/weeklyReport'
 import { getInsightStore } from '../../data/insights'
 import { useLive } from '../useLive'
 import type { StatsData } from './shared'
+import { Icon } from '../Icon'
 
 const DAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
 const dm = (k: string) => `${k.slice(8)}/${k.slice(5, 7)}`
@@ -23,7 +24,7 @@ export function Report({ data }: { data: StatsData }) {
     <div class="report">
       <div class="datenav noprint">
         <button type="button" aria-label="Tuần trước" onClick={() => setEnd(addDays(end, -7))}>
-          ◀
+          <Icon name="chevL" size={18} />
         </button>
         <strong>
           {dm(r.from)} – {dm(r.to)}
@@ -34,7 +35,7 @@ export function Report({ data }: { data: StatsData }) {
           disabled={end >= today}
           onClick={() => setEnd(addDays(end, 7) > today ? today : addDays(end, 7))}
         >
-          ▶
+          <Icon name="chevR" size={18} />
         </button>
       </div>
       <button type="button" class="btn btn-primary noprint" onClick={() => window.print()}>

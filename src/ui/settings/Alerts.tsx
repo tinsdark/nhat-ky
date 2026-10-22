@@ -27,7 +27,11 @@ export function Alerts({ settings }: { settings: Settings }) {
                   <span class="grow">
                     <span class="title">{rule.label}</span>
                     <span class="sub">
-                      {on ? (editable.length ? 'Bấm để chỉnh ngưỡng' : 'Đang bật') : 'Đã tắt'}
+                      {on
+                        ? editable.length
+                          ? editable.map((k) => `${rule.params[k] ?? k}: ${p[k]}`).join(' · ')
+                          : 'Đang bật'
+                        : 'Đã tắt'}
                     </span>
                   </span>
                   <Switch

@@ -19,6 +19,7 @@
   --danger-soft: #f7ded6;
   --ok: #2f7d46;
   --warn: #a8660a;
+  --info: #3f6fa8; /* third series colour, distinct from the green accent and the amber warn */
   --warn-text: #7f4a00; /* warn colour for small text: stronger contrast on --bg */
   --warn-soft: #fbe9c4;
   --shadow: 0 1px 2px rgb(110 80 20 / 0.08), 0 2px 10px rgb(110 80 20 / 0.08);
@@ -44,6 +45,7 @@
     --danger-soft: #43221b;
     --ok: #7fd9a0;
     --warn: #f6bb4a;
+    --info: #7db4ee;
     --warn-text: #f6bb4a;
     --warn-soft: #40331a;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 2px 10px rgb(0 0 0 / 0.25);
@@ -67,6 +69,7 @@
   --danger-soft: #43221b;
   --ok: #7fd9a0;
   --warn: #f6bb4a;
+  --info: #7db4ee;
   --warn-text: #f6bb4a;
   --warn-soft: #40331a;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 2px 10px rgb(0 0 0 / 0.25);
@@ -1216,15 +1219,25 @@ table.grid.left td {
 .core {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 11px;
-  border: 1px solid var(--border);
+  gap: 5px;
+  padding: 4px 11px 4px 4px;
   border-radius: 999px;
   color: var(--muted);
   font-size: 0.8rem;
 }
+/* Not a button: an open circle says "still to do", the filled pill says "done". */
+.core::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+}
+.core.done::before {
+  display: none;
+}
 .core.done {
-  border-color: transparent;
+  padding-left: 11px;
   background: var(--accent-soft);
   color: var(--accent);
   font-weight: 600;

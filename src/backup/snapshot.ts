@@ -86,15 +86,17 @@ export async function restoreSnapshot(snap: Snapshot): Promise<RestoreResult> {
   const days = keepValid(snap.days, isDay)
   result.skipped = entries.skipped + days.skipped
   await db.transaction('rw', [db.entries, db.days, db.defs, db.settings, db.insights], async () => {
-    for (const e of entries.valid) {
-      const cur = await db.entries.get(e.id)
+    const curEntries = await db.entries.bulkGet(entries.valid.map((e) => e.id))
+    for (const [i, e] of entries.valid.entries()) {
+      const cur = curEntries[i]
       if (!cur || compareVersion(e, cur) > 0) {
         await db.entries.put({ ...e, dirty: 1 })
         result.entries++
       }
     }
-    for (const d of days.valid) {
-      const cur = await db.days.get(d.dateKey)
+    const curDays = await db.days.bulkGet(days.valid.map((d) => d.dateKey))
+    for (const [i, d] of days.valid.entries()) {
+      const cur = curDays[i]
       if (!cur || compareVersion(d, cur) > 0) {
         await db.days.put({ ...d, dirty: 1 })
         result.days++
