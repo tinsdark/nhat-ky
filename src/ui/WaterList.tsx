@@ -1,15 +1,21 @@
 import { toHHmm } from '../core/date'
 import { formatMl } from '../core/water'
 import type { Entry } from '../core/types'
+import { SwipeRow } from './SwipeRow'
 
 /** Every drink behind the day's "Nước" row; tapping one opens it to edit or delete. */
 export function WaterList({
   entries,
   onOpen,
+  onDelete,
+  onEdit,
   onClose,
 }: {
   entries: Entry[]
   onOpen: (e: Entry) => void
+  /** Swipe left / right on one drink. */
+  onDelete: (e: Entry) => void
+  onEdit: (e: Entry) => void
   onClose: () => void
 }) {
   const total = entries.reduce((s, e) => s + (e.value ?? 0), 0)
@@ -21,7 +27,7 @@ export function WaterList({
         </h2>
         <ul class="rows">
           {entries.map((e) => (
-            <li>
+            <SwipeRow onDelete={() => onDelete(e)} onEdit={() => onEdit(e)}>
               <button type="button" class="rowbtn" onClick={() => onOpen(e)}>
                 <span class="when">
                   <strong>{toHHmm(e.start)}</strong>
@@ -32,7 +38,7 @@ export function WaterList({
                   </span>
                 </span>
               </button>
-            </li>
+            </SwipeRow>
           ))}
         </ul>
         <button type="button" class="btn" onClick={onClose}>

@@ -149,6 +149,21 @@ export function Today() {
     setSleepPrompt({ id: entry.id, note: estimated ? estimatedNote(entry.start) : undefined })
   }
 
+  /** Swipe left on a row: soft delete with Hoàn tác. */
+  const swipeDelete = (e: Entry) => {
+    void softDeleteEntry(e.id)
+    setWaterList((list) => {
+      const rest = list?.filter((x) => x.id !== e.id) ?? null
+      return rest && rest.length > 0 ? rest : null
+    })
+    setToast({ id: Date.now(), text: 'Đã xoá', onUndo: () => void restoreEntry(e.id) })
+  }
+  /** Swipe right on a row: straight to the edit form. */
+  const swipeEdit = (e: Entry) => {
+    setWaterList(null)
+    setForm(draftFromEntry(e))
+  }
+
   const quickTap = (a: QuickAction) => (a.type === 'water' ? setWaterFor(a) : setPickFor(a))
 
   /** One drink of `ml`: the amount is chosen each time, since cups and bottles differ. */
@@ -296,6 +311,8 @@ export function Today() {
         dateKey={dateKey}
         onOpen={setDetail}
         onOpenGroup={setWaterList}
+        onSwipeDelete={swipeDelete}
+        onSwipeEdit={swipeEdit}
       />
 
       {detail && (
@@ -346,6 +363,8 @@ export function Today() {
             setWaterList(null)
             setDetail(e)
           }}
+          onDelete={swipeDelete}
+          onEdit={swipeEdit}
           onClose={() => setWaterList(null)}
         />
       )}
