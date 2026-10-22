@@ -294,7 +294,7 @@ textarea {
   gap: 3px;
   border-top: 3px solid transparent;
   color: var(--muted);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-decoration: none;
 }

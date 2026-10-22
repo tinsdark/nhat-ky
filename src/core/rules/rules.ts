@@ -230,12 +230,12 @@ export const RULES: Rule[] = [
   },
   {
     id: 'overtime_high',
-    label: 'OT nhiều',
+    label: 'Tăng ca nhiều',
     priority: 2,
     windowDays: 7,
     cooldownDays: 3,
     defaults: { hours: 10 },
-    params: { hours: 'Quá (giờ OT/tuần)' },
+    params: { hours: 'Quá (giờ tăng ca/tuần)' },
     evaluate({ ctx, today, p }) {
       const total = sum(present(values('overtime_hours', ctx, ...last7(today))))
       return total <= p.hours!
@@ -243,7 +243,7 @@ export const RULES: Rule[] = [
         : [
             {
               key: 'overtime_high',
-              text: `OT ${num1(total)}h trong 7 ngày qua (ngưỡng ${p.hours}h).`,
+              text: `Tăng ca ${num1(total)}h trong 7 ngày qua (ngưỡng ${p.hours}h).`,
             },
           ]
     },
@@ -271,12 +271,12 @@ export const RULES: Rule[] = [
   },
   {
     id: 'habit_streak_at_risk',
-    label: 'Streak sắp đứt',
+    label: 'Chuỗi ngày sắp đứt',
     priority: 3,
     windowDays: 1,
     cooldownDays: 1,
     defaults: { hour: 21, minStreak: 5 },
-    params: { hour: 'Nhắc từ (giờ)', minStreak: 'Streak tối thiểu' },
+    params: { hour: 'Nhắc từ (giờ)', minStreak: 'Chuỗi tối thiểu (ngày)' },
     evaluate({ ctx, today, now, p }) {
       if (
         Number(toHHmm(now).slice(0, 2)) < p.hour! &&
@@ -294,11 +294,11 @@ export const RULES: Rule[] = [
         const unit = h.schedule.kind === 'timesPerWeek' ? 'tuần' : 'ngày'
         const rest =
           h.kind === 'check'
-            ? 'còn chưa tick'
+            ? 'còn chưa đánh dấu'
             : `còn ${num1(Math.max(0, h.target.value - value))}${h.kind === 'duration' ? ' phút' : ''} nữa`
         hits.push({
           key: `habit_streak_at_risk:${h.id}`,
-          text: `${h.name} đang streak ${current} ${unit}, ${rest}.`,
+          text: `${h.name} đang giữ chuỗi ${current} ${unit}, ${rest}.`,
         })
       }
       return hits

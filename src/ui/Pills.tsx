@@ -1,4 +1,4 @@
-/** Section tabs as pills (Sổ Tiền style): one row, scrolls sideways when it does not fit. */
+/** Section tabs as pills (Sổ Tiền style): wraps onto a second row when they do not fit. */
 export function Pills<T extends string>({
   options,
   value,

@@ -13,7 +13,7 @@ export function Goals({ settings }: { settings: Settings }) {
     <>
       <Section
         title="Giờ làm việc"
-        hint="Dùng để tính giờ OT: khối làm việc ngoài khung này là OT."
+        hint="Dùng để tính giờ tăng ca: khối làm việc ngoài khung này là tăng ca."
       >
         <SetRow title="Bắt đầu">
           <input
@@ -94,7 +94,7 @@ export function Goals({ settings }: { settings: Settings }) {
       </Section>
 
       <Section
-        title="Ngân sách thời gian mỗi tuần"
+        title="Mục tiêu giờ mỗi tuần"
         hint="Màn Thống kê → Thời gian hiện tiến độ, và lời khuyên báo khi lệch."
       >
         <SetRow title="Deep work (tối thiểu)">

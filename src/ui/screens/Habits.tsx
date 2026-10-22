@@ -116,7 +116,7 @@ export function Habits() {
               <button
                 type="button"
                 class={met ? 'tick on' : 'tick'}
-                aria-label={met ? 'Bỏ tick' : 'Tick'}
+                aria-label={met ? 'Bỏ đánh dấu' : 'Đánh dấu'}
                 onClick={() =>
                   void (met ? untickHabit(h, today) : tickHabit(h, today, dayStartHour))
                 }
@@ -127,7 +127,7 @@ export function Habits() {
               <button
                 type="button"
                 class="tick"
-                aria-label="Thêm"
+                aria-label={h.kind === 'duration' ? 'Thêm 10 phút' : 'Thêm 1 lần'}
                 onClick={() =>
                   void tickHabit(h, today, dayStartHour, h.kind === 'duration' ? 10 : 1)
                 }
@@ -186,7 +186,7 @@ export function Habits() {
   return (
     <section class="screen">
       <h1>Thói quen</h1>
-      <p class="muted lead">Việc nhỏ lặp lại. Tick ngay ở đây hoặc ở tab Hôm nay.</p>
+      <p class="muted lead">Việc nhỏ lặp lại. Đánh dấu ngay ở đây hoặc ở tab Hôm nay.</p>
 
       <section class="panel hero">
         <div class="hero-top">

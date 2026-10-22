@@ -8,7 +8,7 @@ const C = 2 * Math.PI * R
 export function Hero({ items, isToday }: { items: CoreItem[]; isToday: boolean }) {
   const done = items.filter((i) => i.done).length
   return (
-    <section class="panel hero" aria-label={`Đã ghi ${done}/${items.length} mục cốt lõi`}>
+    <section class="panel hero" aria-label={`Đã ghi ${done}/${items.length} mục chính trong ngày`}>
       <div class="hero-top">
         <svg viewBox="0 0 64 64" class="ring" aria-hidden="true">
           <circle cx="32" cy="32" r={R} fill="none" stroke="var(--surface)" stroke-width="7" />
@@ -36,7 +36,9 @@ export function Hero({ items, isToday }: { items: CoreItem[]; isToday: boolean }
         </svg>
         <div>
           <strong class="hero-title">
-            {done === items.length ? 'Đã ghi đủ' : `Đã ghi ${done}/${items.length} mục cốt lõi`}
+            {done === items.length
+              ? 'Đã ghi đủ'
+              : `Đã ghi ${done}/${items.length} mục chính trong ngày`}
           </strong>
           {done === items.length && (
             <span class="muted">{isToday ? 'Hôm nay đủ cả rồi.' : 'Ngày này ghi đủ cả.'}</span>

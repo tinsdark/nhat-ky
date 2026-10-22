@@ -56,8 +56,8 @@ export function Experiments({
             <div class="card advice">
               <strong>Đang thử: {e.title}</strong>
               <span class="muted">
-                Ngày {day}/14 · làm đúng {done} ngày · đo {label(e).toLowerCase()}. Tick trong tab
-                Thói quen.
+                Ngày {day}/14 · làm đúng {done} ngày · đo {label(e).toLowerCase()}. Đánh dấu trong
+                tab Thói quen.
               </span>
               <div class="fb">
                 <button type="button" onClick={() => void decideExperiment(e.id, false)}>

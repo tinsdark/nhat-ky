@@ -277,7 +277,8 @@ export function ManageDefs({
                   ))}
                   {defs.tags.length === 0 && (
                     <p class="muted">
-                      Chưa có tag nào. Tag dùng để gắn nhãn Entry, ví dụ "ăn ngoài", "OT".
+                      Chưa có tag nào. Tag dùng để gắn nhãn cho bản ghi, ví dụ "ăn ngoài", "tăng
+                      ca".
                     </p>
                   )}
                 </ul>
@@ -398,7 +399,10 @@ function DefEditor({
           submit()
         }}
       >
-        <h2>{exists ? 'Sửa' : 'Thêm'}</h2>
+        <h2>
+          {exists ? 'Sửa' : 'Thêm'}{' '}
+          {{ quick: 'nút nhanh', cat: 'danh mục', type: 'loại', tag: 'tag' }[kind]}
+        </h2>
         <label>
           Tên
           <input value={str('name')} onInput={(e) => set('name', e.currentTarget.value)} />
@@ -447,8 +451,8 @@ function DefEditor({
           </p>
         )}
         {kind === 'quick' && type !== 'water' && str('type') !== NEW_TYPE && (
-          <div>
-            Danh mục hiện khi bấm nút
+          <div class="field">
+            <span class="lbl">Danh mục hiện khi bấm nút</span>
             <div class="choice">
               {defs.categories
                 .filter((c) => c.entryType === type && !c.archived)

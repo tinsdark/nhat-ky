@@ -83,6 +83,7 @@ export function EntryForm({
   const [value, setValue] = useState(draft.value?.toString() ?? '')
   const [unit, setUnit] = useState(draft.unit)
   const [note, setNote] = useState(draft.note)
+  const [valueOpen, setValueOpen] = useState(false)
   const [payload, setPayload] = useState<Payload>(draft.payload ?? {})
   const [tagIds, setTagIds] = useState<string[]>(draft.tags ?? [])
   const [newTag, setNewTag] = useState('')
@@ -142,6 +143,10 @@ export function EntryForm({
       void photos.remove([id])
     }
   }
+
+  // A number and a unit only mean something for some types; elsewhere they stay behind a link.
+  const showValue =
+    valueOpen || type === 'water' || type.startsWith('x-') || value !== '' || unit !== ''
 
   const startIso = atTime(draft.dateKey, start, dayStartHour)
   const typedEnd = end ? atTime(draft.dateKey, end, dayStartHour) : null
@@ -286,7 +291,7 @@ export function EntryForm({
         <div class="row shift">
           {[15, 30, 60].map((m) => (
             <button type="button" class="btn" onClick={() => setStart(shiftHHmm(start, -m))}>
-              Bắt đầu −{m === 60 ? '1h' : `${m}p`}
+              Lùi giờ bắt đầu {m === 60 ? '1h' : `${m}p`}
             </button>
           ))}
         </div>
@@ -295,20 +300,26 @@ export function EntryForm({
             Trùng giờ với: {overlaps.map((o) => o.title || o.type).join(', ')} (vẫn lưu được).
           </p>
         )}
-        <div class="row">
-          <label>
-            Giá trị
-            <input
-              inputMode="decimal"
-              value={value}
-              onInput={(e) => setValue(e.currentTarget.value)}
-            />
-          </label>
-          <label>
-            Đơn vị
-            <input value={unit} onInput={(e) => setUnit(e.currentTarget.value)} />
-          </label>
-        </div>
+        {showValue ? (
+          <div class="row">
+            <label>
+              Giá trị
+              <input
+                inputMode="decimal"
+                value={value}
+                onInput={(e) => setValue(e.currentTarget.value)}
+              />
+            </label>
+            <label>
+              Đơn vị
+              <input value={unit} onInput={(e) => setUnit(e.currentTarget.value)} />
+            </label>
+          </div>
+        ) : (
+          <button type="button" class="linkbtn" onClick={() => setValueOpen(true)}>
+            + Thêm giá trị và đơn vị
+          </button>
+        )}
         <div class="field">
           <span class="lbl">
             Ảnh ({photoIds.length}/{MAX_PHOTOS_PER_ENTRY})

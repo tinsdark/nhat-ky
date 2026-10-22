@@ -37,13 +37,13 @@ export function Time({ data }: { data: StatsData }) {
             <li>
               <span class="swatch" style={{ background: COLORS[i] }} /> {g.label}:{' '}
               <strong>{h(todayH[g.id])}</strong>
-              {avg && <span class="muted"> · TB 30 ngày {h(avg[g.id])}</span>}
+              {avg && <span class="muted"> · Trung bình 30 ngày {h(avg[g.id])}</span>}
             </li>
           ))}
         </ul>
       </div>
 
-      <h2 class="sub">Ngân sách tuần này</h2>
+      <h2 class="sub">Mục tiêu giờ tuần này</h2>
       <div class="stack tight">
         {budgets.map((b) => {
           const pct = Math.min(100, (b.hours / b.budget) * 100)

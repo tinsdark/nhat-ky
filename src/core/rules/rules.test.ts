@@ -218,7 +218,7 @@ describe('deep_work_short / overtime_high / social_over', () => {
       }),
     ]
     expect(run(ot).find((x) => x.ruleId === 'overtime_high')?.text).toBe(
-      'OT 10,5h trong 7 ngày qua (ngưỡng 10h).',
+      'Tăng ca 10,5h trong 7 ngày qua (ngưỡng 10h).',
     )
   })
   it('social over budget this week', () => {
@@ -257,7 +257,7 @@ describe('habit_streak_at_risk', () => {
     const hit = run(ticks(1, 13), { habits: [read], now: NOW_NIGHT }).find(
       (x) => x.ruleId === 'habit_streak_at_risk',
     )
-    expect(hit?.text).toBe('Đọc sách đang streak 13 ngày, còn 20 phút nữa.')
+    expect(hit?.text).toBe('Đọc sách đang giữ chuỗi 13 ngày, còn 20 phút nữa.')
   })
   it('is quiet before 21h, once met, or for a short streak', () => {
     expect(ids(run(ticks(1, 13), { habits: [read], now: NOW_MORNING }))).not.toContain(

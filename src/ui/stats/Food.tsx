@@ -69,7 +69,7 @@ export function Food({ data }: { data: StatsData }) {
         <div class="cards">
           {MAIN_SLOTS.map((s) => (
             <div class="card">
-              <span class="muted">Giờ ăn {SLOT_LABEL[s].toLowerCase()} TB</span>
+              <span class="muted">Giờ ăn {SLOT_LABEL[s].toLowerCase()} trung bình</span>
               <strong>{clock(f.avgTime[s])}</strong>
               <span class="muted">
                 bỏ {f.skipped[s]}/{f.loggedDays} ngày
@@ -77,7 +77,7 @@ export function Food({ data }: { data: StatsData }) {
             </div>
           ))}
           <div class="card">
-            <span class="muted">Khung ăn TB</span>
+            <span class="muted">Khung ăn trung bình</span>
             <strong>{formatMetric('eating_window', 'giờ', f.avgWindow)}</strong>
             <span class="muted">bữa đầu → bữa cuối</span>
           </div>

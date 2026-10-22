@@ -328,7 +328,7 @@ export const METRICS: Metric[] = [
   },
   {
     id: 'overtime_hours',
-    label: 'Giờ OT',
+    label: 'Giờ tăng ca',
     unit: 'giờ',
     group: 'time',
     compute: whenLogged((d, ctx) =>
@@ -428,7 +428,7 @@ export const METRICS: Metric[] = [
   // Subjective
   ...(['mood', 'energy', 'stress', 'focus'] as const).map((k): Metric => ({
     id: k,
-    label: { mood: 'Tâm trạng', energy: 'Năng lượng', stress: 'Stress', focus: 'Tập trung' }[k],
+    label: { mood: 'Tâm trạng', energy: 'Năng lượng', stress: 'Căng thẳng', focus: 'Tập trung' }[k],
     unit: '1–5',
     group: 'mind',
     compute: (d, ctx) => ctx.day(d)?.[k] ?? null,

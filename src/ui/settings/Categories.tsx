@@ -35,7 +35,7 @@ export function Categories() {
     {
       tab: 'tag',
       title: 'Tag',
-      sub: 'Nhãn gắn vào từng mục ("ăn ngoài", "OT")',
+      sub: 'Nhãn gắn vào từng mục ("ăn ngoài", "tăng ca")',
       count: defs.tags.length,
     },
   ]
