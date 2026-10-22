@@ -1,17 +1,15 @@
 import { useEffect, useRef, useState } from 'preact/hooks'
 import {
+  applyDefDraft,
   entryTypeOptions,
+  NEW_QUICK_TYPE,
   moveItem,
   newCustomType,
   newId,
   nextOrder,
-  cleanCategoryIds,
-  quickActionCategory,
   removeQuickAction,
   setArchived,
   typeLabel,
-  upsertById,
-  validateQuickAction,
 } from '../core/defs'
 import type { Category, CustomType, Defs, EntryType, QuickAction, Tag } from '../core/types'
 import { getDefs, saveDefs } from '../data/repository'
@@ -314,7 +312,6 @@ export function ManageDefs({
 }
 
 /** Select value for "make a new type named like this button". */
-const NEW_TYPE = '__new'
 
 function DefEditor({
   kind,
@@ -335,48 +332,9 @@ function DefEditor({
   const str = (k: string) => String(draft[k] ?? '')
 
   const submit = () => {
-    if (str('name').trim() === '') return setError('Nhập tên.')
-    if (kind === 'cat') {
-      const c = { ...draft, name: str('name').trim() } as unknown as Category
-      return onSave({ ...defs, categories: upsertById(defs.categories, c) })
-    }
-    if (kind === 'type') {
-      const t = { ...draft, name: str('name').trim() } as unknown as CustomType
-      return onSave({ ...defs, customTypes: upsertById(defs.customTypes ?? [], t) })
-    }
-    if (kind === 'tag') {
-      const t = { ...draft, name: str('name').trim() } as unknown as Tag
-      return onSave({ ...defs, tags: upsertById(defs.tags, t) })
-    }
-    const name = str('name').trim()
-    const value = str('value').trim() === '' ? null : Number(str('value').replace(',', '.'))
-    if (value !== null && Number.isNaN(value)) return setError('Giá trị không hợp lệ.')
-    // "Loại mới": the button brings its own type, named like the button; categories are added to it afterwards.
-    const created = str('type') === NEW_TYPE ? newCustomType(name, str('icon') || '📌') : null
-    const buttonType = created ? created.id : (str('type') as EntryType)
-    const a = {
-      ...draft,
-      name,
-      title: name,
-      type: buttonType,
-      categoryId: quickActionCategory(buttonType, str('categoryId'), defs.categories),
-      categoryIds: created
-        ? undefined
-        : cleanCategoryIds(
-            buttonType,
-            (draft.categoryIds as string[] | undefined) ?? [],
-            defs.categories,
-          ),
-      value: buttonType === 'water' ? value : null,
-      unit: buttonType === 'water' ? str('unit') : '',
-    } as unknown as QuickAction
-    const problem = validateQuickAction(a, defs.categories)
-    if (problem) return setError(problem)
-    onSave({
-      ...defs,
-      ...(created && { customTypes: [...(defs.customTypes ?? []), created] }),
-      quickActions: upsertById(defs.quickActions, a),
-    })
+    const result = applyDefDraft(kind, draft, defs)
+    if ('error' in result) return setError(result.error)
+    onSave(result.defs)
   }
 
   const type = (draft.type ?? draft.entryType) as EntryType
@@ -439,18 +397,18 @@ function DefEditor({
               {entryTypeOptions(defs).map((t) => (
                 <option value={t.id}>{t.label}</option>
               ))}
-              {kind === 'quick' && <option value={NEW_TYPE}>+ Loại mới (tên như nút)</option>}
+              {kind === 'quick' && <option value={NEW_QUICK_TYPE}>+ Loại mới (tên như nút)</option>}
             </select>
           </label>
         )}
         {kind === 'quick' && (
           <p class="muted hint">
-            {str('type') === NEW_TYPE
+            {str('type') === NEW_QUICK_TYPE
               ? `Tạo Loại "${str('name').trim() || '…'}". Thêm danh mục cho loại này ở tab Danh mục.`
               : 'Bấm nút ở Hôm nay sẽ hiện các danh mục của loại này để chọn.'}
           </p>
         )}
-        {kind === 'quick' && type !== 'water' && str('type') !== NEW_TYPE && (
+        {kind === 'quick' && type !== 'water' && str('type') !== NEW_QUICK_TYPE && (
           <div class="field">
             <span class="lbl">Danh mục hiện khi bấm nút</span>
             <div class="choice">

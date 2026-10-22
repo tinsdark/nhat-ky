@@ -120,3 +120,72 @@ export function validateQuickAction(a: QuickAction, categories: Category[]): str
 
 export const tagName = (tags: Tag[], id: string): string | null =>
   tags.find((t) => t.id === id)?.name ?? null
+
+/** Value of the "Loại" select in the quick-button editor that means "make a new type named like the button". */
+export const NEW_QUICK_TYPE = '__new'
+
+export type DefKind = 'cat' | 'quick' | 'tag' | 'type'
+
+/**
+ * Applies an editor draft to the defs: trims the name, and for a quick button resolves its category,
+ * the categories it offers and a type created on the spot. Returns the new defs, or the message to show.
+ */
+export function applyDefDraft(
+  kind: DefKind,
+  draft: Record<string, unknown>,
+  defs: Defs,
+): { defs: Defs } | { error: string } {
+  const str = (k: string) => String(draft[k] ?? '')
+  const name = str('name').trim()
+  if (name === '') return { error: 'Nhập tên.' }
+  if (kind === 'cat')
+    return {
+      defs: {
+        ...defs,
+        categories: upsertById(defs.categories, { ...draft, name } as unknown as Category),
+      },
+    }
+  if (kind === 'type')
+    return {
+      defs: {
+        ...defs,
+        customTypes: upsertById(defs.customTypes ?? [], {
+          ...draft,
+          name,
+        } as unknown as CustomType),
+      },
+    }
+  if (kind === 'tag')
+    return { defs: { ...defs, tags: upsertById(defs.tags, { ...draft, name } as unknown as Tag) } }
+
+  const value = str('value').trim() === '' ? null : Number(str('value').replace(',', '.'))
+  if (value !== null && Number.isNaN(value)) return { error: 'Giá trị không hợp lệ.' }
+  // "Loại mới": the button brings its own type, named like the button; categories are added to it afterwards.
+  const created = str('type') === NEW_QUICK_TYPE ? newCustomType(name, str('icon') || '📌') : null
+  const buttonType = created ? created.id : (str('type') as EntryType)
+  const a = {
+    ...draft,
+    name,
+    title: name,
+    type: buttonType,
+    categoryId: quickActionCategory(buttonType, str('categoryId'), defs.categories),
+    categoryIds: created
+      ? undefined
+      : cleanCategoryIds(
+          buttonType,
+          (draft.categoryIds as string[] | undefined) ?? [],
+          defs.categories,
+        ),
+    value: buttonType === 'water' ? value : null,
+    unit: buttonType === 'water' ? str('unit') : '',
+  } as unknown as QuickAction
+  const problem = validateQuickAction(a, defs.categories)
+  if (problem) return { error: problem }
+  return {
+    defs: {
+      ...defs,
+      ...(created && { customTypes: [...(defs.customTypes ?? []), created] }),
+      quickActions: upsertById(defs.quickActions, a),
+    },
+  }
+}

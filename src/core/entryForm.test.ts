@@ -6,6 +6,7 @@ import {
   copyToDay,
   findOverlaps,
   formatDuration,
+  projectNames,
   resolveEnd,
   shiftHHmm,
 } from './entryForm'
@@ -141,5 +142,23 @@ describe('resolveEnd / durations', () => {
   it('addMinutes and formatDuration', () => {
     expect(addMinutes('2026-11-02T10:00:00.000Z', 90)).toBe('2026-11-02T11:30:00.000Z')
     expect([15, 60, 90, 120, 135].map(formatDuration)).toEqual(['15p', '1h', '1h30', '2h', '2h15'])
+  })
+})
+
+describe('projectNames', () => {
+  const work = (project: unknown) => e({ type: 'work', payload: { project } })
+  it('most used first, then the defaults that were not used; blanks and non-strings ignored', () => {
+    const names = projectNames([
+      work('Alpha'),
+      work(' Beta '),
+      work('Beta'),
+      work(''),
+      work(3),
+      e({}),
+    ])
+    expect(names).toEqual(['Beta', 'Alpha', 'CyberApp Golden', 'QLBX', 'Nhật ký'])
+  })
+  it('a default that was used is not listed twice', () => {
+    expect(projectNames([work('QLBX')])).toEqual(['QLBX', 'CyberApp Golden', 'Nhật ký'])
   })
 })

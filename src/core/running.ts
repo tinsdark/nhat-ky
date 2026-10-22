@@ -1,5 +1,6 @@
-import { MAX_BLOCK_HOURS } from './entryForm'
-import type { Entry, EntryType } from './types'
+import { toHHmm } from './date'
+import { autoMealSlot, MAX_BLOCK_HOURS } from './entryForm'
+import type { Category, Entry, EntryType, QuickAction } from './types'
 
 /** Types that last a while, so pressing once records the start and a second press records the end. */
 export function isTimedType(type: EntryType): boolean {
@@ -45,4 +46,23 @@ export function finishPatch(
   const ms = new Date(nowIso).getTime() - new Date(entry.start).getTime()
   if (ms <= 0 || ms > MAX_BLOCK_HOURS * 3_600_000) return null
   return { end: nowIso, payload: stopRunning(entry.payload) }
+}
+
+/**
+ * Fields of the block a shortcut starts when its category is tapped (Hôm nay, 2 taps): it starts now
+ * and runs until "Kết thúc". A meal also gets its slot from the category or the hour.
+ */
+export function quickStartFields(action: QuickAction, category: Category, startIso: string) {
+  const payload =
+    action.type === 'meal' ? { mealSlot: autoMealSlot(category.id, toHHmm(startIso)) } : {}
+  return {
+    type: action.type,
+    categoryId: category.id,
+    title: category.name,
+    value: action.value,
+    unit: action.unit,
+    start: startIso,
+    source: 'quick' as const,
+    payload: startRunning(payload),
+  }
 }

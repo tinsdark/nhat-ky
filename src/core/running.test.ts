@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import type { Entry } from './types'
-import { finishPatch, isRunning, isTimedType, runningEntries, startRunning } from './running'
+import type { Category, Entry, QuickAction } from './types'
+import {
+  finishPatch,
+  isRunning,
+  isTimedType,
+  quickStartFields,
+  runningEntries,
+  startRunning,
+} from './running'
 
 const entry = (over: Partial<Entry> = {}): Entry =>
   ({
@@ -50,5 +57,36 @@ describe('finishPatch', () => {
   })
   it('startRunning sets the flag without touching the rest', () => {
     expect(startRunning({ project: 'A' })).toEqual({ project: 'A', running: true })
+  })
+})
+
+describe('quickStartFields', () => {
+  const action = (type: QuickAction['type']) =>
+    ({ id: 'q', name: 'Ăn uống', type, value: null, unit: '' }) as QuickAction
+  const category = (id: string, name: string) => ({ id, name }) as Category
+  const now = '2026-10-21T12:15:00.000+07:00'
+
+  it('starts a running block now with the category as title', () => {
+    const f = quickStartFields(action('work'), category('cat-deep', 'Deep work'), now)
+    expect(f).toMatchObject({
+      type: 'work',
+      categoryId: 'cat-deep',
+      title: 'Deep work',
+      start: now,
+      source: 'quick',
+    })
+    expect(f.payload).toEqual({ running: true })
+  })
+  it('a meal gets its slot from the category, else from the hour', () => {
+    expect(
+      quickStartFields(action('meal'), category('cat-breakfast', 'Ăn sáng'), now).payload,
+    ).toEqual({
+      mealSlot: 'breakfast',
+      running: true,
+    })
+    expect(quickStartFields(action('meal'), category('cat-x', 'Phở'), now).payload).toEqual({
+      mealSlot: 'lunch', // 12:15
+      running: true,
+    })
   })
 })

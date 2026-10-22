@@ -261,3 +261,25 @@ export function habitProgress(h: Habit, value: number): number {
     return h.target.value <= 0 ? (value > 0 ? 1 : 0) : Math.min(1, value / h.target.value)
   return isMet(h, value) ? 1 : 0
 }
+
+/** Done today: target reached, and for a build habit something actually recorded (a `<=` target is met by 0). */
+export const isDoneToday = (h: Habit, value: number): boolean =>
+  isMet(h, value) && (h.direction === 'quit' || value > 0)
+
+/** Streak unit: a "x times a week" habit counts weeks, every other habit counts days. */
+export const streakUnit = (h: Habit): 'tuần' | 'ngày' =>
+  h.schedule.kind === 'timesPerWeek' ? 'tuần' : 'ngày'
+
+/** Status line of a habit row: "Đã xong", "Chưa xong" or "12/20 phút". */
+export function habitStatusText(h: Habit, value: number, done: boolean): string {
+  if (h.kind === 'check') return done ? 'Đã xong' : 'Chưa xong'
+  return `${Math.round(value)}/${h.target.value} ${habitUnit(h)}`.trim()
+}
+
+/** The row with the longest running streak (first wins a tie); null when none has a streak. */
+export function bestStreak<T extends { st: Streaks }>(rows: T[]): T | null {
+  return rows.reduce<T | null>(
+    (best, r) => (r.st.current > (best?.st.current ?? 0) ? r : best),
+    null,
+  )
+}
