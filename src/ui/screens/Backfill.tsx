@@ -261,7 +261,7 @@ export function Backfill() {
       {pickFor && (
         <CategoryPicker
           title={pickFor.name}
-          type={pickFor.type}
+          action={pickFor}
           categories={defs.categories}
           onPick={(c) => pickCategory(pickFor, c)}
           onOther={() => pickCategory(pickFor, null)}
