@@ -1,13 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { atTime } from './date'
 import {
+  bestStreak,
   completionRate,
   dayStatus,
   describeSchedule,
   describeTarget,
   habitProgress,
+  habitStatusText,
   heatmap,
+  isDoneToday,
   isMet,
+  streakUnit,
   streaks,
   valuesByDate,
 } from './habits'
@@ -270,5 +274,31 @@ describe('habit labels', () => {
     const quit = habit({ kind: 'count', direction: 'quit', target: { op: '=', value: 0 } })
     expect(habitProgress(quit, 0)).toBe(1)
     expect(habitProgress(quit, 2)).toBe(0)
+  })
+})
+
+describe('row helpers', () => {
+  const quit = habit({ direction: 'quit', kind: 'count', target: { op: '=', value: 0 } })
+  it('isDoneToday: a build habit needs something recorded, a quit habit is done at 0', () => {
+    expect(isDoneToday(habit({ target: { op: '<=', value: 1 } }), 0)).toBe(false)
+    expect(isDoneToday(habit({ target: { op: '<=', value: 1 } }), 1)).toBe(true)
+    expect(isDoneToday(quit, 0)).toBe(true)
+    expect(isDoneToday(quit, 2)).toBe(false)
+  })
+  it('streakUnit counts weeks only for "x times a week"', () => {
+    expect(streakUnit(habit({ schedule: { kind: 'timesPerWeek', times: 3 } }))).toBe('tuần')
+    expect(streakUnit(habit())).toBe('ngày')
+  })
+  it('habitStatusText: yes/no or progress with the unit', () => {
+    expect(habitStatusText(habit(), 0, false)).toBe('Chưa xong')
+    expect(habitStatusText(habit(), 1, true)).toBe('Đã xong')
+    const read = habit({ kind: 'duration', target: { op: '>=', value: 20 } })
+    expect(habitStatusText(read, 10.4, false)).toBe('10/20 phút')
+  })
+  it('bestStreak picks the longest, the first on a tie, and null without any streak', () => {
+    const row = (name: string, current: number) => ({ name, st: { current, longest: current } })
+    expect(bestStreak([row('a', 2), row('b', 5), row('c', 5)])?.name).toBe('b')
+    expect(bestStreak([row('a', 0)])).toBeNull()
+    expect(bestStreak([])).toBeNull()
   })
 })

@@ -5,11 +5,13 @@ import {
   completionRate,
   describeSchedule,
   describeTarget,
+  bestStreak,
   habitProgress,
-  habitUnit,
+  habitStatusText,
   heatmap,
-  isMet,
+  isDoneToday,
   isScheduled,
+  streakUnit,
   streaks,
   type HabitOptions,
 } from '../../core/habits'
@@ -59,7 +61,7 @@ export function Habits() {
   const rowData = (h: Habit) => {
     const values = ctx.habitValues(h)
     const value = values.get(today) ?? 0
-    const met = isMet(h, value) && (h.direction === 'quit' || value > 0)
+    const met = isDoneToday(h, value)
     return {
       h,
       values,
@@ -72,14 +74,11 @@ export function Habits() {
   }
   const dueRows = dueToday.map(rowData)
   const doneCount = dueRows.filter((r) => r.met).length
-  const best = dueRows.reduce<ReturnType<typeof rowData> | null>(
-    (a, r) => (r.st.current > (a?.st.current ?? 0) ? r : a),
-    null,
-  )
+  const best = bestStreak(dueRows)
 
   const card = (r: ReturnType<typeof rowData>, dim = false) => {
     const { h, values, value, met, progress, st, auto } = r
-    const unit = h.schedule.kind === 'timesPerWeek' ? 'tuần' : 'ngày'
+    const unit = streakUnit(h)
     const isOpen = open === h.id
     return (
       <li class={dim ? 'hcard dim' : 'hcard'}>
@@ -94,11 +93,7 @@ export function Habits() {
             <span class="grow">
               <span class="title">{h.name}</span>
               <span class="sub">
-                {h.kind === 'check'
-                  ? met
-                    ? 'Đã xong'
-                    : 'Chưa xong'
-                  : `${Math.round(value)}/${h.target.value} ${habitUnit(h)}`.trim()}
+                {habitStatusText(h, value, met)}
                 {' · '}
                 {describeSchedule(h.schedule)}
                 {auto ? ' · tự tính' : ''}

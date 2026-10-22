@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { defaultDefs } from './defaults'
 import {
+  applyDefDraft,
   ENTRY_TYPES,
+  NEW_QUICK_TYPE,
   entryTypeOptions,
   moveItem,
   newCustomType,
@@ -122,5 +124,54 @@ describe('custom types', () => {
     expect(typeLabel({ customTypes: [t] }, t.id)).toBe('💊 Thuốc')
     expect(typeLabel({}, 'meal')).toBe('Ăn uống')
     expect(entryTypeOptions(undefined)).toEqual(ENTRY_TYPES)
+  })
+})
+
+describe('applyDefDraft', () => {
+  const base = defaultDefs('2026-11-01')
+  it('rejects an empty name', () => {
+    expect(applyDefDraft('tag', { id: 't1', name: '  ' }, base)).toEqual({ error: 'Nhập tên.' })
+  })
+  it('trims the name and adds or replaces a tag', () => {
+    const r = applyDefDraft('tag', { id: 't1', name: ' ăn ngoài ', color: '#000' }, base)
+    expect('defs' in r && r.defs.tags.find((t) => t.id === 't1')?.name).toBe('ăn ngoài')
+  })
+  it('a quick button on the "new type" option creates the type and points at it', () => {
+    const r = applyDefDraft(
+      'quick',
+      { id: 'q9', name: 'Thiền', icon: '🧘', type: NEW_QUICK_TYPE, categoryId: '' },
+      base,
+    )
+    if (!('defs' in r)) throw new Error(r.error)
+    const created = r.defs.customTypes?.find((t) => t.name === 'Thiền')
+    expect(created?.id).toMatch(/^x-/)
+    expect(r.defs.quickActions.find((q) => q.id === 'q9')?.type).toBe(created?.id)
+  })
+  it('only a water button keeps its value and unit', () => {
+    const quick = (type: string) =>
+      applyDefDraft(
+        'quick',
+        { id: 'q1', name: 'Nước', type, value: '250', unit: 'ml', categoryId: '' },
+        base,
+      )
+    const water = quick('water')
+    const work = quick('work')
+    expect('defs' in water && water.defs.quickActions.find((q) => q.id === 'q1')).toMatchObject({
+      value: 250,
+      unit: 'ml',
+    })
+    expect('defs' in work && work.defs.quickActions.find((q) => q.id === 'q1')).toMatchObject({
+      value: null,
+      unit: '',
+    })
+  })
+  it('refuses a number that is not a number', () => {
+    expect(
+      applyDefDraft(
+        'quick',
+        { id: 'q1', name: 'Nước', type: 'water', value: 'abc', categoryId: '' },
+        base,
+      ),
+    ).toEqual({ error: 'Giá trị không hợp lệ.' })
   })
 })

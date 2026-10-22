@@ -105,3 +105,16 @@ export function resolveEnd(startIso: string, endIso: string): string | null {
   if (e <= s) e += 24 * 3_600_000
   return e - s > MAX_BLOCK_HOURS * 3_600_000 ? null : new Date(e).toISOString()
 }
+
+const DEFAULT_PROJECTS = ['CyberApp Golden', 'QLBX', 'Nhật ký']
+
+/** Project names for the suggestion list: the ones used before (most used first), then the defaults. */
+export function projectNames(history: Entry[]): string[] {
+  const count = new Map<string, number>()
+  for (const e of history) {
+    const p = e.payload.project
+    if (typeof p === 'string' && p.trim()) count.set(p.trim(), (count.get(p.trim()) ?? 0) + 1)
+  }
+  const used = [...count.entries()].sort((a, b) => b[1] - a[1]).map(([name]) => name)
+  return [...used, ...DEFAULT_PROJECTS.filter((p) => !count.has(p))]
+}
