@@ -67,7 +67,7 @@ export function PurgeSection({ dayStartHour }: { dayStartHour: number }) {
   return (
     <Section
       title="Xoá dữ liệu theo ngày"
-      hint="Xoá các mục đã ghi (Đã ghi trong ngày) và điểm chấm ngày trong khoảng chọn, gồm cả hai ngày đầu và cuối. Bỏ trống \"Từ ngày\" = xoá từ đầu đến \"Đến ngày\". Không đụng thói quen, danh mục, nút nhanh, cài đặt. Việc xoá được đồng bộ: các máy khác đã đăng nhập cũng mất dữ liệu trong khoảng đó."
+      hint="Xoá các mục đã ghi (Đã ghi trong ngày) và điểm chấm ngày trong khoảng chọn, gồm cả hai ngày đầu và cuối. Bỏ trống ô Từ ngày = xoá từ đầu đến Đến ngày. Không đụng thói quen, danh mục, nút nhanh, cài đặt. Việc xoá được đồng bộ: các máy khác đã đăng nhập cũng mất dữ liệu trong khoảng đó."
     >
       <div class="form">
         <div class="row">
