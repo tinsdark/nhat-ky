@@ -1681,6 +1681,7 @@ form.sheet > .row:last-child {
   border-top: 0;
 }
 .setrow .grow {
+  flex: 1; /* pushes every control to the same right edge */
   min-width: 0;
   display: flex;
   flex-direction: column;

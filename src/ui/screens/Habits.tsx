@@ -132,7 +132,7 @@ export function Habits() {
                   void tickHabit(h, today, dayStartHour, h.kind === 'duration' ? 10 : 1)
                 }
               >
-                {h.kind === 'duration' ? '+10′' : '+1'}
+                {h.kind === 'duration' ? '+10p' : '+1'}
               </button>
             ))}
         </div>
@@ -269,7 +269,7 @@ export function Habits() {
         <summary>Thói quen hoạt động thế nào?</summary>
         <ul>
           <li>
-            <b>Tick tay</b>: có/không (đã làm chưa), số lần (+1) hoặc số phút (+10′ mỗi lần chạm).
+            <b>Tick tay</b>: có/không (đã làm chưa), số lần (+1) hoặc số phút (+10p mỗi lần chạm).
             Mỗi lần tick là một mục ghi trong ngày.
           </li>
           <li>
