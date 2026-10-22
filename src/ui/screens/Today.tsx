@@ -210,7 +210,8 @@ export function Today() {
     : []
 
   const progress = coreProgress(entries, day)
-  const rows = groupWater(buildTimeline(entries, isToday ? { now } : {}))
+  // Newest first: what was just recorded is on top.
+  const rows = groupWater(buildTimeline(entries, isToday ? { now } : {})).reverse()
   const actions = [...defs.quickActions]
     .sort((a, b) => a.order - b.order)
     .filter((a) => !SLEEP_ACTIONS.has(a.id))
