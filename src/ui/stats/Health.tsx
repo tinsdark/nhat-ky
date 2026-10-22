@@ -1,17 +1,13 @@
 import { useState } from 'preact/hooks'
-import { addDays } from '../../core/date'
+import { addDays, addMonths } from '../../core/date'
 import { computeSeries, getMetric } from '../../core/metrics'
 import { energyCurve, energyHighlights, healthWeek, sleepBars } from '../../core/healthStats'
-import { formatMetric } from '../../core/stats'
+import { formatChange, formatMetric, labelWithScale } from '../../core/stats'
 import { EnergyLine, MonthCalendar, SleepChart } from '../charts'
 import type { StatsData } from './shared'
+import { Icon } from '../Icon'
 
 const DAYS_SHOWN = 30
-
-function shiftMonth(month: string, delta: number): string {
-  const d = new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)) - 1 + delta, 1))
-  return d.toISOString().slice(0, 7)
-}
 
 /** SPEC 5.4 (sleep chart, calendar, weekly summary) and 5.5 (energy through the day). */
 export function Health({ data }: { data: StatsData }) {
@@ -32,15 +28,16 @@ export function Health({ data }: { data: StatsData }) {
       <h2 class="sub">Tuần này so với tuần trước</h2>
       <div class="cards">
         {cards.map((c) => {
-          const pct = c.changePct === null ? null : Math.round(c.changePct)
-          const arrow = pct === null ? '' : pct > 0 ? '↑' : pct < 0 ? '↓' : '→'
           const unit = c.mode === 'sum' ? 'phút' : c.unit
+          const change = formatChange(c.id, unit, c.current, c.previous)
           return (
             <div class="card">
-              <span class="muted">{c.mode === 'sum' ? `${c.label} (tổng tuần)` : c.label}</span>
-              <strong>{formatMetric(c.id, unit, c.current)}</strong>
               <span class="muted">
-                {pct === null ? 'chưa đủ dữ liệu' : `${arrow} ${Math.abs(pct)}%`}
+                {c.mode === 'sum' ? `${c.label} (tổng tuần)` : labelWithScale(c.label, c.unit)}
+              </span>
+              <strong>{formatMetric(c.id, unit, c.current)}</strong>
+              <span class={change ? `delta ${change.tone}` : 'muted'}>
+                {change ? change.text : 'chưa đủ dữ liệu'}
               </span>
             </div>
           )
@@ -76,9 +73,9 @@ export function Health({ data }: { data: StatsData }) {
         <button
           type="button"
           aria-label="Tháng trước"
-          onClick={() => setMonth(shiftMonth(month, -1))}
+          onClick={() => setMonth(addMonths(month, -1))}
         >
-          ◀
+          <Icon name="chevL" size={18} />
         </button>
         <strong>
           Tháng {month.slice(5)}/{month.slice(0, 4)}
@@ -87,9 +84,9 @@ export function Health({ data }: { data: StatsData }) {
           type="button"
           aria-label="Tháng sau"
           disabled={month >= today.slice(0, 7)}
-          onClick={() => setMonth(shiftMonth(month, 1))}
+          onClick={() => setMonth(addMonths(month, 1))}
         >
-          ▶
+          <Icon name="chevR" size={18} />
         </button>
       </div>
       <MonthCalendar month={month} points={points} />

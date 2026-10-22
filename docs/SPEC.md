@@ -329,7 +329,7 @@ Ba thứ này là biến "đầu ra" chính của phân tích: hầu hết lời
 | Chỉ số | Cách tính | Ý nghĩa |
 | --- | --- | --- |
 | Điểm giữa giấc ngủ | (giờ ngủ + giờ dậy) / 2 | Mốc ổn định nhất để biết mày là người ngủ sớm hay cú đêm |
-| Lệch giờ ngủ ngày thường/cuối tuần | Điểm giữa giấc ngủ T7–CN trừ T2–T6 | Lệch > 1h = kiểu "jet lag" mỗi tuần, hay gây mệt đầu tuần |
+| Lệch giờ ngủ ngày thường/cuối tuần | Điểm giữa giấc ngủ của các đêm dẫn tới sáng T7–CN (đêm bắt đầu T6, T7) trừ các đêm dẫn tới sáng T2–T6 | Lệch > 1h = kiểu "jet lag" mỗi tuần, hay gây mệt đầu tuần |
 | Độ đều giờ ngủ | Độ lệch chuẩn giờ đi ngủ 7 ngày | Đều quan trọng ngang thời lượng |
 | Khung ăn | Bữa đầu → bữa cuối | Khung quá dài, ăn rải rác tới khuya |
 | Bữa cuối → ngủ | Giờ đi ngủ − giờ bữa cuối | Ăn sát giờ ngủ hay đi kèm ngủ kém |

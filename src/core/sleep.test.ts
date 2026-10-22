@@ -48,6 +48,8 @@ describe('findOpenNightSleep', () => {
       ),
     ).toBeUndefined()
     expect(findOpenNightSleep([sleep('2026-10-30T23:30:00.000+07:00', null)], now)).toBeUndefined()
+    // forgotten "Thức dậy" from yesterday morning: 20h old, over the 16h cap
+    expect(findOpenNightSleep([sleep('2026-11-02T11:00:00.000+07:00', null)], now)).toBeUndefined()
   })
 })
 

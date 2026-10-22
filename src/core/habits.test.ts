@@ -167,6 +167,21 @@ describe('streaks — quit habit', () => {
   })
 })
 
+describe('quit habit with loggedDays', () => {
+  const h = habit({ direction: 'quit', kind: 'count', target: { op: '=', value: 0 } })
+  it('days nothing was logged neither extend nor break the streak', () => {
+    const logged = new Set(['2026-11-02', '2026-11-04'])
+    const opts = { loggedDays: logged }
+    expect(dayStatus(h, '2026-11-03', new Map(), opts)).toBe('rest')
+    expect(dayStatus(h, '2026-11-04', new Map(), opts)).toBe('met')
+    expect(streaks(h, new Map(), '2026-11-05', opts)).toEqual({ current: 2, longest: 2 })
+  })
+  it('a slip on a day with a record still counts even if the day has no other entry', () => {
+    const slip = new Map([['2026-11-03', 1]])
+    expect(dayStatus(h, '2026-11-03', slip, { loggedDays: new Set() })).toBe('missed')
+  })
+})
+
 describe('rest days', () => {
   const h = habit()
   const dayTypes = new Map([['2026-11-03', 'sick' as const]])
@@ -174,6 +189,15 @@ describe('rest days', () => {
     const v = vals('2026-11-02', '2026-11-04')
     expect(streaks(h, v, '2026-11-04').current).toBe(1)
     expect(streaks(h, v, '2026-11-04', { skipRestDays: true, dayTypes }).current).toBe(2)
+  })
+})
+
+describe('completionRate — x times a week', () => {
+  it('caps each week at its target: 7 days in week 1 then 3 empty weeks is 25%, not 58%', () => {
+    const h = habit({ schedule: { kind: 'timesPerWeek', times: 3 }, startDate: '2026-11-02' })
+    const v = vals(...Array.from({ length: 7 }, (_, i) => `2026-11-0${2 + i}`).slice(0, 7))
+    // 2026-11-02 is a Monday: days 02…08 are one week; window is 4 weeks ending Sunday 11-29
+    expect(completionRate(h, v, '2026-11-29', 28)).toBeCloseTo(3 / 12)
   })
 })
 

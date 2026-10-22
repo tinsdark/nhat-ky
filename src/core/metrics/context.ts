@@ -115,6 +115,15 @@ export function nightHours(ts: string): number {
   return h < 12 ? h + 24 : h
 }
 
+/**
+ * Clock hour on the logical day: times before `dayStartHour` belong to the previous day, so they come
+ * out past 24 (01:00 with a 04:00 day start → 25), not as an early-morning 1.0.
+ */
+export function dayHours(ts: string, dayStartHour: number): number {
+  const h = clockHours(ts)
+  return h < dayStartHour ? h + 24 : h
+}
+
 export const hoursBetween = (a: string, b: string) =>
   (new Date(b).getTime() - new Date(a).getTime()) / 3_600_000
 

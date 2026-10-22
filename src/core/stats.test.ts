@@ -2,7 +2,15 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_SETTINGS } from './settings'
 import { createMetricContext } from './metrics'
 import type { Metric } from './metrics'
-import { byWeekday, formatMetric, movingAverage, weekCompare, windowMean } from './stats'
+import {
+  byWeekday,
+  formatChange,
+  formatMetric,
+  labelWithScale,
+  movingAverage,
+  weekCompare,
+  windowMean,
+} from './stats'
 
 // A metric whose value for a day is looked up from a table, so expectations are plain arithmetic.
 function table(values: Record<string, number | null>): Metric {
@@ -78,5 +86,34 @@ describe('formatMetric', () => {
     expect(formatMetric('water_ml', 'ml', 2041.66)).toBe('2042 ml')
     expect(formatMetric('exercise_min', 'phút', 71.5)).toBe('72 phút')
     expect(formatMetric('mood', '1–5', null)).toBe('–')
+  })
+})
+
+describe('formatChange', () => {
+  it('scores: plain difference, coloured by which way is better', () => {
+    expect(formatChange('mood', '1–5', 3.9, 3.5)).toEqual({ text: '↑ +0,4 điểm', tone: 'good' })
+    expect(formatChange('stress', '1–5', 3.9, 3.5)).toEqual({ text: '↑ +0,4 điểm', tone: 'bad' })
+  })
+  it('clock times: minutes, no judgement', () => {
+    expect(formatChange('bedtime', 'giờ (sau 24 = qua nửa đêm)', 23.9, 23.5)).toEqual({
+      text: '↑ +24 phút',
+      tone: 'neutral',
+    })
+    expect(formatChange('wake_time', 'giờ', 6, 7.25)?.text).toBe('↓ −1h15')
+  })
+  it('units: ml, rate in points, no change, and missing data', () => {
+    expect(formatChange('water_ml', 'ml', 1500, 1300)?.text).toBe('↑ +200 ml')
+    expect(formatChange('habit_rate', '0–1', 0.5, 0.75)).toEqual({
+      text: '↓ −25 điểm %',
+      tone: 'bad',
+    })
+    expect(formatChange('mood', '1–5', 3.5, 3.52)?.text).toBe('→ không đổi')
+    expect(formatChange('mood', '1–5', null, 3)).toBeNull()
+    expect(formatChange('exercised', '0/1', 1, 0)).toBeNull()
+  })
+  it('labelWithScale adds the scale only to scores', () => {
+    expect(labelWithScale('Tâm trạng', '1–5')).toBe('Tâm trạng (1–5)')
+    expect(labelWithScale('Điểm ngày', '1–10')).toBe('Điểm ngày (1–10)')
+    expect(labelWithScale('Giờ làm', 'giờ')).toBe('Giờ làm')
   })
 })

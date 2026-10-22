@@ -13,7 +13,7 @@ import { Donut, HourHeatmap, StackedColumns } from '../charts'
 import type { StatsData } from './shared'
 
 const DAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
-const COLORS = ['var(--accent)', 'var(--ok)', 'var(--warn)']
+const COLORS = ['var(--accent)', 'var(--info)', 'var(--warn)']
 const h = (hours: number) => formatDuration(Math.round(hours * 60))
 
 /** SPEC 4.3 and 4.4: where the time goes today and this week, when deep work happens, per project, budgets. */
@@ -37,13 +37,13 @@ export function Time({ data }: { data: StatsData }) {
             <li>
               <span class="swatch" style={{ background: COLORS[i] }} /> {g.label}:{' '}
               <strong>{h(todayH[g.id])}</strong>
-              {avg && <span class="muted"> · TB 30 ngày {h(avg[g.id])}</span>}
+              {avg && <span class="muted"> · Trung bình 30 ngày {h(avg[g.id])}</span>}
             </li>
           ))}
         </ul>
       </div>
 
-      <h2 class="sub">Ngân sách tuần này</h2>
+      <h2 class="sub">Mục tiêu giờ tuần này</h2>
       <div class="stack tight">
         {budgets.map((b) => {
           const pct = Math.min(100, (b.hours / b.budget) * 100)

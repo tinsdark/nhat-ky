@@ -39,6 +39,12 @@ function withOvertime(input: Entry, settings: Settings): Entry {
   }
 }
 
+/** A block that ends before it starts is always a bug in the caller; refuse it instead of storing it. */
+function assertBlockOrder(entry: Pick<Entry, 'start' | 'end'>): void {
+  if (entry.end !== null && new Date(entry.end).getTime() < new Date(entry.start).getTime())
+    throw new Error(`Entry ends before it starts: ${entry.start} → ${entry.end}`)
+}
+
 export async function getDeviceId(): Promise<string> {
   return db.transaction('rw', db.meta, async () => {
     const row = await db.meta.get('deviceId')
@@ -59,13 +65,16 @@ export async function getSettings(): Promise<Settings> {
 }
 
 export async function saveSettings(patch: Partial<Settings>): Promise<void> {
-  const next = { ...(await getSettings()), ...patch }
-  await db.settings.put({
-    ...next,
-    key: 'settings',
-    updatedAt: toIso(),
-    deviceId: await getDeviceId(),
-    dirty: 1,
+  // One transaction: two quick saves must not both read the old row and lose the first patch.
+  await db.transaction('rw', db.settings, db.meta, async () => {
+    const next = { ...(await getSettings()), ...patch }
+    await db.settings.put({
+      ...next,
+      key: 'settings',
+      updatedAt: toIso(),
+      deviceId: await getDeviceId(),
+      dirty: 1,
+    })
   })
 }
 
@@ -111,26 +120,30 @@ export async function createEntry(input: NewEntry): Promise<Entry> {
     deleted: false,
     dirty: 1,
   }
+  assertBlockOrder(entry)
   const saved = withOvertime(entry, settings)
   await db.entries.add(saved)
   return saved
 }
 
 export async function updateEntry(id: string, patch: Partial<NewEntry>): Promise<Entry> {
-  const current = await db.entries.get(id)
-  if (!current) throw new Error(`Entry not found: ${id}`)
-  const next: Entry = {
-    ...current,
-    ...patch,
-    updatedAt: toIso(),
-    deviceId: await getDeviceId(),
-    dirty: 1,
-  }
-  const settings = await getSettings()
-  if (patch.start !== undefined) next.dateKey = toDateKey(next.start, settings.dayStartHour)
-  const saved = withOvertime(next, settings)
-  await db.entries.put(saved)
-  return saved
+  return db.transaction('rw', db.entries, db.settings, db.meta, async () => {
+    const current = await db.entries.get(id)
+    if (!current) throw new Error(`Entry not found: ${id}`)
+    const next: Entry = {
+      ...current,
+      ...patch,
+      updatedAt: toIso(),
+      deviceId: await getDeviceId(),
+      dirty: 1,
+    }
+    const settings = await getSettings()
+    if (patch.start !== undefined) next.dateKey = toDateKey(next.start, settings.dayStartHour)
+    assertBlockOrder(next)
+    const saved = withOvertime(next, settings)
+    await db.entries.put(saved)
+    return saved
+  })
 }
 
 /** Blocks that were started and not yet ended, from any day. */

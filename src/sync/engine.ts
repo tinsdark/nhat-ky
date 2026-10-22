@@ -4,9 +4,11 @@ import type { Table } from 'dexie'
 import { AuthNetworkError, AuthRequiredError } from '../auth/token'
 import { toIso } from '../core/date'
 import { compareVersion, mergeRecords, type Versioned } from '../core/merge'
-import type { Day, Entry } from '../core/types'
+import { mergeDefs } from '../core/mergeDefs'
+import { isDay, isDocStamp, isEntry } from '../core/validate'
+import type { Day, Defs, Entry } from '../core/types'
 import type { DocStamp, NhatKyDB } from '../data/db'
-import type { DriveClient } from '../drive/client'
+import { DriveError, type DriveClient } from '../drive/client'
 
 export type SyncDrive = Pick<
   DriveClient,
@@ -39,6 +41,7 @@ type DocRecord = DocStamp & { key: string }
 
 const MONTH_FILE = /^nk_(\d{4}-\d{2})\.json$/
 const MAX_CONFLICT_RETRIES = 3
+const DEFS_FILE = 'nk_defs.json'
 
 const monthOf = (dateKey: string) => dateKey.slice(0, 7)
 const monthFileName = (month: string) => `nk_${month}.json`
@@ -76,15 +79,19 @@ export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive
     // An entry edited into another month leaves a stale copy here; drop it instead of letting it win.
     let droppedStale = false
     const remoteEntries: Entry[] = []
-    for (const r of remote.entries ?? []) {
-      const l = await db.entries.get(r.id)
+    const validRemote = (remote.entries ?? []).filter((x) => isEntry(x))
+    const locals = await db.entries.bulkGet(validRemote.map((r) => r.id))
+    for (const [i, r] of validRemote.entries()) {
+      const l = locals[i]
       if (l && monthOf(l.dateKey) !== month && compareVersion(l, r) >= 0) {
         droppedStale = true
         continue
       }
       remoteEntries.push({ ...r, dirty: 0 })
     }
-    const remoteDays = (remote.days ?? []).map((d) => ({ ...d, dirty: 0 as const }))
+    const remoteDays = (remote.days ?? [])
+      .filter((x) => isDay(x))
+      .map((d) => ({ ...d, dirty: 0 as const }))
 
     const e = mergeRecords(localEntries, remoteEntries, (x) => x.id)
     const d = mergeRecords(localDays, remoteDays, (x) => x.dateKey)
@@ -140,14 +147,42 @@ export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive
     listedMt: string | null,
     attempt = 0,
   ): Promise<void> {
-    const local = await table.get(key)
+    let local = await table.get(key)
     if (local?.dirty !== 1 && (listedMt === null || listedMt === (await getMt(name)))) return
 
     const remote = listedMt ? await drive.readJson<Versioned & Record<string, unknown>>(name) : null
 
-    if (remote && (!local || compareVersion(remote, local) > 0)) {
+    if (remote && !isDocStamp(remote)) {
+      console.warn(`Ignoring ${name} on Drive: invalid stamp`)
+      return
+    }
+    // This device has never synced the file, so any local row is the seed (or an edit made on top of it
+    // before sign-in): the copy on Drive is the real one and must not be overwritten by it.
+    const firstSync = remote !== null && (await getMt(name)) === null
+
+    // Both sides changed defs: keep what only the losing side added, then push the union as a new version.
+    if (name === DEFS_FILE && remote && local?.dirty === 1 && !firstSync) {
+      const remoteWins = compareVersion(remote, local) > 0
+      const winner = (remoteWins ? remote : local) as unknown as Defs
+      const merged = mergeDefs(winner, (remoteWins ? local : remote) as unknown as Defs)
+      if (merged !== winner) {
+        local = {
+          ...merged,
+          key,
+          updatedAt: toIso(),
+          deviceId: local.deviceId,
+          dirty: 1,
+        } as unknown as typeof local
+        await table.put(local as T)
+      }
+    }
+
+    if (remote && (firstSync || !local || compareVersion(remote, local) > 0)) {
       const cur = await table.get(key)
-      if (!cur || compareVersion(remote, cur) > 0) {
+      if (
+        !cur ||
+        (firstSync ? cur.updatedAt === local?.updatedAt : compareVersion(remote, cur) > 0)
+      ) {
         await table.put({ ...remote, key, dirty: 0 } as unknown as T)
       }
       await setMt(name, listedMt!)
@@ -195,7 +230,7 @@ export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive
     for (const month of [...months].sort()) {
       await syncMonth(month, remoteFiles.get(monthFileName(month)) ?? null)
     }
-    await syncDoc('nk_defs.json', db.defs, 'defs', remoteFiles.get('nk_defs.json') ?? null)
+    await syncDoc(DEFS_FILE, db.defs, 'defs', remoteFiles.get('nk_defs.json') ?? null)
     await syncDoc(
       'nk_settings.json',
       db.settings,
@@ -217,10 +252,12 @@ export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive
       setStatus({ state: 'synced', lastSyncAt: toIso() })
       return true
     } catch (err) {
-      if (err instanceof AuthRequiredError) setStatus({ state: 'authRequired' })
+      // A second 401 after the silent refresh means the user must sign in again.
+      if (err instanceof AuthRequiredError || (err instanceof DriveError && err.status === 401))
+        setStatus({ state: 'authRequired' })
       else if (
         err instanceof AuthNetworkError ||
-        err instanceof TypeError ||
+        (err instanceof TypeError && /fetch|network|load failed/i.test(err.message)) ||
         (typeof navigator !== 'undefined' && navigator.onLine === false)
       ) {
         setStatus({ state: 'offline' })

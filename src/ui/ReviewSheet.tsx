@@ -81,12 +81,32 @@ export function ReviewSheet({ dateKey, onClose }: { dateKey: string; onClose: ()
         <h2>
           Chấm ngày {dateKey.slice(8)}/{dateKey.slice(5, 7)}
         </h2>
-        <Choice label="Tâm trạng" options={scale(5)} value={mood} onChange={rating(setMood)} />
-        <Choice label="Năng lượng" options={scale(5)} value={energy} onChange={rating(setEnergy)} />
-        <Choice label="Stress" options={scale(5)} value={stress} onChange={rating(setStress)} />
-        <Choice label="Tập trung" options={scale(5)} value={focus} onChange={rating(setFocus)} />
         <Choice
-          label="Điểm cả ngày (1–10)"
+          label="Tâm trạng (1 tệ – 5 tốt)"
+          options={scale(5)}
+          value={mood}
+          onChange={rating(setMood)}
+        />
+        <Choice
+          label="Năng lượng (1 cạn – 5 dồi dào)"
+          options={scale(5)}
+          value={energy}
+          onChange={rating(setEnergy)}
+        />
+        <Choice
+          label="Căng thẳng (1 thư giãn – 5 rất căng)"
+          options={scale(5)}
+          value={stress}
+          onChange={rating(setStress)}
+        />
+        <Choice
+          label="Tập trung (1 rối – 5 sâu)"
+          options={scale(5)}
+          value={focus}
+          onChange={rating(setFocus)}
+        />
+        <Choice
+          label="Điểm cả ngày (1 tệ – 10 tuyệt vời)"
           options={scale(10)}
           value={dayScore}
           onChange={(n) => setDayScore(n ?? null)}
@@ -103,7 +123,7 @@ export function ReviewSheet({ dateKey, onClose }: { dateKey: string; onClose: ()
         />
         {pending.length > 0 && (
           <fieldset class="group">
-            <legend>Thói quen chưa tick</legend>
+            <legend>Thói quen chưa đánh dấu</legend>
             {pending.map((h) => (
               <button
                 type="button"

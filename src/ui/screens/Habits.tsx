@@ -28,7 +28,10 @@ export function Habits() {
   const defs = useLive(getDefs, [])
   const dayStartHour = settings?.dayStartHour ?? 4
   const today = toDateKey(Date.now(), dayStartHour)
-  const from = addDays(today, -HISTORY_DAYS)
+  // Streaks and rates need every day since a habit started, not only the last HISTORY_DAYS.
+  const earliestStart = defs?.habits.reduce((m, h) => (h.startDate < m ? h.startDate : m), today)
+  const minFrom = addDays(today, -HISTORY_DAYS)
+  const from = earliestStart && earliestStart < minFrom ? earliestStart : minFrom
   const entries = useLive(() => getEntriesInRange(from, today), [from, today])
   const days = useLive(() => getDaysInRange(from, today), [from, today])
   const [editing, setEditing] = useState<Habit | 'new' | null>(null)
@@ -46,6 +49,7 @@ export function Habits() {
   const opts: HabitOptions = {
     skipRestDays: settings.skipRestDays,
     dayTypes: new Map(days.map((d) => [d.dateKey, d.dayType])),
+    loggedDays: new Set(entries.map((e) => e.dateKey)),
   }
   const active = defs.habits.filter((h) => !h.archived)
   const archived = defs.habits.filter((h) => h.archived)
@@ -112,7 +116,7 @@ export function Habits() {
               <button
                 type="button"
                 class={met ? 'tick on' : 'tick'}
-                aria-label={met ? 'Bỏ tick' : 'Tick'}
+                aria-label={met ? 'Bỏ đánh dấu' : 'Đánh dấu'}
                 onClick={() =>
                   void (met ? untickHabit(h, today) : tickHabit(h, today, dayStartHour))
                 }
@@ -123,12 +127,12 @@ export function Habits() {
               <button
                 type="button"
                 class="tick"
-                aria-label="Thêm"
+                aria-label={h.kind === 'duration' ? 'Thêm 10 phút' : 'Thêm 1 lần'}
                 onClick={() =>
                   void tickHabit(h, today, dayStartHour, h.kind === 'duration' ? 10 : 1)
                 }
               >
-                {h.kind === 'duration' ? '+10′' : '+1'}
+                {h.kind === 'duration' ? '+10p' : '+1'}
               </button>
             ))}
         </div>
@@ -182,7 +186,7 @@ export function Habits() {
   return (
     <section class="screen">
       <h1>Thói quen</h1>
-      <p class="muted lead">Việc nhỏ lặp lại. Tick ngay ở đây hoặc ở tab Hôm nay.</p>
+      <p class="muted lead">Việc nhỏ lặp lại. Đánh dấu ngay ở đây hoặc ở tab Hôm nay.</p>
 
       <section class="panel hero">
         <div class="hero-top">
@@ -265,7 +269,7 @@ export function Habits() {
         <summary>Thói quen hoạt động thế nào?</summary>
         <ul>
           <li>
-            <b>Tick tay</b>: có/không (đã làm chưa), số lần (+1) hoặc số phút (+10′ mỗi lần chạm).
+            <b>Tick tay</b>: có/không (đã làm chưa), số lần (+1) hoặc số phút (+10p mỗi lần chạm).
             Mỗi lần tick là một mục ghi trong ngày.
           </li>
           <li>

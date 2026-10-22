@@ -225,7 +225,7 @@ export function PayloadFields({
           value={payload.location}
           onChange={(v) => set('location', v)}
         />
-        {payload.isOvertime === true && <p class="muted">Ngoài giờ làm việc (OT).</p>}
+        {payload.isOvertime === true && <p class="muted">Ngoài giờ làm việc (tăng ca).</p>}
       </Group>
     )
   }

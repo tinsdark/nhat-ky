@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthRequiredError } from '../auth/token'
 import type { Day, Entry } from '../core/types'
 import { NhatKyDB } from '../data/db'
+import { DriveError } from '../drive/client'
 import { createSyncEngine, type SyncDrive } from './engine'
 
 /** In-memory appDataFolder shared by every "device". */
@@ -365,6 +366,83 @@ describe('defs and settings', () => {
     expect((await a.db.defs.get('defs'))?.updatedAt).toBe(t(20))
     expect(drive.writes).toEqual([])
   })
+
+  it('first sync on a device: the Drive copy wins even over a newer local edit of the seed', async () => {
+    const drive = fakeDrive()
+    drive.put('nk_defs.json', {
+      categories: [],
+      habits: [{ id: 'real-habit' }],
+      quickActions: [],
+      tags: [],
+      updatedAt: t(1),
+      deviceId: 'B',
+    })
+    const a = device(drive)
+    // "Dùng ngay, đăng nhập sau": seed row edited before the first sign-in
+    await a.db.defs.put({
+      key: 'defs',
+      categories: [],
+      habits: [],
+      quickActions: [],
+      tags: [],
+      updatedAt: t(30),
+      deviceId: 'A',
+      dirty: 1,
+    })
+    await a.engine.run()
+    expect((await a.db.defs.get('defs'))?.habits).toEqual([{ id: 'real-habit' }])
+    expect(drive.writes).toEqual([])
+    expect(drive.json('nk_defs.json').habits).toEqual([{ id: 'real-habit' }])
+  })
+
+  it('both devices changed defs: the newer wins but a habit only the other added is kept and pushed', async () => {
+    const drive = fakeDrive()
+    const base = { categories: [], quickActions: [], tags: [] }
+    const a = device(drive)
+    const b = device(drive)
+    await a.db.defs.put({
+      key: 'defs',
+      ...base,
+      habits: [],
+      updatedAt: t(1),
+      deviceId: 'A',
+      dirty: 1,
+    })
+    await a.engine.run()
+    await b.engine.run()
+    await a.db.defs.put({
+      key: 'defs',
+      ...base,
+      habits: [{ id: 'from-a' }],
+      updatedAt: t(5),
+      deviceId: 'A',
+      dirty: 1,
+    } as never)
+    await b.db.defs.put({
+      key: 'defs',
+      ...base,
+      habits: [{ id: 'from-b' }],
+      updatedAt: t(9),
+      deviceId: 'B',
+      dirty: 1,
+    } as never)
+    await a.engine.run()
+    await b.engine.run()
+    await a.engine.run()
+    const ids = (r: { habits: { id: string }[] }) => r.habits.map((h) => h.id).sort()
+    expect(ids(drive.json('nk_defs.json'))).toEqual(['from-a', 'from-b'])
+    expect(ids((await a.db.defs.get('defs')) as never)).toEqual(['from-a', 'from-b'])
+  })
+
+  it('after the first sync a newer local edit still wins', async () => {
+    const drive = fakeDrive()
+    drive.put('nk_settings.json', { dayStartHour: 4, updatedAt: t(1), deviceId: 'B' })
+    const a = device(drive)
+    await a.engine.run()
+    await a.db.settings.put(settings(t(30), 6) as never)
+    await a.engine.run()
+    expect(drive.json('nk_settings.json').dayStartHour).toBe(6)
+  })
 })
 
 describe('status and failures', () => {
@@ -396,6 +474,22 @@ describe('status and failures', () => {
     drive.fail = null
     await a.engine.run()
     expect(a.engine.getStatus().state).toBe('synced')
+  })
+
+  it('a second 401 from Drive shows the sign-in prompt, not a generic error', async () => {
+    const drive = fakeDrive()
+    const a = device(drive)
+    drive.fail = () => new DriveError(401, 'Drive GET failed: 401')
+    await a.engine.run()
+    expect(a.engine.getStatus().state).toBe('authRequired')
+  })
+
+  it('a programming TypeError is an error, not offline', async () => {
+    const drive = fakeDrive()
+    const a = device(drive)
+    drive.fail = () => new TypeError("Cannot read properties of undefined (reading 'x')")
+    await a.engine.run()
+    expect(a.engine.getStatus().state).toBe('error')
   })
 
   it('other errors are reported with their message', async () => {

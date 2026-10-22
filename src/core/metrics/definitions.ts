@@ -1,10 +1,12 @@
 import { addDays, dateKeyRange, weekday } from '../date'
 import { dayStatus, isScheduled } from '../habits'
+import { isOvertime } from '../overtime'
 import type { Entry, Habit } from '../types'
 import { isAlcohol, isCoffee, isFood, slotIs } from './classify'
 import {
   blockHours,
   clockHours,
+  dayHours,
   hoursBetween,
   mean,
   nightHours,
@@ -136,14 +138,15 @@ export const METRICS: Metric[] = [
     label: 'Lệch ngày thường / cuối tuần',
     unit: 'giờ',
     group: 'sleep',
-    // Mean midpoint of Sat–Sun minus Mon–Fri over the 7 days ending today.
+    // Mean midpoint of nights before a free morning (the nights that start Fri and Sat, i.e. waking Sat–Sun)
+    // minus the other nights (waking Mon–Fri), over the 7 days ending today.
     compute: (d, ctx) => {
       const free: number[] = []
       const busy: number[] = []
       for (const k of windowKeys(d)) {
         const m = midpoint(k, ctx)
         if (m === null) continue
-        ;(weekday(k) >= 5 ? free : busy).push(m)
+        ;(weekday(k) === 4 || weekday(k) === 5 ? free : busy).push(m)
       }
       const f = mean(free)
       const b = mean(busy)
@@ -177,7 +180,7 @@ export const METRICS: Metric[] = [
     group: 'food',
     compute: (d, ctx) => {
       const dinner = ctx.entriesOf(d).find((e) => isFood(e) && slotIs(e, 'dinner', 'cat-dinner'))
-      return dinner ? clockHours(dinner.start) : null
+      return dinner ? dayHours(dinner.start, ctx.settings.dayStartHour) : null
     },
   },
   {
@@ -209,7 +212,7 @@ export const METRICS: Metric[] = [
     group: 'food',
     compute: (d, ctx) => {
       const last = lastStart(ctx.entriesOf(d).filter(isCoffee))
-      return last ? clockHours(last) : null
+      return last ? dayHours(last, ctx.settings.dayStartHour) : null
     },
   },
   {
@@ -325,11 +328,14 @@ export const METRICS: Metric[] = [
   },
   {
     id: 'overtime_hours',
-    label: 'Giờ OT',
+    label: 'Giờ tăng ca',
     unit: 'giờ',
     group: 'time',
     compute: whenLogged((d, ctx) =>
-      sumHours(work(ctx, d).filter((e) => e.payload.isOvertime === true)),
+      // Recomputed from the working hours in Settings, not read from the flag stored with the entry.
+      sumHours(
+        work(ctx, d).filter((e) => e.end !== null && isOvertime(e.start, e.end, ctx.settings)),
+      ),
     ),
   },
   {
@@ -364,7 +370,7 @@ export const METRICS: Metric[] = [
     group: 'time',
     compute: (d, ctx) => {
       const first = firstStart(work(ctx, d))
-      return first ? clockHours(first) : null
+      return first ? dayHours(first, ctx.settings.dayStartHour) : null
     },
   },
   {
@@ -411,18 +417,18 @@ export const METRICS: Metric[] = [
     label: 'Tỷ lệ thói quen đạt',
     unit: '0–1',
     group: 'habit',
-    compute: (d, ctx) => {
+    compute: whenLogged((d, ctx) => {
       const due = ctx.habits.filter((h) => !h.archived && isScheduled(h, d))
       if (due.length === 0) return null
       const met = due.filter((h) => dayStatus(h, d, ctx.habitValues(h)) === 'met').length
       return met / due.length
-    },
+    }),
   },
 
   // Subjective
   ...(['mood', 'energy', 'stress', 'focus'] as const).map((k): Metric => ({
     id: k,
-    label: { mood: 'Tâm trạng', energy: 'Năng lượng', stress: 'Stress', focus: 'Tập trung' }[k],
+    label: { mood: 'Tâm trạng', energy: 'Năng lượng', stress: 'Căng thẳng', focus: 'Tập trung' }[k],
     unit: '1–5',
     group: 'mind',
     compute: (d, ctx) => ctx.day(d)?.[k] ?? null,
@@ -436,7 +442,7 @@ export const METRICS: Metric[] = [
   },
 ]
 
-/** One 0/1 metric per habit (`habit:<id>`): null on days the habit is not scheduled. */
+/** One 0/1 metric per habit (`habit:<id>`): null on days the habit is not scheduled or nothing was logged. */
 export function habitMetrics(habits: Habit[]): Metric[] {
   return habits.map((h) => ({
     id: `habit:${h.id}`,
@@ -444,6 +450,7 @@ export function habitMetrics(habits: Habit[]): Metric[] {
     unit: '0/1',
     group: 'habit' as const,
     compute: (d: string, ctx: MetricContext) => {
+      if (!ctx.logged(d)) return null
       const s = dayStatus(h, d, ctx.habitValues(h))
       return s === 'off' || s === 'rest' ? null : s === 'met' ? 1 : 0
     },

@@ -53,6 +53,18 @@ describe('snapshot round trip', () => {
     expect((await db.entries.get(e.id))?.title).toBe('mới')
   })
 
+  it('skips corrupt records and far-future stamps instead of writing them', async () => {
+    const e = await createEntry({ type: 'note', start: '2026-11-02T12:00:00.000+07:00' })
+    const snap = await buildSnapshot()
+    await db.entries.clear()
+    const future = { ...snap.entries[0]!, id: 'f', updatedAt: '9999-01-01T00:00:00.000+07:00' }
+    snap.entries.push(future, { id: 'broken' } as never)
+    const res = await restoreSnapshot(snap)
+    expect(res).toMatchObject({ entries: 1, skipped: 2 })
+    expect(await db.entries.get('f')).toBeUndefined()
+    expect(await db.entries.get(e.id)).toBeDefined()
+  })
+
   it('rejects files that are not a Nhật ký backup', () => {
     expect(() => parseSnapshot('xxx')).toThrow(SnapshotError)
     expect(() => parseSnapshot('{"version":99}')).toThrow(SnapshotError)

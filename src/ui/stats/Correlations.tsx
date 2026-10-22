@@ -53,7 +53,7 @@ export function Correlations({ data }: { data: StatsData }) {
             <li>
               {s.goodCond}{' '}
               <span class="muted">
-                → {s.what} TB {fmt(s.goodMean)} ({s.goodN} ngày)
+                → {s.what} trung bình {fmt(s.goodMean)} ({s.goodN} ngày)
               </span>
               {f.confidence === 'strong' && <span class="tag">chắc</span>}
             </li>
@@ -67,7 +67,7 @@ export function Correlations({ data }: { data: StatsData }) {
             <li>
               {s.badCond}{' '}
               <span class="muted">
-                → {s.what} TB {fmt(s.badMean)} ({s.badN} ngày)
+                → {s.what} trung bình {fmt(s.badMean)} ({s.badN} ngày)
               </span>
             </li>
           ))}
@@ -81,8 +81,8 @@ export function Correlations({ data }: { data: StatsData }) {
               const m = metrics.find((x) => x.id === w.outcomeId)
               return (
                 <li>
-                  {WEEKDAY_NAMES[w.weekday]}: {m?.label} TB {fmt(w.mean)} so với {fmt(w.restMean)}{' '}
-                  các ngày khác
+                  {WEEKDAY_NAMES[w.weekday]}: {m?.label} trung bình {fmt(w.mean)} so với{' '}
+                  {fmt(w.restMean)} các ngày khác
                 </li>
               )
             })}

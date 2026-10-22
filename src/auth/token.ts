@@ -42,6 +42,7 @@ export function createAuth({ request, revoke, storage, now = Date.now }: AuthDep
   let token: string | null = null
   let expiresAt = 0
   let pending: Promise<string> | null = null
+  let pendingInteractive = false
   const listeners = new Set<() => void>()
 
   const flag = {
@@ -76,7 +77,8 @@ export function createAuth({ request, revoke, storage, now = Date.now }: AuthDep
   }
 
   function refresh(interactive: boolean): Promise<string> {
-    if (pending) return pending
+    // A sign-in tap must not wait on a hung silent request: it needs its own popup.
+    if (pending && (!interactive || pendingInteractive)) return pending
     const req = request({ prompt: interactive ? 'select_account' : '' })
     // A silent request can hang forever (third-party cookies blocked); don't let it block every caller.
     const guarded = interactive
@@ -99,14 +101,18 @@ export function createAuth({ request, revoke, storage, now = Date.now }: AuthDep
         return token
       })
       .catch((err) => {
-        forget()
-        if (err instanceof AuthRequiredError) listeners.forEach((cb) => cb())
+        // Offline is not a sign-out: keep the saved token for when the network is back.
+        if (err instanceof AuthRequiredError) {
+          forget()
+          listeners.forEach((cb) => cb())
+        }
         throw err
       })
       .finally(() => {
         if (pending === p) pending = null
       })
     pending = p
+    pendingInteractive = interactive
     return p
   }
 

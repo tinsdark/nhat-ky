@@ -17,6 +17,11 @@ export interface HabitOptions {
   /** Days with dayType sick or travel neither break a streak nor count against the rate. */
   skipRestDays?: boolean
   dayTypes?: Map<string, DayType | null>
+  /**
+   * Days with any entry. When given, a quit habit with no record on a day nothing was logged is 'rest':
+   * not opening the app is not proof of no slips, so it neither extends a streak nor counts in the rate.
+   */
+  loggedDays?: Set<string>
 }
 
 /** Minutes of a block; open blocks count as 0. */
@@ -75,6 +80,13 @@ export function dayStatus(
 ): DayStatus {
   if (!isScheduled(habit, dateKey)) return 'off'
   if (isRest(dateKey, opts)) return 'rest'
+  if (
+    habit.direction === 'quit' &&
+    opts.loggedDays &&
+    !opts.loggedDays.has(dateKey) &&
+    !values.has(dateKey)
+  )
+    return 'rest'
   // A quit habit with no record means no slips; a build habit with no record means nothing done.
   const value = values.get(dateKey) ?? 0
   if (isMet(habit, value)) return 'met'
@@ -165,20 +177,26 @@ export function completionRate(
   opts: HabitOptions = {},
 ): number | null {
   const from = addDays(today, -(windowDays - 1))
+  const range = dateKeyRange(from < habit.startDate ? habit.startDate : from, today)
   let met = 0
   let due = 0
-  for (const d of dateKeyRange(from < habit.startDate ? habit.startDate : from, today)) {
+  const metByWeek = new Map<string, number>()
+  for (const d of range) {
     const s = dayStatus(habit, d, values, opts)
     if (s === 'off' || s === 'rest') continue
     if (s === 'met') {
       met += 1
       due += 1
+      const w = weekStart(d)
+      metByWeek.set(w, (metByWeek.get(w) ?? 0) + 1)
     } else if (d !== today) due += 1
   }
   if (habit.schedule.kind === 'timesPerWeek') {
-    const days = dateKeyRange(from < habit.startDate ? habit.startDate : from, today).length
-    const expected = (habit.schedule.times * days) / 7
-    return expected === 0 ? null : Math.min(1, met / expected)
+    // Extra days in a week do not make up for an empty week: cap each week at its target.
+    const times = habit.schedule.times
+    const counted = [...metByWeek.values()].reduce((sum, n) => sum + Math.min(n, times), 0)
+    const expected = (times * range.length) / 7
+    return expected === 0 ? null : Math.min(1, counted / expected)
   }
   return due === 0 ? null : met / due
 }

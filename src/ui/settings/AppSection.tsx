@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks'
-import { signOut } from '../../auth'
+import { hasSession, signOut } from '../../auth'
 import { appLock } from '../../lock'
 import { applyUpdate, checkForUpdate, getUpdateState, subscribeUpdate } from '../../pwa'
 import { engine } from '../../sync'
@@ -10,33 +10,57 @@ import { Section, SetRow } from './fields'
 const build = new Date(__BUILD_TIME__)
 
 /** Account and sync, the app lock, and which version is running. */
-export function AppSection({ onSignedOut }: { onSignedOut: () => void }) {
+export function AppSection({
+  onSignedOut,
+  onLogin,
+}: {
+  onSignedOut: () => void
+  onLogin: () => void
+}) {
   const [lockOn, setLockOn] = useState(() => appLock.isEnabled())
   const [lockMsg, setLockMsg] = useState('')
   const [update, setUpdate] = useState(getUpdateState())
   useEffect(() => subscribeUpdate(setUpdate), [])
+  const [sync, setSync] = useState(engine.getStatus())
+  useEffect(() => engine.subscribe(setSync), [])
+  const signedOut = sync.state === 'authRequired' || !hasSession()
   return (
     <>
       <Section title="Tài khoản và đồng bộ">
-        <div class="btnlist">
-          <button type="button" class="btn" onClick={() => void engine.run()}>
-            <Icon name="refresh" size={16} /> Đồng bộ ngay
-          </button>
-          <button
-            type="button"
-            class="btn btn-danger"
-            onClick={async () => {
-              await signOut()
-              engine.markAuthRequired()
-              onSignedOut()
-            }}
-          >
-            Đăng xuất
-          </button>
-        </div>
-        <p class="muted hint">
-          Đăng xuất chỉ xoá quyền truy cập Drive trên máy này, dữ liệu trên máy vẫn còn.
-        </p>
+        {signedOut ? (
+          <>
+            <div class="btnlist">
+              <button type="button" class="btn btn-primary" onClick={onLogin}>
+                Đăng nhập Google
+              </button>
+            </div>
+            <p class="muted hint">
+              Chưa đăng nhập: dữ liệu chỉ lưu trên máy này và chưa được đồng bộ lên Drive.
+            </p>
+          </>
+        ) : (
+          <>
+            <div class="btnlist">
+              <button type="button" class="btn" onClick={() => void engine.run()}>
+                <Icon name="refresh" size={16} /> Đồng bộ ngay
+              </button>
+              <button
+                type="button"
+                class="btn btn-danger"
+                onClick={async () => {
+                  await signOut()
+                  engine.markAuthRequired()
+                  onSignedOut()
+                }}
+              >
+                Đăng xuất
+              </button>
+            </div>
+            <p class="muted hint">
+              Đăng xuất chỉ xoá quyền truy cập Drive trên máy này, dữ liệu trên máy vẫn còn.
+            </p>
+          </>
+        )}
       </Section>
 
       <Section

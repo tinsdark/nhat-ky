@@ -1,9 +1,10 @@
 import { useState } from 'preact/hooks'
-import { addDays, toDateKey } from '../../core/date'
+import { addDays, toDateKey, toHHmm } from '../../core/date'
 import { copyToDay } from '../../core/entryForm'
 import { dueReminders } from '../../core/reminders'
 import { reviewPrompt } from '../../core/review'
-import { finishPatch, isRunning } from '../../core/running'
+import { autoMealSlot } from '../../core/entryForm'
+import { finishPatch, isRunning, isTimedType, startRunning } from '../../core/running'
 import { buildTimeline, coreProgress, groupWater } from '../../core/timeline'
 import { lastWaterMl } from '../../core/water'
 import type { Category, Entry, Habit, QuickAction } from '../../core/types'
@@ -116,6 +117,26 @@ export function Today() {
     categoryId: c?.id ?? '',
     title: c?.name ?? a.name,
   })
+
+  /**
+   * Second tap of a shortcut for a timed type: the category is all that is needed, so the block starts
+   * now without opening the form (2 taps from Hôm nay). The toast offers Sửa and Hoàn tác.
+   */
+  const quickStart = async (a: QuickAction, c: Category) => {
+    const start = nowIso()
+    const payload = a.type === 'meal' ? { mealSlot: autoMealSlot(c.id, toHHmm(start)) } : {}
+    const entry = await createEntry({
+      type: a.type,
+      categoryId: c.id,
+      title: c.name,
+      value: a.value,
+      unit: a.unit,
+      start,
+      source: 'quick',
+      payload: startRunning(payload),
+    })
+    showSaved(entry, true)
+  }
 
   const finish = async (e: Entry) => {
     const patch = finishPatch(e, nowIso())
@@ -348,7 +369,8 @@ export function Today() {
           action={pickFor}
           categories={categories}
           onPick={(c) => {
-            setForm(draftForCategory(pickFor, c))
+            if (isTimedType(pickFor.type)) void quickStart(pickFor, c)
+            else setForm(draftForCategory(pickFor, c))
             setPickFor(null)
           }}
           onOther={() => {

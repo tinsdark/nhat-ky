@@ -1,14 +1,22 @@
 import { useState } from 'preact/hooks'
-import { addDays } from '../../core/date'
+import { addDays, addMonths } from '../../core/date'
 import { computeSeries, type Metric } from '../../core/metrics'
 import { countLoggedDays, readiness } from '../../core/rules'
-import { byWeekday, formatMetric, movingAverage, weekCompare } from '../../core/stats'
+import {
+  byWeekday,
+  formatChange,
+  formatMetric,
+  labelWithScale,
+  movingAverage,
+  weekCompare,
+} from '../../core/stats'
 import { AdviceCards } from '../AdviceCards'
 import { AskClaude } from '../AskClaude'
 import { Experiments } from '../Experiments'
 import { Correlations } from './Correlations'
 import { MonthCalendar, TrendChart, WeekdayBars } from '../charts'
 import type { StatsData } from './shared'
+import { Icon } from '../Icon'
 
 const TREND_DAYS = 90
 const CARD_IDS = [
@@ -44,6 +52,9 @@ export function Overview({ data }: { data: StatsData }) {
     trendB ? series(trendB, 'var(--warn)') : null,
   ].filter((s): s is NonNullable<typeof s> => s !== null)
 
+  const trendMetrics = [trendA, trendB]
+    .map((id) => (id ? get(id) : undefined))
+    .filter((m): m is Metric => !!m)
   const view = get(viewId)
   const monthEnd = `${month}-${String(lastDay(month)).padStart(2, '0')}`
   const monthPoints = view ? computeSeries(view, ctx, `${month}-01`, monthEnd) : []
@@ -66,14 +77,13 @@ export function Overview({ data }: { data: StatsData }) {
           .filter((m): m is Metric => !!m)
           .map((m) => {
             const w = weekCompare(m, ctx, today)
-            const pct = w.changePct === null ? null : Math.round(w.changePct)
-            const arrow = pct === null ? '' : pct > 0 ? '↑' : pct < 0 ? '↓' : '→'
+            const change = formatChange(m.id, m.unit, w.current, w.previous)
             return (
               <div class="card">
-                <span class="muted">{m.label}</span>
+                <span class="muted">{labelWithScale(m.label, m.unit)}</span>
                 <strong>{formatMetric(m.id, m.unit, w.current)}</strong>
-                <span class="muted">
-                  {pct === null ? 'chưa đủ dữ liệu' : `${arrow} ${Math.abs(pct ?? 0)}%`}
+                <span class={change ? `delta ${change.tone}` : 'muted'}>
+                  {change ? change.text : 'chưa đủ dữ liệu'}
                 </span>
               </div>
             )
@@ -102,7 +112,10 @@ export function Overview({ data }: { data: StatsData }) {
           {select(trendA, setTrendA)}
           {select(trendB, setTrendB, true)}
         </div>
-        <TrendChart series={trend} />
+        <TrendChart
+          series={trend}
+          format={(i, v) => formatMetric(trendMetrics[i]!.id, trendMetrics[i]!.unit, v)}
+        />
         <p class="muted legend">Chấm = từng ngày, đường = trung bình trượt 7 ngày.</p>
       </section>
 
@@ -115,9 +128,9 @@ export function Overview({ data }: { data: StatsData }) {
           <button
             type="button"
             aria-label="Tháng trước"
-            onClick={() => setMonth(shiftMonth(month, -1))}
+            onClick={() => setMonth(addMonths(month, -1))}
           >
-            ◀
+            <Icon name="chevL" size={18} />
           </button>
           <strong>
             Tháng {month.slice(5)}/{month.slice(0, 4)}
@@ -126,9 +139,9 @@ export function Overview({ data }: { data: StatsData }) {
             type="button"
             aria-label="Tháng sau"
             disabled={month >= today.slice(0, 7)}
-            onClick={() => setMonth(shiftMonth(month, 1))}
+            onClick={() => setMonth(addMonths(month, 1))}
           >
-            ▶
+            <Icon name="chevR" size={18} />
           </button>
         </div>
         <MonthCalendar month={month} points={monthPoints} />
@@ -138,7 +151,10 @@ export function Overview({ data }: { data: StatsData }) {
         <div class="panel-head">
           <h2>Theo thứ trong tuần (90 ngày)</h2>
         </div>
-        <WeekdayBars values={weekdayValues} />
+        <WeekdayBars
+          values={weekdayValues}
+          format={(v) => (view ? formatMetric(view.id, view.unit, v) : String(v))}
+        />
       </section>
 
       <AskClaude ctx={ctx} metrics={metrics} today={today} />
@@ -148,9 +164,4 @@ export function Overview({ data }: { data: StatsData }) {
 
 function lastDay(month: string): number {
   return new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0)).getUTCDate()
-}
-
-function shiftMonth(month: string, delta: number): string {
-  const d = new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)) - 1 + delta, 1))
-  return d.toISOString().slice(0, 7)
 }

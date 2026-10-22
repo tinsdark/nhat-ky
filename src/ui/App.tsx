@@ -3,7 +3,7 @@ import { hasSession } from '../auth'
 import { appLock, shouldRelock } from '../lock'
 import { LockScreen } from './LockScreen'
 import { getSettings } from '../data/repository'
-import { useLive } from './useLive'
+import { DATA_ERROR_EVENT, useLive } from './useLive'
 import { Login } from './screens/Login'
 import { Backfill } from './screens/Backfill'
 import { Habits } from './screens/Habits'
@@ -12,6 +12,7 @@ import { Settings } from './screens/Settings'
 import { Today } from './screens/Today'
 import { Icon } from './Icon'
 import { SyncIndicator } from './SyncIndicator'
+import { applyUpdate, checkForUpdate, getUpdateState, subscribeUpdate } from '../pwa'
 import { parseHash, TABS } from './route'
 
 const SKIP_KEY = 'nk_skipLogin'
@@ -54,6 +55,26 @@ export function App() {
     document.addEventListener('visibilitychange', onVis)
     return () => document.removeEventListener('visibilitychange', onVis)
   }, [])
+  const [dataError, setDataError] = useState(false)
+  useEffect(() => {
+    const on = () => setDataError(true)
+    window.addEventListener(DATA_ERROR_EVENT, on)
+    return () => window.removeEventListener(DATA_ERROR_EVENT, on)
+  }, [])
+  const [update, setUpdate] = useState(getUpdateState())
+  useEffect(() => subscribeUpdate(setUpdate), [])
+  // A home-screen app can stay open for days: look for a new version whenever it comes back to the front.
+  useEffect(() => {
+    let last = 0
+    const check = () => {
+      if (document.visibilityState !== 'visible' || Date.now() - last < 30 * 60_000) return
+      last = Date.now()
+      void checkForUpdate()
+    }
+    check()
+    document.addEventListener('visibilitychange', check)
+    return () => document.removeEventListener('visibilitychange', check)
+  }, [])
   const [gate, setGate] = useState(() => !hasSession() && !readSkip())
   useEffect(() => {
     const onHash = () => setTab(parseHash(location.hash))
@@ -88,7 +109,21 @@ export function App() {
             <SyncIndicator onLogin={() => setGate(true)} />
           </div>
         </div>
+        {update === 'available' && (
+          <button type="button" class="update-chip" onClick={() => applyUpdate()}>
+            Có bản mới, cập nhật
+          </button>
+        )}
       </header>
+      {dataError && (
+        <div class="notice-line" role="alert">
+          Không đọc được dữ liệu trên máy. Thử{' '}
+          <button type="button" class="linkbtn" onClick={() => location.reload()}>
+            tải lại app
+          </button>
+          ; nếu vẫn lỗi, dữ liệu trên Drive không bị ảnh hưởng.
+        </div>
+      )}
       <main class="content">
         {tab === 'today' && <Today />}
         {tab === 'backfill' && <Backfill />}
@@ -96,6 +131,7 @@ export function App() {
         {tab === 'stats' && <Stats />}
         {tab === 'settings' && (
           <Settings
+            onLogin={() => setGate(true)}
             onSignedOut={() => {
               writeSkip(false)
               setGate(true)

@@ -47,6 +47,8 @@ export function HabitForm({
   const [metricOp, setMetricOp] = useState<'<=' | '>='>(habit?.metricRule?.op ?? '<=')
   const [metricValue, setMetricValue] = useState(String(habit?.metricRule?.value ?? 23.5))
   const [previousNight, setPreviousNight] = useState(!!habit?.metricRule?.previousNight)
+  // New habits only ask for name, schedule and reminder; the rest has sensible defaults.
+  const [advanced, setAdvanced] = useState(habit !== null)
   const [error, setError] = useState('')
 
   const save = async () => {
@@ -93,125 +95,12 @@ export function HabitForm({
         <h2>{habit ? 'Sửa thói quen' : 'Thói quen mới'}</h2>
         <label>
           Tên
-          <input value={name} onInput={(e) => setName(e.currentTarget.value)} />
+          <input
+            value={name}
+            placeholder="Ví dụ: Đọc sách 20 phút"
+            onInput={(e) => setName(e.currentTarget.value)}
+          />
         </label>
-        <Choice
-          label="Hướng"
-          options={[
-            { id: 'build', label: 'Xây' },
-            { id: 'quit', label: 'Bỏ' },
-          ]}
-          value={direction}
-          onChange={(v) => v && setDirection(v)}
-        />
-        <Choice
-          label="Cách tính"
-          options={[
-            { id: 'manual', label: 'Tự tick' },
-            { id: 'linked', label: 'Từ mục Hôm nay' },
-            { id: 'auto', label: 'Từ chỉ số' },
-          ]}
-          value={source}
-          onChange={(v) => v && setSource(v)}
-        />
-        {source === 'linked' && (
-          <label>
-            Mục ở Hôm nay
-            <select value={linkedId} onChange={(e) => setPicked(e.currentTarget.value)}>
-              <option value="">— chọn —</option>
-              {linkedId === KEEP && <option value={KEEP}>(liên kết hiện tại)</option>}
-              {defs?.quickActions.map((q) => (
-                <option value={q.id}>
-                  {q.icon} {q.name}
-                </option>
-              ))}
-            </select>
-            <span class="muted hint">
-              Mỗi lần ghi mục này (ở Hôm nay hoặc Ghi bù) được cộng vào thói quen, không cần tick.
-              Giá trị lấy theo số đã ghi, hoặc số phút nếu mục có thời lượng.
-            </span>
-          </label>
-        )}
-        {auto && (
-          <>
-            <label>
-              Chỉ số
-              <select value={metricId} onChange={(e) => setMetricId(e.currentTarget.value)}>
-                {METRICS.map((m) => (
-                  <option value={m.id}>
-                    {m.label} ({m.unit})
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div class="row">
-              <Choice
-                label="Đạt khi"
-                options={[
-                  { id: '<=', label: '≤' },
-                  { id: '>=', label: '≥' },
-                ]}
-                value={metricOp}
-                onChange={(v) => v && setMetricOp(v)}
-              />
-              <label>
-                Ngưỡng
-                <input
-                  inputMode="decimal"
-                  value={metricValue}
-                  onInput={(e) => setMetricValue(e.currentTarget.value)}
-                />
-              </label>
-            </div>
-            <Choice
-              label="Lấy chỉ số của"
-              options={[
-                { id: 'same', label: 'Cùng ngày' },
-                { id: 'prev', label: 'Đêm hôm trước' },
-              ]}
-              value={previousNight ? 'prev' : 'same'}
-              onChange={(v) => v && setPreviousNight(v === 'prev')}
-            />
-            <p class="muted hint">
-              Giờ đi ngủ tính theo số giờ, sau nửa đêm cộng 24 (23:30 = 23,5; 00:30 = 24,5). Chọn
-              "Đêm hôm trước" cho giờ dậy.
-            </p>
-          </>
-        )}
-        {!auto && (
-          <>
-            <Choice
-              label="Kiểu"
-              options={[
-                { id: 'check', label: 'Có/không' },
-                { id: 'count', label: 'Số lần' },
-                { id: 'duration', label: 'Số phút' },
-              ]}
-              value={kind}
-              onChange={(v) => v && setKind(v)}
-            />
-            <div class="row">
-              <Choice
-                label="Đạt khi"
-                options={[
-                  { id: '>=', label: '≥' },
-                  { id: '<=', label: '≤' },
-                  { id: '=', label: '=' },
-                ]}
-                value={op}
-                onChange={(v) => v && setOp(v)}
-              />
-              <label>
-                Mục tiêu
-                <input
-                  inputMode="decimal"
-                  value={target}
-                  onInput={(e) => setTarget(e.currentTarget.value)}
-                />
-              </label>
-            </div>
-          </>
-        )}
         <Choice
           label="Lịch"
           options={[
@@ -261,6 +150,130 @@ export function HabitForm({
           Nhắc lúc (tuỳ chọn)
           <input type="time" value={reminder} onInput={(e) => setReminder(e.currentTarget.value)} />
         </label>
+        <button type="button" class="linkbtn" onClick={() => setAdvanced(!advanced)}>
+          {advanced ? 'Ẩn tuỳ chọn nâng cao' : 'Tuỳ chọn nâng cao (hướng, cách tính, mục tiêu)'}
+        </button>
+        {advanced && (
+          <>
+            <Choice
+              label="Hướng"
+              options={[
+                { id: 'build', label: 'Xây' },
+                { id: 'quit', label: 'Bỏ' },
+              ]}
+              value={direction}
+              onChange={(v) => v && setDirection(v)}
+            />
+            <Choice
+              label="Cách tính"
+              options={[
+                { id: 'manual', label: 'Tự đánh dấu' },
+                { id: 'linked', label: 'Từ mục Hôm nay' },
+                { id: 'auto', label: 'Từ chỉ số' },
+              ]}
+              value={source}
+              onChange={(v) => v && setSource(v)}
+            />
+            {source === 'linked' && (
+              <label>
+                Mục ở Hôm nay
+                <select value={linkedId} onChange={(e) => setPicked(e.currentTarget.value)}>
+                  <option value="">— chọn —</option>
+                  {linkedId === KEEP && <option value={KEEP}>(liên kết hiện tại)</option>}
+                  {defs?.quickActions.map((q) => (
+                    <option value={q.id}>
+                      {q.icon} {q.name}
+                    </option>
+                  ))}
+                </select>
+                <span class="muted hint">
+                  Mỗi lần ghi mục này (ở Hôm nay hoặc Ghi bù) được cộng vào thói quen, không cần
+                  tick. Giá trị lấy theo số đã ghi, hoặc số phút nếu mục có thời lượng.
+                </span>
+              </label>
+            )}
+            {auto && (
+              <>
+                <label>
+                  Chỉ số
+                  <select value={metricId} onChange={(e) => setMetricId(e.currentTarget.value)}>
+                    {METRICS.map((m) => (
+                      <option value={m.id}>
+                        {m.label} ({m.unit})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div class="row">
+                  <Choice
+                    label="Đạt khi"
+                    options={[
+                      { id: '<=', label: '≤' },
+                      { id: '>=', label: '≥' },
+                    ]}
+                    value={metricOp}
+                    onChange={(v) => v && setMetricOp(v)}
+                  />
+                  <label>
+                    Ngưỡng
+                    <input
+                      inputMode="decimal"
+                      value={metricValue}
+                      onInput={(e) => setMetricValue(e.currentTarget.value)}
+                    />
+                  </label>
+                </div>
+                <Choice
+                  label="Lấy chỉ số của"
+                  options={[
+                    { id: 'same', label: 'Cùng ngày' },
+                    { id: 'prev', label: 'Đêm hôm trước' },
+                  ]}
+                  value={previousNight ? 'prev' : 'same'}
+                  onChange={(v) => v && setPreviousNight(v === 'prev')}
+                />
+                <p class="muted hint">
+                  Giờ đi ngủ tính theo số giờ, sau nửa đêm cộng 24 (23:30 = 23,5; 00:30 = 24,5).
+                  Chọn "Đêm hôm trước" cho giờ dậy.
+                </p>
+              </>
+            )}
+            {!auto && (
+              <>
+                <Choice
+                  label="Kiểu"
+                  options={[
+                    { id: 'check', label: 'Có/không' },
+                    { id: 'count', label: 'Số lần' },
+                    { id: 'duration', label: 'Số phút' },
+                  ]}
+                  value={kind}
+                  onChange={(v) => v && setKind(v)}
+                />
+                <div class="row">
+                  <Choice
+                    label="Đạt khi"
+                    options={[
+                      { id: '>=', label: '≥' },
+                      { id: '<=', label: '≤' },
+                      { id: '=', label: '=' },
+                    ]}
+                    value={op}
+                    onChange={(v) => v && setOp(v)}
+                  />
+                  <label>
+                    Mục tiêu
+                    <input
+                      inputMode="decimal"
+                      value={target}
+                      onInput={(e) => setTarget(e.currentTarget.value)}
+                    />
+                  </label>
+                </div>
+              </>
+            )}
+          </>
+        )}
         {error && <p class="error">{error}</p>}
         <div class="row">
           <button type="button" class="btn" onClick={onClose}>

@@ -94,7 +94,7 @@ export function BackupSection({ dayStartHour }: { dayStartHour: number }) {
     try {
       const r = await restoreSnapshot(parseSnapshot(await file.text()))
       setMsg(
-        `Đã khôi phục ${r.entries} mục, ${r.days} ngày chấm, ${r.docs} cấu hình (chỉ lấy bản mới hơn bản trên máy).`,
+        `Đã khôi phục ${r.entries} mục, ${r.days} ngày chấm, ${r.docs} cấu hình (chỉ lấy bản mới hơn bản trên máy).${r.skipped ? ` Bỏ qua ${r.skipped} bản ghi hỏng.` : ''}`,
       )
     } catch (err) {
       setMsg(err instanceof SnapshotError ? err.message : 'Không đọc được file.')

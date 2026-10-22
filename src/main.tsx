@@ -5,6 +5,7 @@ import { startBackup } from './backup'
 import './pwa'
 import { startPhotoQueue } from './photos'
 import { startSync } from './sync'
+import { installDialogs } from './ui/dialogs'
 import './ui/style.css'
 
 // Pinch zoom is off on purpose (one user, phone only). iOS Safari ignores the viewport flags for
@@ -12,6 +13,7 @@ import './ui/style.css'
 for (const type of ['gesturestart', 'gesturechange', 'gestureend'])
   document.addEventListener(type, (e) => e.preventDefault())
 
+installDialogs()
 void seedDefaults().finally(() => {
   render(<App />, document.getElementById('app')!)
   startSync()

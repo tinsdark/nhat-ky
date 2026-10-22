@@ -1,4 +1,4 @@
-import { atTime, toHHmm } from './date'
+import { atTime, toHHmm, toIso } from './date'
 import type { Entry, EntryType } from './types'
 
 /** Moves `HH:mm` by `deltaMin` minutes, wrapping around midnight. */
@@ -55,6 +55,11 @@ export function autoMealSlot(categoryId: string, hhmm: string): MealSlot {
 
 /** Fields for a copy of `entry` placed on `targetDateKey` at the same clock times. */
 export function copyToDay(entry: Entry, targetDateKey: string, dayStartHour: number) {
+  const start = atTime(targetDateKey, toHHmm(entry.start), dayStartHour)
+  // Keep the original duration: a block crossing `dayStartHour` must not end before it starts.
+  const duration = entry.end
+    ? new Date(entry.end).getTime() - new Date(entry.start).getTime()
+    : null
   return {
     type: entry.type,
     categoryId: entry.categoryId,
@@ -65,8 +70,8 @@ export function copyToDay(entry: Entry, targetDateKey: string, dayStartHour: num
     tags: [...entry.tags],
     payload: { ...entry.payload },
     note: entry.note,
-    start: atTime(targetDateKey, toHHmm(entry.start), dayStartHour),
-    end: entry.end ? atTime(targetDateKey, toHHmm(entry.end), dayStartHour) : null,
+    start,
+    end: duration === null ? null : toIso(new Date(start).getTime() + duration),
     source: 'manual' as const,
   }
 }

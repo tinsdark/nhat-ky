@@ -229,6 +229,29 @@ describe('storage', () => {
     expect(a.store.has(TOKEN_KEY)).toBe(false)
   })
 
+  it('a network failure keeps the saved token', async () => {
+    const request = vi
+      .fn<TokenRequester>()
+      .mockResolvedValueOnce(ok(1))
+      .mockRejectedValueOnce(new AuthNetworkError())
+    const a = setup(request)
+    await a.auth.signIn()
+    t += 3600_000 - 59_000
+    await expect(a.auth.getToken()).rejects.toBeInstanceOf(AuthNetworkError)
+    expect(a.store.has(TOKEN_KEY)).toBe(true)
+  })
+
+  it('signIn does not wait on a hung silent request', async () => {
+    const request = vi
+      .fn<TokenRequester>()
+      .mockImplementationOnce(() => new Promise(() => {}))
+      .mockResolvedValueOnce(ok(2))
+    const { auth } = setup(request)
+    void auth.getToken().catch(() => {})
+    expect(await auth.signIn()).toBe('tok2')
+    expect(request).toHaveBeenLastCalledWith({ prompt: 'select_account' })
+  })
+
   it('works when storage throws', async () => {
     const storage = {
       getItem: () => {

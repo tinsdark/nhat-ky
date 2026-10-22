@@ -148,8 +148,8 @@ describe('sleep metrics', () => {
   it('midpoint and weekday/weekend gap', () => {
     expect(v('sleep_midpoint', MON)).toBeCloseTo(2.75)
     expect(v('sleep_midpoint', SAT)).toBeCloseTo(5)
-    // weekend mean (5 + 2.5)/2 = 3.75, weekday mean (2.75 + 3 + 4 + 2.5)/4 = 3.0625
-    expect(v('social_jetlag', SUN)).toBeCloseTo(0.6875)
+    // free mornings = nights starting Fri/Sat: only Sat (5). Other nights: (2.75 + 3 + 4 + 2.5 + 2.5)/5 = 2.95
+    expect(v('social_jetlag', SUN)).toBeCloseTo(2.05)
     expect(v('social_jetlag', TUE)).toBeNull() // no weekend yet
   })
   it('morning outdoors: 1 / 0 / null', () => {
@@ -259,6 +259,10 @@ describe('exercise, habits, subjective', () => {
     expect(v('habit:h2', MON)).toBeNull()
     expect(v('habit:h2', SAT)).toBe(0)
   })
+  it('habit metrics are null on a day with nothing logged, not 0 or 1', () => {
+    expect(v('habit:h1', FRI)).toBeNull()
+    expect(v('habit_rate', FRI)).toBeNull()
+  })
   it('habit rate over habits due that day', () => {
     expect(v('habit_rate', MON)).toBe(1) // only h1 due
     expect(v('habit_rate', WED)).toBe(0)
@@ -316,5 +320,34 @@ describe('habits that follow a metric', () => {
   it('works as a normal habit metric', () => {
     expect(getMetric('habit:early', [early])!.compute(WED, c)).toBe(0)
     expect(getMetric('habit:early', [early])!.compute(MON, c)).toBe(1)
+  })
+})
+
+describe('time of day past midnight', () => {
+  it('a coffee at 01:00 on the logical day reads as 25, not as an early 1.0', () => {
+    const late = e(MON, 'meal', '01:00', null, { title: 'Cà phê', categoryId: 'cat-drink' })
+    const c = createMetricContext({
+      entries: [late],
+      days: [],
+      habits: [],
+      settings: DEFAULT_SETTINGS,
+    })
+    expect(getMetric('last_coffee_time', [])!.compute(MON, c)).toBe(25)
+  })
+})
+
+describe('overtime follows the working hours in Settings', () => {
+  it('counts a block without a stored flag, and moves when workEnd changes', () => {
+    const block = e(MON, 'work', '17:00', '19:00')
+    const mk = (workEnd: string) =>
+      createMetricContext({
+        entries: [block],
+        days: [],
+        habits: [],
+        settings: { ...DEFAULT_SETTINGS, workEnd, workDays: [0, 1, 2, 3, 4] },
+      })
+    const m = getMetric('overtime_hours', [])!
+    expect(m.compute(MON, mk('17:30'))).toBe(2)
+    expect(m.compute(MON, mk('19:30'))).toBe(0)
   })
 })
