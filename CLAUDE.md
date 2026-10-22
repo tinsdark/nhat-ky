@@ -62,6 +62,7 @@ src/
 - Logic nghiệp vụ đặt trong `src/core/` dạng hàm thuần, có test Vitest. Mọi task có logic tính toán phải kèm test.
 - Chữ trên UI bằng tiếng Việt. Tên biến, hàm, comment code bằng tiếng Anh.
 - Mobile-first: thiết kế cho màn 360–430px trước. Nút chạm tối thiểu 44px.
+- Mọi thông báo, toast (kể cả "Hoàn tác") và banner đặt ở phía trên màn hình, không đặt ở dưới. Đạt đã yêu cầu như vậy.
 - Mục tiêu tốc độ: ghi một sự kiện ≤ 2 chạm từ màn Hôm nay.
 - **Không đếm giờ trên màn hình** (Đạt không bật được liên tục). Việc kéo dài (làm việc, hoạt động, vận động) ghi bằng hai lần bấm: lần 1 lưu giờ bắt đầu (`payload.running`), lần 2 "Kết thúc" lưu giờ kết thúc; việc dở nằm trong thẻ "Đang làm" và còn nguyên khi đóng app. Không có đồng hồ chạy, không cần mở app giữa hai lần bấm. Tab **Hôm nay** chỉ ghi thời gian thực; việc đã làm xong ghi ở tab **Ghi bù** (`source = 'backfill'`). "Đi ngủ"/"Thức dậy" chỉ cần bấm, ghi ngay. "Uống nước" chọn lượng (một ô, 2 chạm); các lần uống trong ngày gộp thành một dòng ở Hôm nay.
 
