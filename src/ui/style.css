@@ -1519,8 +1519,10 @@ table.grid.left td {
 .sheet > form > .row:last-child,
 form.sheet > .row:last-child {
   position: sticky;
-  bottom: calc(-1 * env(safe-area-inset-bottom));
-  padding: 10px 0 4px;
+  /* Same as the sheet's bottom padding, so the bar sits on the sheet's edge and nothing shows under it. */
+  bottom: calc(-16px - env(safe-area-inset-bottom));
+  margin-bottom: calc(-16px - env(safe-area-inset-bottom));
+  padding: 10px 0 calc(16px + env(safe-area-inset-bottom));
   background: var(--card);
 }
 
@@ -2160,4 +2162,17 @@ textarea {
 /* Có bảng hay màn toàn trang mở thì trang nền không cuộn: bàn phím hiện lên không làm trang trôi. */
 html:has(.sheet-backdrop, .fullscreen) {
   overflow: hidden;
+}
+
+/* iOS gives time/date fields their own intrinsic width and pushes the row off screen; make them obey the column. */
+.sheet input[type='time'],
+.sheet input[type='date'],
+.form input[type='time'],
+.form input[type='date'] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
