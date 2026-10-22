@@ -83,6 +83,9 @@ describe('weeklyReport', () => {
     expect(r.daily).toHaveLength(7)
     expect(r.loggedDays).toBe(4) // entries exist on 11-02, 11-03, 11-04 (gym tick), 11-05 (read tick)
   })
+  it('has a study-hours row', () => {
+    expect(row('study_hours')).toMatchObject({ mode: 'sum' })
+  })
   it('sums hours-type metrics and compares with the previous week', () => {
     expect(row('deep_work_hours')).toMatchObject({ mode: 'sum', current: 5, previous: 1 })
     expect(row('deep_work_hours').changePct).toBeCloseTo(400)

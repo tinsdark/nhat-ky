@@ -201,6 +201,26 @@ describe('food metrics', () => {
   })
 })
 
+describe('study hours', () => {
+  const sctx = createMetricContext({
+    entries: [
+      e(MON, 'study', '20:00', '21:30'),
+      e(MON, 'study', '21:30', '22:00', { categoryId: 'cat-whatever' }),
+      e(TUE, 'meal', '12:00', null),
+    ],
+    days: [],
+    habits: [],
+    settings: DEFAULT_SETTINGS,
+  })
+  it('sums every study block of the day, whatever its category; 0 on a logged day without one; null when nothing is logged', () => {
+    const m = getMetric('study_hours')!
+    expect(m.compute(MON, sctx)).toBe(2)
+    expect(m.compute(TUE, sctx)).toBe(0)
+    expect(m.compute(WED, sctx)).toBeNull()
+    expect(m.group).toBe('time')
+  })
+})
+
 describe('time metrics', () => {
   it('work, deep work, focus, interruptions, overtime', () => {
     expect(v('work_hours', MON)).toBe(4)

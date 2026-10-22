@@ -11,11 +11,12 @@ export const GROUPS: { id: CategoryGroup; label: string }[] = [
 export type GroupHours = Record<CategoryGroup, number>
 const zero = (): GroupHours => ({ work: 0, growth: 0, personal: 0 })
 
-/** Group of a work/activity entry; null for entries that are not time blocks (sleep, meals, water…). */
+/** Group of a work/study/activity entry; null for entries that are not time blocks (sleep, meals, water…). */
 export function groupOfEntry(e: Entry, categories: Category[]): CategoryGroup | null {
-  if (e.type !== 'work' && e.type !== 'activity') return null
+  if (e.type !== 'work' && e.type !== 'activity' && e.type !== 'study') return null
   const cat = categories.find((c) => c.id === e.categoryId)
   if (cat?.group) return cat.group
+  if (e.type === 'study') return 'growth'
   return e.type === 'work' || cat?.entryType === 'work' ? 'work' : 'personal'
 }
 

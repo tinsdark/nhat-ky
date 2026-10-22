@@ -342,6 +342,13 @@ export const METRICS: Metric[] = [
     ),
   },
   {
+    id: 'study_hours',
+    label: 'Giờ học tập',
+    unit: 'giờ',
+    group: 'time',
+    compute: whenLogged((d, ctx) => sumHours(ctx.entriesOf(d).filter((e) => e.type === 'study'))),
+  },
+  {
     id: 'social_hours',
     label: 'Giờ mạng xã hội',
     unit: 'giờ',

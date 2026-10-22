@@ -18,6 +18,7 @@ const BY_CATEGORY: Record<string, BackfillDefaults> = {
 
 const BY_TYPE: Record<string, BackfillDefaults> = {
   work: { start: '09:00', minutes: 120 },
+  study: { start: '20:00', minutes: 60 },
   exercise: { start: '18:00', minutes: 30 },
   water: { start: '10:00', minutes: null },
   activity: { start: '20:00', minutes: 60 },

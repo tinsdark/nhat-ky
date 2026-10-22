@@ -26,6 +26,7 @@ const BASE_TYPES: { id: EntryType | ''; label: string }[] = [
   { id: 'sleep', label: 'Ngủ' },
   { id: 'meal', label: 'Ăn uống' },
   { id: 'work', label: 'Làm việc' },
+  { id: 'study', label: 'Học tập' },
   { id: 'activity', label: 'Hoạt động' },
   { id: 'exercise', label: 'Vận động' },
   { id: 'water', label: 'Nước' },

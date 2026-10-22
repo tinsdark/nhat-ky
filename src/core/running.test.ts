@@ -15,7 +15,7 @@ const entry = (over: Partial<Entry> = {}): Entry =>
 
 describe('isTimedType', () => {
   it('lasting types are timed, instant ones are not', () => {
-    for (const t of ['meal', 'work', 'activity', 'exercise', 'x-abc'] as const)
+    for (const t of ['meal', 'work', 'activity', 'exercise', 'study', 'x-abc'] as const)
       expect(isTimedType(t)).toBe(true)
     for (const t of ['water', 'sleep', 'note', 'habit'] as const) expect(isTimedType(t)).toBe(false)
   })
