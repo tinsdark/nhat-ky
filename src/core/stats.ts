@@ -82,6 +82,82 @@ export function formatMetric(id: string, unit: string, value: number | null): st
   return short ? `${text} ${short}` : text
 }
 
+const HIGHER_IS_BETTER = new Set([
+  'sleep_hours',
+  'sleep_quality',
+  'deep_work_hours',
+  'focus_avg',
+  'exercise_min',
+  'water_ml',
+  'habit_rate',
+  'mood',
+  'energy',
+  'focus',
+  'day_score',
+  'healthy_score',
+  'study_hours',
+])
+const LOWER_IS_BETTER = new Set([
+  'stress',
+  'bedtime_sd7',
+  'overtime_hours',
+  'interruptions',
+  'social_jetlag',
+  'coffee_count',
+])
+
+export interface Change {
+  /** "↑ +0,4 điểm", "↓ −24 phút". */
+  text: string
+  tone: 'good' | 'bad' | 'neutral'
+}
+
+const comma = (n: number, digits = 1) => n.toFixed(digits).replace('.', ',')
+
+/**
+ * Change from `previous` to `current` as a plain difference in the metric's own unit (percent of a
+ * 1–5 score or of a clock time means nothing). Null when either side is missing or the metric is a yes/no.
+ */
+export function formatChange(
+  id: string,
+  unit: string,
+  current: number | null,
+  previous: number | null,
+): Change | null {
+  if (current === null || previous === null || unit === '0/1') return null
+  const diff = current - previous
+  const sign = diff > 0 ? '+' : '−'
+  const abs = Math.abs(diff)
+  let body: string
+  if (HOUR_CLOCK.has(id)) {
+    const min = Math.round(abs * 60)
+    body = min >= 60 ? `${Math.floor(min / 60)}h${pad(min % 60)}` : `${min} phút`
+    if (min === 0) return { text: '→ không đổi', tone: 'neutral' }
+  } else if (unit === '0–1') {
+    const pts = Math.round(abs * 100)
+    if (pts === 0) return { text: '→ không đổi', tone: 'neutral' }
+    body = `${pts} điểm %`
+  } else if (unit === 'ml' || unit === 'phút') {
+    const n = Math.round(abs)
+    if (n === 0) return { text: '→ không đổi', tone: 'neutral' }
+    body = `${n} ${unit}`
+  } else {
+    if (Math.round(abs * 10) === 0) return { text: '→ không đổi', tone: 'neutral' }
+    const name = unit.startsWith('giờ') ? 'giờ' : unit.startsWith('1–') ? 'điểm' : unit
+    body = `${comma(abs)}${name ? ' ' + name : ''}`
+  }
+  const better = HIGHER_IS_BETTER.has(id) ? diff > 0 : LOWER_IS_BETTER.has(id) ? diff < 0 : null
+  return {
+    text: `${diff > 0 ? '↑' : '↓'} ${sign}${body}`,
+    tone: better === null ? 'neutral' : better ? 'good' : 'bad',
+  }
+}
+
+/** Label with its scale when the numbers are scores ("Tâm trạng (1–5)"), so "3,8" reads as 3,8 out of 5. */
+export function labelWithScale(label: string, unit: string): string {
+  return unit === '1–5' || unit === '1–10' ? `${label} (${unit})` : label
+}
+
 /** Sum of the non-null values of `metric` over the `days` days ending at `endKey`; null if the window has none. */
 export function windowSum(
   metric: Metric,

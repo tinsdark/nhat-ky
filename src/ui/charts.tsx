@@ -104,31 +104,42 @@ export function MonthCalendar({ month, points }: { month: string; points: Point[
     ...Array(lead).fill(null),
     ...Array.from({ length: last }, (_, i) => `${month}-${String(i + 1).padStart(2, '0')}`),
   ]
+  const fmt = (n: number) => String(Math.round(n * 10) / 10).replace('.', ',')
   return (
-    <div class="month">
-      {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((l) => (
-        <span class="mh">{l}</span>
-      ))}
-      {cells.map((k) => {
-        if (!k) return <span />
-        const v = byKey.get(k) ?? null
-        const t = v === null ? 0 : 0.2 + 0.8 * ((v - min) / span)
-        return (
-          <span
-            class={v === null ? 'md empty' : 'md'}
-            style={
-              v === null
-                ? undefined
-                : {
-                    background: `color-mix(in srgb, var(--accent) ${Math.round(t * 100)}%, var(--bg))`,
-                  }
-            }
-          >
-            {Number(k.slice(8))}
-          </span>
-        )
-      })}
-    </div>
+    <>
+      <div class="month">
+        {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((l) => (
+          <span class="mh">{l}</span>
+        ))}
+        {cells.map((k) => {
+          if (!k) return <span />
+          const v = byKey.get(k) ?? null
+          const t = v === null ? 0 : 0.2 + 0.8 * ((v - min) / span)
+          return (
+            <span
+              class={v === null ? 'md empty' : 'md'}
+              title={v === null ? undefined : fmt(v)}
+              style={
+                v === null
+                  ? undefined
+                  : {
+                      background: `color-mix(in srgb, var(--accent) ${Math.round(t * 100)}%, var(--bg))`,
+                      // Dark fill needs light text and the other way round, in both themes.
+                      color: t > 0.55 ? 'var(--on-accent)' : 'var(--fg)',
+                    }
+              }
+            >
+              {Number(k.slice(8))}
+            </span>
+          )
+        })}
+      </div>
+      {inMonth.length > 0 && (
+        <p class="muted legend">
+          Càng đậm càng cao: nhạt = {fmt(min)}, đậm = {fmt(max)}. Ô trống = chưa ghi.
+        </p>
+      )}
+    </>
   )
 }
 

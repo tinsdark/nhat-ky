@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addDays, dateKeyRange, toDateKey, toIso, weekday } from './date'
+import { addDays, addMonths, dateKeyRange, toDateKey, toIso, weekday } from './date'
 
 describe('toDateKey', () => {
   it('00:40 Tue belongs to Monday night', () => {
@@ -82,5 +82,13 @@ describe('toIso', () => {
     const iso = toIso(new Date('2026-10-19T17:40:00Z'))
     expect(iso).toBe('2026-10-20T00:40:00.000+07:00')
     expect(new Date(iso).getTime()).toBe(Date.parse('2026-10-19T17:40:00Z'))
+  })
+})
+
+describe('addMonths', () => {
+  it('moves across year ends', () => {
+    expect(addMonths('2026-01', -1)).toBe('2025-12')
+    expect(addMonths('2026-12', 1)).toBe('2027-01')
+    expect(addMonths('2026-10', 0)).toBe('2026-10')
   })
 })

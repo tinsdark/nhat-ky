@@ -31,7 +31,13 @@ const readTab = (): Section => {
 }
 
 /** Settings split into six sections (as in Sổ Tiền) instead of one long page. */
-export function Settings({ onSignedOut }: { onSignedOut: () => void }) {
+export function Settings({
+  onSignedOut,
+  onLogin,
+}: {
+  onSignedOut: () => void
+  onLogin: () => void
+}) {
   const settings = useLive(getSettings, [])
   const [section, setSection] = useState<Section>(readTab)
   if (!settings) return null
@@ -52,7 +58,7 @@ export function Settings({ onSignedOut }: { onSignedOut: () => void }) {
       {section === 'alerts' && <Alerts settings={settings} />}
       {section === 'display' && <Display settings={settings} />}
       {section === 'data' && <DataSection settings={settings} />}
-      {section === 'app' && <AppSection onSignedOut={onSignedOut} />}
+      {section === 'app' && <AppSection onSignedOut={onSignedOut} onLogin={onLogin} />}
     </section>
   )
 }

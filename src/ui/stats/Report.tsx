@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks'
 import { addDays, weekday } from '../../core/date'
 import { dailyPicks } from '../../core/insights'
-import { formatMetric } from '../../core/stats'
+import { formatChange, formatMetric } from '../../core/stats'
 import { weeklyReport } from '../../core/weeklyReport'
 import { getInsightStore } from '../../data/insights'
 import { useLive } from '../useLive'
@@ -52,14 +52,14 @@ export function Report({ data }: { data: StatsData }) {
             <th>Chỉ số</th>
             <th>Tuần này</th>
             <th>Tuần trước</th>
-            <th>Đổi</th>
+            <th>Thay đổi</th>
           </tr>
         </thead>
         <tbody>
           {r.rows.map((row) => {
             const unit =
               row.mode === 'sum' ? (row.id === 'exercise_min' ? 'phút' : 'giờ') : row.unit
-            const pct = row.changePct === null ? null : Math.round(row.changePct)
+            const change = formatChange(row.id, unit, row.current, row.previous)
             return (
               <tr>
                 <th>
@@ -68,8 +68,8 @@ export function Report({ data }: { data: StatsData }) {
                 </th>
                 <td>{formatMetric(row.id, unit, row.current)}</td>
                 <td>{formatMetric(row.id, unit, row.previous)}</td>
-                <td>
-                  {pct === null ? '–' : `${pct > 0 ? '↑' : pct < 0 ? '↓' : '→'} ${Math.abs(pct)}%`}
+                <td class={change ? `delta ${change.tone}` : undefined}>
+                  {change ? change.text : '–'}
                 </td>
               </tr>
             )

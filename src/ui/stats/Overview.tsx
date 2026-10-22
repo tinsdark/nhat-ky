@@ -1,8 +1,15 @@
 import { useState } from 'preact/hooks'
-import { addDays } from '../../core/date'
+import { addDays, addMonths } from '../../core/date'
 import { computeSeries, type Metric } from '../../core/metrics'
 import { countLoggedDays, readiness } from '../../core/rules'
-import { byWeekday, formatMetric, movingAverage, weekCompare } from '../../core/stats'
+import {
+  byWeekday,
+  formatChange,
+  formatMetric,
+  labelWithScale,
+  movingAverage,
+  weekCompare,
+} from '../../core/stats'
 import { AdviceCards } from '../AdviceCards'
 import { AskClaude } from '../AskClaude'
 import { Experiments } from '../Experiments'
@@ -66,14 +73,13 @@ export function Overview({ data }: { data: StatsData }) {
           .filter((m): m is Metric => !!m)
           .map((m) => {
             const w = weekCompare(m, ctx, today)
-            const pct = w.changePct === null ? null : Math.round(w.changePct)
-            const arrow = pct === null ? '' : pct > 0 ? '↑' : pct < 0 ? '↓' : '→'
+            const change = formatChange(m.id, m.unit, w.current, w.previous)
             return (
               <div class="card">
-                <span class="muted">{m.label}</span>
+                <span class="muted">{labelWithScale(m.label, m.unit)}</span>
                 <strong>{formatMetric(m.id, m.unit, w.current)}</strong>
-                <span class="muted">
-                  {pct === null ? 'chưa đủ dữ liệu' : `${arrow} ${Math.abs(pct ?? 0)}%`}
+                <span class={change ? `delta ${change.tone}` : 'muted'}>
+                  {change ? change.text : 'chưa đủ dữ liệu'}
                 </span>
               </div>
             )
@@ -115,7 +121,7 @@ export function Overview({ data }: { data: StatsData }) {
           <button
             type="button"
             aria-label="Tháng trước"
-            onClick={() => setMonth(shiftMonth(month, -1))}
+            onClick={() => setMonth(addMonths(month, -1))}
           >
             ◀
           </button>
@@ -126,7 +132,7 @@ export function Overview({ data }: { data: StatsData }) {
             type="button"
             aria-label="Tháng sau"
             disabled={month >= today.slice(0, 7)}
-            onClick={() => setMonth(shiftMonth(month, 1))}
+            onClick={() => setMonth(addMonths(month, 1))}
           >
             ▶
           </button>
@@ -148,9 +154,4 @@ export function Overview({ data }: { data: StatsData }) {
 
 function lastDay(month: string): number {
   return new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0)).getUTCDate()
-}
-
-function shiftMonth(month: string, delta: number): string {
-  const d = new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)) - 1 + delta, 1))
-  return d.toISOString().slice(0, 7)
 }

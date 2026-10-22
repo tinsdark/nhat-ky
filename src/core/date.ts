@@ -30,6 +30,12 @@ export function addDays(dateKey: string, n: number): string {
 }
 
 /** All dateKeys from `from` to `to`, both inclusive. Empty if `from > to`. */
+/** `YYYY-MM` shifted by `delta` months. */
+export function addMonths(month: string, delta: number): string {
+  const d = new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)) - 1 + delta, 1))
+  return d.toISOString().slice(0, 7)
+}
+
 export function dateKeyRange(from: string, to: string): string[] {
   const keys: string[] = []
   for (let ms = dateKeyToMs(from); ms <= dateKeyToMs(to); ms += DAY_MS) keys.push(msToDateKey(ms))

@@ -19,6 +19,7 @@
   --danger-soft: #f7ded6;
   --ok: #2f7d46;
   --warn: #a8660a;
+  --warn-text: #7f4a00; /* warn colour for small text: stronger contrast on --bg */
   --warn-soft: #fbe9c4;
   --shadow: 0 1px 2px rgb(110 80 20 / 0.08), 0 2px 10px rgb(110 80 20 / 0.08);
   --mask: rgb(50 32 10 / 0.45);
@@ -43,6 +44,7 @@
     --danger-soft: #43221b;
     --ok: #7fd9a0;
     --warn: #f6bb4a;
+    --warn-text: #f6bb4a;
     --warn-soft: #40331a;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 2px 10px rgb(0 0 0 / 0.25);
     --mask: rgb(10 5 0 / 0.65);
@@ -65,6 +67,7 @@
   --danger-soft: #43221b;
   --ok: #7fd9a0;
   --warn: #f6bb4a;
+  --warn-text: #f6bb4a;
   --warn-soft: #40331a;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 2px 10px rgb(0 0 0 / 0.25);
   --mask: rgb(10 5 0 / 0.65);
@@ -212,7 +215,7 @@ button {
   opacity: 0.55;
 }
 .btn.small {
-  min-height: 36px;
+  min-height: 44px;
   padding: 0 12px;
   border-radius: 999px;
   font-size: 0.8rem;
@@ -244,8 +247,11 @@ textarea {
   background: none;
   color: var(--muted);
   font: inherit;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   text-align: left;
+  /* a 44px tap area without making the header taller */
+  padding: 14px 0;
+  margin: -14px 0;
 }
 .sync-synced {
   color: var(--ok);
@@ -254,13 +260,13 @@ textarea {
   color: var(--accent);
 }
 .sync-offline {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 .sync-error {
   color: var(--danger);
 }
 .sync-authRequired {
-  color: var(--warn);
+  color: var(--warn-text);
   text-decoration: underline dotted;
   text-underline-offset: 3px;
 }
@@ -348,7 +354,7 @@ textarea {
 }
 .pills button {
   flex: 1 1 auto;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 14px;
   border: 0;
   border-radius: 999px;
@@ -417,7 +423,7 @@ textarea {
   position: fixed;
   left: 16px;
   right: 16px;
-  top: calc(68px + env(safe-area-inset-top));
+  bottom: calc(58px + 12px + env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
   gap: 4px;
@@ -1709,6 +1715,7 @@ form.sheet > .row:last-child {
   flex: none;
   width: 52px;
   height: 32px;
+
   border-radius: 16px;
   border: 0;
   padding: 3px;
@@ -1716,6 +1723,11 @@ form.sheet > .row:last-child {
   position: relative;
   cursor: pointer;
   transition: background 0.15s;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  inset: -6px 0; /* 44px tap area around the 32px track */
 }
 .switch span {
   display: block;
@@ -2175,4 +2187,45 @@ html:has(.sheet-backdrop, .fullscreen) {
   width: 100%;
   min-width: 0;
   max-width: 100%;
+}
+
+/* New version available: a chip in the header */
+.update-chip {
+  flex: none;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.linkbtn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+}
+.sheet:focus {
+  outline: none;
+}
+
+.delta {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.delta.good {
+  color: var(--ok);
+}
+.delta.bad {
+  color: var(--danger);
+}
+.delta.neutral {
+  color: var(--muted);
 }
