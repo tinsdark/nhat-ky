@@ -28,7 +28,10 @@ export function Habits() {
   const defs = useLive(getDefs, [])
   const dayStartHour = settings?.dayStartHour ?? 4
   const today = toDateKey(Date.now(), dayStartHour)
-  const from = addDays(today, -HISTORY_DAYS)
+  // Streaks and rates need every day since a habit started, not only the last HISTORY_DAYS.
+  const earliestStart = defs?.habits.reduce((m, h) => (h.startDate < m ? h.startDate : m), today)
+  const minFrom = addDays(today, -HISTORY_DAYS)
+  const from = earliestStart && earliestStart < minFrom ? earliestStart : minFrom
   const entries = useLive(() => getEntriesInRange(from, today), [from, today])
   const days = useLive(() => getDaysInRange(from, today), [from, today])
   const [editing, setEditing] = useState<Habit | 'new' | null>(null)

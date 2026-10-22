@@ -177,20 +177,26 @@ export function completionRate(
   opts: HabitOptions = {},
 ): number | null {
   const from = addDays(today, -(windowDays - 1))
+  const range = dateKeyRange(from < habit.startDate ? habit.startDate : from, today)
   let met = 0
   let due = 0
-  for (const d of dateKeyRange(from < habit.startDate ? habit.startDate : from, today)) {
+  const metByWeek = new Map<string, number>()
+  for (const d of range) {
     const s = dayStatus(habit, d, values, opts)
     if (s === 'off' || s === 'rest') continue
     if (s === 'met') {
       met += 1
       due += 1
+      const w = weekStart(d)
+      metByWeek.set(w, (metByWeek.get(w) ?? 0) + 1)
     } else if (d !== today) due += 1
   }
   if (habit.schedule.kind === 'timesPerWeek') {
-    const days = dateKeyRange(from < habit.startDate ? habit.startDate : from, today).length
-    const expected = (habit.schedule.times * days) / 7
-    return expected === 0 ? null : Math.min(1, met / expected)
+    // Extra days in a week do not make up for an empty week: cap each week at its target.
+    const times = habit.schedule.times
+    const counted = [...metByWeek.values()].reduce((sum, n) => sum + Math.min(n, times), 0)
+    const expected = (times * range.length) / 7
+    return expected === 0 ? null : Math.min(1, counted / expected)
   }
   return due === 0 ? null : met / due
 }

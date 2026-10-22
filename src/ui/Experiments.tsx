@@ -46,10 +46,10 @@ export function Experiments({
           }
           const habit = ctx.habits.find((h) => h.id === e.habitId)
           const values = habit ? ctx.habitValues(habit) : new Map<string, number>()
+          const range = dateKeyRange(e.startDate, e.endDate < today ? e.endDate : today)
+          const loggedDays = new Set(range.filter((d) => ctx.logged(d)))
           const done = habit
-            ? dateKeyRange(e.startDate, e.endDate < today ? e.endDate : today).filter(
-                (d) => dayStatus(habit, d, values) === 'met',
-              ).length
+            ? range.filter((d) => dayStatus(habit, d, values, { loggedDays }) === 'met').length
             : 0
           const day = Math.min(14, dateKeyRange(e.startDate, today).length)
           return (

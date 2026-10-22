@@ -8,7 +8,7 @@ import { mergeDefs } from '../core/mergeDefs'
 import { isDay, isDocStamp, isEntry } from '../core/validate'
 import type { Day, Defs, Entry } from '../core/types'
 import type { DocStamp, NhatKyDB } from '../data/db'
-import type { DriveClient } from '../drive/client'
+import { DriveError, type DriveClient } from '../drive/client'
 
 export type SyncDrive = Pick<
   DriveClient,
@@ -250,10 +250,12 @@ export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive
       setStatus({ state: 'synced', lastSyncAt: toIso() })
       return true
     } catch (err) {
-      if (err instanceof AuthRequiredError) setStatus({ state: 'authRequired' })
+      // A second 401 after the silent refresh means the user must sign in again.
+      if (err instanceof AuthRequiredError || (err instanceof DriveError && err.status === 401))
+        setStatus({ state: 'authRequired' })
       else if (
         err instanceof AuthNetworkError ||
-        err instanceof TypeError ||
+        (err instanceof TypeError && /fetch|network|load failed/i.test(err.message)) ||
         (typeof navigator !== 'undefined' && navigator.onLine === false)
       ) {
         setStatus({ state: 'offline' })

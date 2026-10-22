@@ -81,11 +81,12 @@ export function weeklyReport(ctx: MetricContext, endKey: string, habits: Habit[]
     mood: mood.compute(dateKey, ctx),
   }))
 
+  const loggedDays = new Set(keys.filter((d) => ctx.logged(d)))
   const habitRows = habits
     .filter((h) => !h.archived)
     .map((h) => {
       const values = ctx.habitValues(h)
-      const statuses = keys.map((d) => dayStatus(h, d, values))
+      const statuses = keys.map((d) => dayStatus(h, d, values, { loggedDays }))
       const met = statuses.filter((s) => s === 'met').length
       const due =
         h.schedule.kind === 'timesPerWeek'

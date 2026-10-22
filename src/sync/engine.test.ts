@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthRequiredError } from '../auth/token'
 import type { Day, Entry } from '../core/types'
 import { NhatKyDB } from '../data/db'
+import { DriveError } from '../drive/client'
 import { createSyncEngine, type SyncDrive } from './engine'
 
 /** In-memory appDataFolder shared by every "device". */
@@ -473,6 +474,22 @@ describe('status and failures', () => {
     drive.fail = null
     await a.engine.run()
     expect(a.engine.getStatus().state).toBe('synced')
+  })
+
+  it('a second 401 from Drive shows the sign-in prompt, not a generic error', async () => {
+    const drive = fakeDrive()
+    const a = device(drive)
+    drive.fail = () => new DriveError(401, 'Drive GET failed: 401')
+    await a.engine.run()
+    expect(a.engine.getStatus().state).toBe('authRequired')
+  })
+
+  it('a programming TypeError is an error, not offline', async () => {
+    const drive = fakeDrive()
+    const a = device(drive)
+    drive.fail = () => new TypeError("Cannot read properties of undefined (reading 'x')")
+    await a.engine.run()
+    expect(a.engine.getStatus().state).toBe('error')
   })
 
   it('other errors are reported with their message', async () => {

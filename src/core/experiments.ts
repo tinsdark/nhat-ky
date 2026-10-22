@@ -75,9 +75,9 @@ export function evaluateExperiment(
   ctx: MetricContext,
 ): ExperimentResult {
   const values = ctx.habitValues(habit)
-  const compliant = dateKeyRange(exp.startDate, exp.endDate).filter(
-    (d) => dayStatus(habit, d, values) === 'met',
-  )
+  const range = dateKeyRange(exp.startDate, exp.endDate)
+  const loggedDays = new Set(range.filter((d) => ctx.logged(d)))
+  const compliant = range.filter((d) => dayStatus(habit, d, values, { loggedDays }) === 'met')
   const test = present(compliant.map((d) => outcome.compute(addDays(d, exp.lag), ctx)))
   const base = present(
     dateKeyRange(addDays(exp.startDate, -EXPERIMENT_DAYS), addDays(exp.startDate, -1)).map((d) =>

@@ -222,3 +222,26 @@ describe('changeDayStartHour', () => {
     await expect(changeDayStartHour(12)).rejects.toThrow()
   })
 })
+
+describe('write guards', () => {
+  it('refuses a block that ends before it starts', async () => {
+    await expect(
+      createEntry({
+        type: 'work',
+        start: '2026-11-03T05:00:00.000+07:00',
+        end: '2026-11-02T02:00:00.000+07:00',
+      }),
+    ).rejects.toThrow(/before it starts/)
+    const e = await createEntry({ type: 'work', start: '2026-11-03T05:00:00.000+07:00' })
+    await expect(updateEntry(e.id, { end: '2026-11-03T04:00:00.000+07:00' })).rejects.toThrow()
+    expect((await db.entries.get(e.id))?.end).toBeNull()
+  })
+  it('two settings saves in a row both stick', async () => {
+    await Promise.all([
+      saveSettings({ waterTargetMl: 1111 }),
+      saveSettings({ sleepTargetHours: 6 }),
+    ])
+    const s = await getSettings()
+    expect([s.waterTargetMl, s.sleepTargetHours]).toEqual([1111, 6])
+  })
+})

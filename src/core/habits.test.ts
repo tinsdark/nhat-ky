@@ -192,6 +192,15 @@ describe('rest days', () => {
   })
 })
 
+describe('completionRate — x times a week', () => {
+  it('caps each week at its target: 7 days in week 1 then 3 empty weeks is 25%, not 58%', () => {
+    const h = habit({ schedule: { kind: 'timesPerWeek', times: 3 }, startDate: '2026-11-02' })
+    const v = vals(...Array.from({ length: 7 }, (_, i) => `2026-11-0${2 + i}`).slice(0, 7))
+    // 2026-11-02 is a Monday: days 02…08 are one week; window is 4 weeks ending Sunday 11-29
+    expect(completionRate(h, v, '2026-11-29', 28)).toBeCloseTo(3 / 12)
+  })
+})
+
 describe('completionRate', () => {
   const h = habit()
   it('is met days over due days, today only if met', () => {
