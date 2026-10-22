@@ -400,6 +400,7 @@ def cover():
     <div><b>Kỳ dữ liệu mẫu</b><br/>01/10 – 30/10/2026 (30 ngày)</div>
     <div><b>Nhánh mã nguồn</b><br/>claude/serene-knuth-tya6av</div>
   </div>
+  <div class="note" style="margin-bottom:4mm">Bản cập nhật 22/10/2026: sửa mục 2.5 (check-in không tính vào điểm ngày của app thật) và cập nhật phần uống nước sau PR #22 (chọn lượng mỗi lần, gộp thành một dòng).</div>
   <div class="note">Toàn bộ dữ liệu trong báo cáo là dữ liệu giả sinh bằng chương trình (<code>src/dev/persona.ts</code>). Không có dòng nào lấy từ nhật ký thật của người dùng. Các con số là kết quả tính lại bằng chính bộ chỉ số và bộ phân tích của app, không gõ tay.</div>
 </section>"""
 
@@ -469,7 +470,7 @@ def part1():
         ("activity", "Hoạt động", "Di chuyển, học BA, đọc sách, giải trí, mạng xã hội, việc nhà, gặp bạn bè, ra ngoài trời."),
         ("work", "Làm việc", "Deep work, họp, hỗ trợ, email/chat; có dự án, điểm tập trung, số lần bị ngắt, cờ làm thêm giờ (OT)."),
         ("water", "Uống nước", "Mỗi lần một ly 250 ml."),
-        ("note", "Check-in", "Năng lượng và tâm trạng 1–5, ghi riêng từng lần, tối đa 4 lần/ngày."),
+        ("note", "Check-in", "Năng lượng và tâm trạng 1–5, mỗi lần chạm ghi thành một mục riêng (dữ liệu mẫu: tối đa 4 lần/ngày)."),
         ("sleep", "Ngủ", "Giờ ngủ → giờ dậy, chất lượng 1–5, số lần thức giấc, dùng màn hình trước ngủ, báo thức."),
         ("exercise", "Vận động", "Chạy bộ, gym, đạp xe, đi bộ đường dài; cường độ, quãng đường."),
         ("habit", "Thói quen", "Một lần tick 'Đọc sách 20 phút' kèm số phút."),
@@ -482,7 +483,7 @@ def part1():
 <p>Hai bảng dưới liệt kê mọi ngày với các chỉ số chính, đọc từ bộ chỉ số của app (registry). Ô tô xanh càng đậm càng 'tốt' theo hướng của chỉ số (với stress, đậm nghĩa là ít stress). Dấu '–' nghĩa là ngày đó không có dữ liệu cho chỉ số ấy (không phải bằng 0, theo quy ước null ≠ 0 của app).</p>""")
     sec.append("<h3>Từ 1 đến 15/10</h3>" + daily_table(range(0, 15)))
     sec.append("<h3>Từ 16 đến 30/10</h3>" + daily_table(range(15, 30)))
-    sec.append("""<p class="small">Đêm ngủ được tính cho ngày bắt đầu đêm đó (CLAUDE.md, luật 7): 'Ngủ 6,5 giờ ngày 19/10' là đêm từ tối 19 sang sáng 20. Ngày 30/10 chưa có đêm ngủ vì mới 21:40. Ngày 17/10 (đi xa) không có điểm ngày vì không có check-in nào được ghi.</p>""")
+    sec.append("""<p class="small">Đêm ngủ được tính cho ngày bắt đầu đêm đó (CLAUDE.md, luật 7): 'Ngủ 6,5 giờ ngày 19/10' là đêm từ tối 19 sang sáng 20. Ngày 30/10 chưa có đêm ngủ vì mới 21:40. Ngày 17/10 (đi xa) không có điểm ngày vì mô hình không sinh check-in nào hôm đó (điểm ngày của dữ liệu mẫu được tính từ check-in; trong app thật điểm này do người dùng chấm).</p>""")
 
     # ---- charts
     sleep_h = [val("sleep_hours", i) for i in range(30)]
@@ -693,7 +694,7 @@ def part2():
 <h2>2.5 Hành vi sử dụng app, không chỉ hành vi sống</h2>
 <p>Một ứng dụng nhật ký chỉ thấy phần được ghi. Hành vi ghi chép cũng có quy luật, và nó quyết định chất lượng mọi thống kê:</p>
 <ul>
-  <li><b>Check-in bị bỏ lỡ.</b> Mô hình bỏ 20% số lần check-in năng lượng và tâm trạng (rút ngẫu nhiên). Hệ quả: điểm năng lượng trong ngày là trung bình của 2–4 lần chứ không phải đủ 4, và một số ngày không có điểm (như 17/10).</li>
+  <li><b>Check-in bị bỏ lỡ.</b> Mô hình bỏ 20% số lần check-in năng lượng và tâm trạng (rút ngẫu nhiên). Trong app thật, check-in chỉ dùng để vẽ đường năng lượng trong ngày; điểm năng lượng và tâm trạng của cả ngày lấy từ bước Chấm ngày, không tính từ check-in. Dữ liệu mẫu tính điểm ngày từ trung bình các check-in cộng nhiễu cho hai thứ nhất quán, nên ngày nào không có check-in nào (như 17/10) cũng không có điểm ngày. Người dùng thật vẫn chấm ngày được mà không cần check-in.</li>
   <li><b>Ghi sát giờ.</b> Ghi nhanh trên Hôm nay giúp giờ chính xác; mục đã làm xong ghi ở tab Ghi bù với giờ ước lượng. Mô hình coi mọi giờ là chính xác, nên chưa kiểm tra độ nhiễu khi ghi bù (đề xuất ở mục 2.7).</li>
   <li><b>Ngày bỏ ghi.</b> Mô hình chưa có ngày bỏ ghi hoàn toàn. Với người dùng thật, cuối tuần và ngày đi chơi dễ bị bỏ trống; bộ chỉ số trả về null cho ngày không ghi nên phân tích vẫn đúng, nhưng sẽ thiếu đúng những ngày có nhiều thông tin nhất.</li>
   <li><b>Thói quen chấm ngày.</b> Điểm ngày do người dùng chấm lúc 21:30; mô hình tính điểm từ năng lượng, tâm trạng, stress cộng nhiễu, tức là mô hình coi người dùng chấm khá nhất quán. Người thật thường kém nhất quán hơn.</li>
@@ -861,16 +862,17 @@ def part4():
 <p>Màn dùng nhiều nhất. Nguyên tắc: ghi một sự kiện không quá 2 chạm; chỉ ghi thời gian thực ở đây, việc đã làm xong ghi ở tab Ghi bù.</p>""")
     cap_today = {
         ("01-hom-nay", 0): f"Thanh chọn ngày, banner 'Chấm ngày hôm nay' (hiện sau 21:30), thẻ tổng quan <b>5/6 mục cốt lõi</b> (thiếu mỗi 'Chấm ngày'), thẻ giấc ngủ: đêm qua ngủ <b>{last_night()}</b> với hai nút Đi ngủ / Thức dậy.",
-        ("01-hom-nay", 1): "Ghi nhanh: bốn nút theo Loại (Ăn uống, Làm việc, Hoạt động, Vận động) và Uống nước ghi ngay; ô 'Thêm nút'. Phía dưới là hai hàng 1–5 để check-in năng lượng và tâm trạng bằng một chạm.",
+        ("01-hom-nay", 1): "Ghi nhanh: bốn nút theo Loại (Ăn uống, Làm việc, Hoạt động, Vận động) và Uống nước (chạm để chọn lượng, xem ảnh kế tiếp); ô 'Thêm nút'. Phía dưới là hai hàng 1–5 để check-in năng lượng và tâm trạng bằng một chạm.",
         ("01-hom-nay", 2): "Dòng thời gian 'Đã ghi trong ngày': mỗi mục có giờ, thanh màu theo loại, tên và thời lượng; ngủ đêm qua ở đầu, các mục sau theo giờ.",
         ("01-hom-nay", 3): "Cuối ngày: học BA, mạng xã hội 21:40 là mục gần nhất; thanh tab dưới cùng.",
+        ("03b-chon-luong-nuoc", 0): "Bấm 'Uống nước' mở các ô lượng (mặc định 150 / 250 / 330 / 500 / 750 ml, sửa được ở Cài đặt → Mục tiêu) và ô 'Lượng khác'; lần uống trước được tô sáng. Các lần uống trong ngày gộp thành một dòng 'Nước · N lần · tổng' trên dòng thời gian.",
         ("03-chon-danh-muc", 0): "Bấm 'Làm việc' mở bảng chọn danh mục của loại Làm việc dưới dạng ô bấm (Deep work, Họp, Hỗ trợ/fix lỗi khách, Email/chat, Học trong việc) cộng ô 'Khác'.",
         ("04-form-ghi-moi", 0): "Form 'Ghi mới' đã có sẵn loại và danh mục (Deep work · Làm việc, nút 'Đổi'); giờ bắt đầu là bây giờ, chip thời lượng, nút <b>Bắt đầu</b> (để trống giờ kết thúc thì việc chạy tiếp).",
         ("05-dang-lam", 0): "Sau khi bấm Bắt đầu: thông báo 'Đã bắt đầu: Deep work' (có Sửa / Hoàn tác) và thẻ <b>Đang làm</b> với nút Kết thúc; biểu tượng đập nhẹ để biết việc còn mở.",
         ("06-chi-tiet-muc", 0): "Bấm một mục trên dòng thời gian mở bảng Sửa / Nhân bản / Xoá. Ở đây là bữa tối 18:42.",
         ("07-cham-ngay", 0): "Chấm ngày: tâm trạng, năng lượng, stress, tập trung (1–5), điểm cả ngày (1–10), điều đáng nhớ, loại ngày (đi làm, cuối tuần, nghỉ lễ, ốm, đi xa).",
     }
-    sec.append(shots("after", ["01-hom-nay", "03-chon-danh-muc", "04-form-ghi-moi", "05-dang-lam", "06-chi-tiet-muc", "07-cham-ngay"], cap_today))
+    sec.append(shots("after", ["01-hom-nay", "03b-chon-luong-nuoc", "03-chon-danh-muc", "04-form-ghi-moi", "05-dang-lam", "06-chi-tiet-muc", "07-cham-ngay"], cap_today))
     sec.append("<h2>4.2 Ghi bù và Thói quen</h2>")
     cap_bu = {
         ("08-ghi-bu", 0): "Tab Ghi bù: chọn ngày, chọn việc đã làm xong (cùng bộ nút theo Loại cộng 'Ngủ đêm qua' và 'Việc khác'); giờ có sẵn là giờ thường ngày của mục đó. Mục tạo ở đây được đánh dấu 'ghi bù'.",
@@ -1044,7 +1046,7 @@ def part5():
 <h2>5.6 Đề xuất tiếp theo cho trải nghiệm</h2>
 <table class="plain">
 <tr><th>Đề xuất</th><th>Vì sao</th><th>Công sức</th></tr>
-<tr><td>Gộp các lần uống nước thành một dòng trên Hôm nay ('Nước ×8 · 2 lít').</td><td>Hiện mỗi ly là một dòng; ngày nhiều ly làm dòng thời gian rất dài (màn Hôm nay cao hơn 3 màn hình).</td><td>Vừa</td></tr>
+<tr><td>Gộp các lần uống nước thành một dòng trên Hôm nay ('Nước · 8 lần · 2 L'). <b>Đã làm ở PR #22</b>, kèm chọn lượng mỗi lần.</td><td>Trước đó mỗi ly là một dòng; ngày nhiều ly làm dòng thời gian rất dài (màn Hôm nay cao hơn 3 màn hình).</td><td>Xong</td></tr>
 <tr><td>Hiệu ứng đóng cho bảng trượt xuống thay vì biến mất ngay.</td><td>Hiện chỉ có hiệu ứng mở. Hiệu ứng đóng cần giữ phần tử thêm một nhịp trước khi gỡ.</td><td>Vừa</td></tr>
 <tr><td>Một 'trạng thái trống' có hướng dẫn cho từng màn thống kê khi dưới 7 ngày.</td><td>Người mới dùng thấy thẻ '—' và 'chưa đủ dữ liệu' mà không biết cần làm gì.</td><td>Nhỏ</td></tr>
 <tr><td>Hiện số ngày đứng sau mỗi lời khuyên tương quan (mục 3.6).</td><td>Tránh hiểu nhầm vì d và nhãn 'mạnh' không cho biết cỡ mẫu.</td><td>Nhỏ</td></tr>
@@ -1084,7 +1086,7 @@ def part6():
   <li><b>Sửa nhiễu lịch trong bộ tương quan</b> (so trong từng nhóm ngày làm việc / cuối tuần rồi gộp; hiện số ngày). Có sẵn số liệu trước/sau trong báo cáo để làm tiêu chí xong: số phát hiện sai giảm từ """ + str(sum(1 for f in F['days150'] if classify(f)[0] == 'calendar')) + """ xuống gần 0 trên cùng dữ liệu.</li>
   <li><b>Thử trên iPhone</b> các màn Hôm nay, Quản lý, form Ghi mới và cập nhật phiên bản; báo lại độ mượt và chỗ lắc.</li>
   <li><b>Bổ sung vào dữ liệu mẫu</b> các hành vi còn thiếu ở mục 2.7 (rượu bia, ngủ trưa, ngày nghỉ, ngày bỏ ghi) và chạy lại số liệu bằng đúng lệnh ở phụ lục.</li>
-  <li><b>Gộp các lần uống nước</b> thành một dòng trên Hôm nay và thêm hiệu ứng đóng cho bảng.</li>
+  <li><b>Thêm hiệu ứng đóng cho bảng trượt</b> (việc gộp các lần uống nước đã làm ở PR #22).</li>
 </ol>
 <h2>Phụ lục A. Cách chạy lại toàn bộ</h2>
 <pre>
@@ -1128,7 +1130,7 @@ PW=... CHROME=... node docs/report/to_pdf.cjs
     sec.append(table(["", "Danh mục", "Loại", "Nhóm thời gian"], rows, "dense"))
     qas = re.findall(r"qa\('([\w-]+)', '([^']+)', '([^']+)', (\d+), '(\w+)'", src)
     rows = [[icon, esc(name), tname.get(t, t)] for _id, name, icon, _o, t in qas]
-    sec.append("<p>Nút nhanh mặc định (mỗi nút trỏ vào một Loại; Thức dậy / Đi ngủ nằm ở thẻ giấc ngủ, Uống nước ghi ngay):</p>")
+    sec.append("<p>Nút nhanh mặc định (mỗi nút trỏ vào một Loại; Thức dậy / Đi ngủ nằm ở thẻ giấc ngủ, Uống nước chọn lượng):</p>")
     sec.append(table(["", "Nút", "Loại"], rows))
     # ---- Appendix F: glossary
     sec.append("""

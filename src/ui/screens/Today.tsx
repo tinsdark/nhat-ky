@@ -4,7 +4,8 @@ import { copyToDay } from '../../core/entryForm'
 import { dueReminders } from '../../core/reminders'
 import { reviewPrompt } from '../../core/review'
 import { finishPatch, isRunning } from '../../core/running'
-import { buildTimeline, coreProgress } from '../../core/timeline'
+import { buildTimeline, coreProgress, groupWater } from '../../core/timeline'
+import { lastWaterMl } from '../../core/water'
 import type { Category, Entry, Habit, QuickAction } from '../../core/types'
 import { tickHabit } from '../../data/habits'
 import {
@@ -34,6 +35,8 @@ import { RunningCard } from '../today/RunningCard'
 import { SleepCard } from '../today/SleepCard'
 import { Timeline } from '../today/Timeline'
 import { Toast, type ToastData } from '../Toast'
+import { WaterList } from '../WaterList'
+import { WaterPicker } from '../WaterPicker'
 import { useLive } from '../useLive'
 
 /** Sleep has its own card, so these two buttons are not shown as tiles. */
@@ -70,6 +73,8 @@ export function Today() {
   const [form, setForm] = useState<FormDraft | null>(null)
   const [detail, setDetail] = useState<Entry | null>(null)
   const [pickFor, setPickFor] = useState<QuickAction | null>(null)
+  const [waterFor, setWaterFor] = useState<QuickAction | null>(null)
+  const [waterList, setWaterList] = useState<Entry[] | null>(null)
   const running = useLive(getRunningEntries, [])
   const [managing, setManaging] = useState<{ startNew: boolean } | null>(null)
   const [toast, setToast] = useState<ToastData | null>(null)
@@ -137,18 +142,26 @@ export function Today() {
     setSleepPrompt({ id: entry.id, note: estimated ? estimatedNote(entry.start) : undefined })
   }
 
-  const quickTap = async (a: QuickAction) => {
-    if (a.type !== 'water') return setPickFor(a)
+  const quickTap = (a: QuickAction) => (a.type === 'water' ? setWaterFor(a) : setPickFor(a))
+
+  /** One drink of `ml`: the amount is chosen each time, since cups and bottles differ. */
+  const recordWater = async (a: QuickAction, ml: number) => {
     const entry = await createEntry({
-      type: a.type,
+      type: 'water',
       start: nowIso(),
       categoryId: a.categoryId,
       title: a.title,
-      value: a.value,
-      unit: a.unit,
+      value: ml,
+      unit: 'ml',
       source: 'quick',
     })
-    showSaved(entry, true)
+    setWaterFor(null)
+    setToast({
+      id: Date.now(),
+      text: `Đã ghi: nước ${ml} ml`,
+      onEdit: () => setForm(draftFromEntry(entry)),
+      onUndo: () => void softDeleteEntry(entry.id),
+    })
   }
 
   const recordCheckin = async (kind: 'energy' | 'mood', value: number) => {
@@ -197,7 +210,7 @@ export function Today() {
     : []
 
   const progress = coreProgress(entries, day)
-  const rows = buildTimeline(entries, isToday ? { now } : {})
+  const rows = groupWater(buildTimeline(entries, isToday ? { now } : {}))
   const actions = [...defs.quickActions]
     .sort((a, b) => a.order - b.order)
     .filter((a) => !SLEEP_ACTIONS.has(a.id))
@@ -254,8 +267,8 @@ export function Today() {
           <QuickGrid
             actions={actions}
             categories={categories}
-            onTap={(a) => void quickTap(a)}
-            onHold={(a) => (a.type === 'water' ? setForm(draftFor(a)) : setPickFor(a))}
+            onTap={quickTap}
+            onHold={quickTap}
             onEdit={() => setManaging({ startNew: false })}
             onAdd={() => setManaging({ startNew: true })}
           />
@@ -274,6 +287,7 @@ export function Today() {
         tags={defs.tags}
         dateKey={dateKey}
         onOpen={setDetail}
+        onOpenGroup={setWaterList}
       />
 
       {detail && (
@@ -307,6 +321,24 @@ export function Today() {
               onUndo: () => void softDeleteEntry(copy.id),
             })
           }}
+        />
+      )}
+      {waterFor && (
+        <WaterPicker
+          sizes={settings.waterSizes}
+          last={lastWaterMl(ownEntries ?? [])}
+          onPick={(ml) => void recordWater(waterFor, ml)}
+          onClose={() => setWaterFor(null)}
+        />
+      )}
+      {waterList && (
+        <WaterList
+          entries={waterList}
+          onOpen={(e) => {
+            setWaterList(null)
+            setDetail(e)
+          }}
+          onClose={() => setWaterList(null)}
         />
       )}
       {pickFor && (

@@ -2,6 +2,7 @@ import { formatDuration } from '../../core/entryForm'
 import { toHHmm } from '../../core/date'
 import { tagName } from '../../core/defs'
 import type { TimelineRow } from '../../core/timeline'
+import { formatMl } from '../../core/water'
 import type { Category, Entry, Tag } from '../../core/types'
 import { Icon } from '../Icon'
 import { Thumb } from '../PhotoViews'
@@ -17,6 +18,7 @@ export function Timeline({
   tags,
   dateKey,
   onOpen,
+  onOpenGroup,
   title = 'Đã ghi trong ngày',
   emptyText = 'Chưa ghi gì. Chạm một nút ở trên để bắt đầu.',
 }: {
@@ -25,10 +27,15 @@ export function Timeline({
   tags: Tag[]
   dateKey: string
   onOpen: (e: Entry) => void
+  /** Opens the list behind a collapsed row (the day's water). */
+  onOpenGroup?: (entries: Entry[]) => void
   title?: string
   emptyText?: string
 }) {
-  const count = rows.filter((r) => r.kind === 'entry').length
+  const count = rows.reduce(
+    (n, r) => n + (r.kind === 'entry' ? 1 : r.kind === 'water' ? r.entries.length : 0),
+    0,
+  )
   return (
     <section class="panel">
       <div class="panel-head">
@@ -46,6 +53,24 @@ export function Timeline({
                   <Icon name="plus" size={14} /> Chưa ghi {toHHmm(r.start)}–{toHHmm(r.end)} · chạm
                   để ghi bù
                 </a>
+              </li>
+            ) : r.kind === 'water' ? (
+              <li>
+                <button type="button" class="rowbtn" onClick={() => onOpenGroup?.(r.entries)}>
+                  <span class="when">
+                    <strong>{toHHmm(r.start)}</strong>
+                    {r.entries.length > 1 && (
+                      <span class="muted">{toHHmm(r.entries[r.entries.length - 1]!.start)}</span>
+                    )}
+                  </span>
+                  <span class="bar" style={{ background: colorOf(categories, r.entries[0]!) }} />
+                  <span class="grow">
+                    <span class="title">Nước</span>
+                    <span class="sub">
+                      {r.entries.length} lần · {formatMl(r.ml)}
+                    </span>
+                  </span>
+                </button>
               </li>
             ) : (
               <li>

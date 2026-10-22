@@ -2095,3 +2095,9 @@ body {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Water picker: the "Ghi" button lines up with the amount field. */
+.sheet .row > .btn[type='submit'] {
+  align-self: flex-end;
+  min-height: 44px;
+}

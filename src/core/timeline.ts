@@ -3,7 +3,10 @@ import type { Day, Entry } from './types'
 export const GAP_MINUTES = 120
 
 export type TimelineRow =
-  { kind: 'entry'; entry: Entry; minutes: number } | { kind: 'gap'; start: string; end: string }
+  | { kind: 'entry'; entry: Entry; minutes: number }
+  | { kind: 'gap'; start: string; end: string }
+  /** Every drink of the day as one row: where the first drink was, with the total. */
+  | { kind: 'water'; entries: Entry[]; ml: number; start: string }
 
 const ms = (ts: string) => new Date(ts).getTime()
 
@@ -38,6 +41,29 @@ export function buildTimeline(
     rows.push({ kind: 'gap', start: coveredIso, end: new Date(opts.now).toISOString() })
   }
   return rows
+}
+
+/** Collapses the water rows of a built timeline into one row at the first drink (display only). */
+export function groupWater(rows: TimelineRow[]): TimelineRow[] {
+  const drinks = rows.flatMap((r) =>
+    r.kind === 'entry' && r.entry.type === 'water' ? [r.entry] : [],
+  )
+  if (drinks.length === 0) return rows
+  const group: TimelineRow = {
+    kind: 'water',
+    entries: drinks,
+    ml: drinks.reduce((s, e) => s + (e.value ?? 0), 0),
+    start: drinks[0]!.start,
+  }
+  const out: TimelineRow[] = []
+  let placed = false
+  for (const r of rows) {
+    if (r.kind === 'entry' && r.entry.type === 'water') {
+      if (!placed) out.push(group)
+      placed = true
+    } else out.push(r)
+  }
+  return out
 }
 
 export interface CoreItem {

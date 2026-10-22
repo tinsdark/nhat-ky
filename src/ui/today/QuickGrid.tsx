@@ -53,7 +53,7 @@ export function QuickGrid({
         </button>
       </div>
       <p class="muted hint">
-        Chạm để chọn việc, Uống nước thì ghi ngay. Việc kéo dài thì bấm Bắt đầu, xong bấm Kết thúc.
+        Chạm để chọn việc (Uống nước: chọn lượng). Việc kéo dài thì bấm Bắt đầu, xong bấm Kết thúc.
       </p>
     </section>
   )
