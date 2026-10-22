@@ -2243,3 +2243,46 @@ html:has(.sheet-backdrop, .fullscreen) {
 .delta.neutral {
   color: var(--muted);
 }
+
+/* Swipe rows: left = delete, right = edit. The row slides over a coloured strip that names the action. */
+.rows > li.swipe {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  padding: 0;
+}
+.swipe-front {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  min-height: 56px;
+  background: var(--card);
+  touch-action: pan-y; /* the page still scrolls up and down, sideways moves reach us */
+  transition: transform 0.18s ease;
+}
+.swipe-front.dragging {
+  transition: none;
+}
+.swipe-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 18px;
+  font-weight: 700;
+  color: #fff;
+  opacity: 0.85;
+}
+.swipe-bg.edit {
+  justify-content: flex-start;
+  background: #3f6fa8; /* fixed, so white text reads in both themes */
+}
+.swipe-bg.del {
+  justify-content: flex-end;
+  background: #b5473a;
+}
+.swipe-bg.on {
+  opacity: 1;
+}

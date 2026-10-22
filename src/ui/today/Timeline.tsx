@@ -6,6 +6,7 @@ import { formatMl } from '../../core/water'
 import type { Category, Entry, Tag } from '../../core/types'
 import { Icon } from '../Icon'
 import { Thumb } from '../PhotoViews'
+import { SwipeRow } from '../SwipeRow'
 
 const colorOf = (cats: Category[], e: Entry) =>
   cats.find((c) => c.id === e.categoryId)?.color ?? 'var(--border)'
@@ -19,6 +20,8 @@ export function Timeline({
   dateKey,
   onOpen,
   onOpenGroup,
+  onSwipeDelete,
+  onSwipeEdit,
   title = 'Đã ghi trong ngày',
   emptyText = 'Chưa ghi gì. Chạm một nút ở trên để bắt đầu.',
 }: {
@@ -29,12 +32,49 @@ export function Timeline({
   onOpen: (e: Entry) => void
   /** Opens the list behind a collapsed row (the day's water). */
   onOpenGroup?: (entries: Entry[]) => void
+  /** Swipe left / right on an entry row. Without both, rows are plain. */
+  onSwipeDelete?: (e: Entry) => void
+  onSwipeEdit?: (e: Entry) => void
   title?: string
   emptyText?: string
 }) {
   const count = rows.reduce(
     (n, r) => n + (r.kind === 'entry' ? 1 : r.kind === 'water' ? r.entries.length : 0),
     0,
+  )
+  const entryButton = (r: Extract<TimelineRow, { kind: 'entry' }>) => (
+    <button type="button" class="rowbtn" onClick={() => onOpen(r.entry)}>
+      <span class="when">
+        <strong>{toHHmm(r.entry.start)}</strong>
+        {r.entry.end && <span class="muted">{toHHmm(r.entry.end)}</span>}
+      </span>
+      <span class="bar" style={{ background: colorOf(categories, r.entry) }} />
+      <span class="grow">
+        <span class="title">
+          {r.entry.title || nameOf(categories, r.entry) || r.entry.type}{' '}
+          {r.entry.source === 'backfill' && <span class="tag">ghi bù</span>}
+        </span>
+        <span class="sub">
+          {[
+            r.minutes > 0 ? formatDuration(r.minutes) : null,
+            r.entry.value != null ? `${r.entry.value} ${r.entry.unit}`.trim() : null,
+            nameOf(categories, r.entry) && r.entry.title !== nameOf(categories, r.entry)
+              ? nameOf(categories, r.entry)
+              : null,
+            ...r.entry.tags.map((id) => tagName(tags, id)),
+          ]
+            .filter(Boolean)
+            .join(' · ')}
+        </span>
+        {r.entry.photoIds.length > 0 && (
+          <span class="strip">
+            {r.entry.photoIds.map((id) => (
+              <Thumb id={id} size={36} />
+            ))}
+          </span>
+        )}
+      </span>
+    </button>
   )
   return (
     <section class="panel">
@@ -72,41 +112,12 @@ export function Timeline({
                   </span>
                 </button>
               </li>
+            ) : onSwipeDelete && onSwipeEdit ? (
+              <SwipeRow onDelete={() => onSwipeDelete(r.entry)} onEdit={() => onSwipeEdit(r.entry)}>
+                {entryButton(r)}
+              </SwipeRow>
             ) : (
-              <li>
-                <button type="button" class="rowbtn" onClick={() => onOpen(r.entry)}>
-                  <span class="when">
-                    <strong>{toHHmm(r.entry.start)}</strong>
-                    {r.entry.end && <span class="muted">{toHHmm(r.entry.end)}</span>}
-                  </span>
-                  <span class="bar" style={{ background: colorOf(categories, r.entry) }} />
-                  <span class="grow">
-                    <span class="title">
-                      {r.entry.title || nameOf(categories, r.entry) || r.entry.type}{' '}
-                      {r.entry.source === 'backfill' && <span class="tag">ghi bù</span>}
-                    </span>
-                    <span class="sub">
-                      {[
-                        r.minutes > 0 ? formatDuration(r.minutes) : null,
-                        r.entry.value != null ? `${r.entry.value} ${r.entry.unit}`.trim() : null,
-                        nameOf(categories, r.entry) && r.entry.title !== nameOf(categories, r.entry)
-                          ? nameOf(categories, r.entry)
-                          : null,
-                        ...r.entry.tags.map((id) => tagName(tags, id)),
-                      ]
-                        .filter(Boolean)
-                        .join(' · ')}
-                    </span>
-                    {r.entry.photoIds.length > 0 && (
-                      <span class="strip">
-                        {r.entry.photoIds.map((id) => (
-                          <Thumb id={id} size={36} />
-                        ))}
-                      </span>
-                    )}
-                  </span>
-                </button>
-              </li>
+              <li>{entryButton(r)}</li>
             ),
           )}
         </ul>

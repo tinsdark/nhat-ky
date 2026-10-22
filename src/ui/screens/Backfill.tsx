@@ -138,6 +138,13 @@ export function Backfill() {
     setForm(draftFor({ ...a, categoryId: c?.id ?? '', title: c?.name ?? a.name }))
   }
 
+  /** Swipe left on a row: soft delete with Hoàn tác. Swipe right: straight to the edit form. */
+  const swipeDelete = (e: Entry) => {
+    void softDeleteEntry(e.id)
+    setToast({ id: Date.now(), text: 'Đã xoá', onUndo: () => void restoreEntry(e.id) })
+  }
+  const swipeEdit = (e: Entry) => setForm(draftFromEntry(e))
+
   return (
     <section class="screen">
       <h1>Ghi bù</h1>
@@ -219,6 +226,8 @@ export function Backfill() {
         tags={defs.tags}
         dateKey={dateKey}
         onOpen={setDetail}
+        onSwipeDelete={swipeDelete}
+        onSwipeEdit={swipeEdit}
         title="Đã ghi bù ngày này"
         emptyText="Chưa có mục ghi bù nào cho ngày này."
       />
