@@ -2112,3 +2112,52 @@ select,
 textarea {
   font-size: 16px;
 }
+
+/* Màn Quản lý: tiêu đề và các tab ghim ở trên, nút thêm ghim ở đáy, chỉ danh sách ở giữa cuộn. */
+.fullscreen.manage {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.manage .topbar {
+  position: static;
+  flex: none;
+}
+.manage-tabs {
+  flex: none;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 4px 14px 10px;
+}
+.manage-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.manage-body .content {
+  padding: 0 14px 20px;
+}
+.manage-add {
+  flex: none;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+.manage-add .block-btn {
+  display: block;
+  width: 100%;
+  max-width: 452px;
+  min-height: 48px;
+  margin: 0 auto;
+}
+/* Bảng sửa nằm ngoài vùng cuộn của danh sách và phủ lên trên màn Quản lý. */
+.sheet-backdrop.above {
+  z-index: 6;
+}
+/* Có bảng hay màn toàn trang mở thì trang nền không cuộn: bàn phím hiện lên không làm trang trôi. */
+html:has(.sheet-backdrop, .fullscreen) {
+  overflow: hidden;
+}
