@@ -1,6 +1,7 @@
 import { useRef } from 'preact/hooks'
 import type { Category, QuickAction } from '../../core/types'
 import { Icon } from '../Icon'
+import { QuickIcon } from '../QuickIcon'
 
 const LONG_PRESS_MS = 500
 
@@ -52,9 +53,6 @@ export function QuickGrid({
           Thêm nút
         </button>
       </div>
-      <p class="muted hint">
-        Chạm để chọn việc (Uống nước: chọn lượng). Việc kéo dài thì bấm Bắt đầu, xong bấm Kết thúc.
-      </p>
     </section>
   )
 }
@@ -94,9 +92,10 @@ function Tile({
     >
       <span
         class="ico"
-        style={color ? { background: `color-mix(in srgb, ${color} 22%, var(--card))` } : undefined}
+        aria-hidden="true"
+        style={color ? { background: `color-mix(in srgb, ${color} 28%, var(--card))` } : undefined}
       >
-        {action.icon}
+        <QuickIcon action={action} />
       </span>
       {action.name}
     </button>

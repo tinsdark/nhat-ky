@@ -14,6 +14,7 @@ import {
 import type { Category, CustomType, Defs, EntryType, QuickAction, Tag } from '../core/types'
 import { getDefs, saveDefs } from '../data/repository'
 import { Choice } from './Choice'
+import { QuickIcon } from './QuickIcon'
 import { useLive } from './useLive'
 
 type Tab = 'cat' | 'quick' | 'tag' | 'type'
@@ -129,7 +130,7 @@ export function ManageDefs({
                             onClick={() => setEditing({ kind: 'quick', item: a })}
                           >
                             <strong>
-                              {a.icon} {a.name}
+                              <QuickIcon action={a} size={18} /> {a.name}
                             </strong>
                             <span class="muted">{typeLabel(defs, a.type)}</span>
                           </button>
