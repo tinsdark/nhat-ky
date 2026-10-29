@@ -254,7 +254,7 @@ export function Today() {
     : sleepFirst
       ? ''
       : lastNightMin
-        ? `Đêm qua ngủ ${formatDuration(lastNightMin)}`
+        ? `đêm qua ngủ ${formatDuration(lastNightMin)}`
         : ''
   const sleepCard = (
     <SleepCard
@@ -271,9 +271,15 @@ export function Today() {
     <>
       <div class="band">
         <div class="band-in">
-          <DateNav dateKey={dateKey} todayKey={todayKey} onChange={setDateKey} />
+          <div class="band-row">
+            <DateNav dateKey={dateKey} todayKey={todayKey} onChange={setDateKey} />
+            <span class="band-count">
+              {progress.filter((i) => i.done).length}/{progress.length} mục
+            </span>
+          </div>
           <BandTitle
-            word={isToday ? PERIOD_LABEL[periodOf(hour)] : WEEKDAY_NAMES[weekday(dateKey)]!}
+            word={isToday ? undefined : WEEKDAY_NAMES[weekday(dateKey)]!}
+            label={isToday ? PERIOD_LABEL[periodOf(hour)] : undefined}
             sub={bandSub}
             period={isToday ? periodOf(hour) : undefined}
           />

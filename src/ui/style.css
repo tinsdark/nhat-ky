@@ -287,11 +287,39 @@ button {
   letter-spacing: -0.045em;
   line-height: 1;
 }
+.bt-time {
+  font-size: clamp(3.6rem, 19vw, 4.75rem);
+  letter-spacing: -0.06em;
+}
 .bt-sub {
   margin-top: 6px;
   color: var(--hm);
   font-size: 1rem;
   font-weight: 500;
+}
+.bt-sub b {
+  color: var(--hf);
+  font-weight: 700;
+}
+.band-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.band-count {
+  flex: none;
+  color: var(--hf);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.band .datepill {
+  flex: 1;
+  justify-content: flex-start;
+  gap: 8px;
+}
+.band .datepill .when {
+  align-items: flex-start;
 }
 .band-page {
   padding-bottom: 20px;
