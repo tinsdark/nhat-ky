@@ -16,6 +16,7 @@ import { CategoryPicker } from '../CategoryPicker'
 import { DateNav } from '../DateNav'
 import { EntryDetail } from '../EntryDetail'
 import { Icon } from '../Icon'
+import { QuickIcon } from '../QuickIcon'
 import { draftFromEntry, EntryForm, type FormDraft } from '../EntryForm'
 import { parseHashQuery } from '../route'
 import { Timeline } from '../today/Timeline'
@@ -193,7 +194,7 @@ export function Backfill() {
                   background: `color-mix(in srgb, ${(defs.categories.find((c) => c.id === a.categoryId) ?? defs.categories.find((c) => c.entryType === a.type))?.color ?? 'var(--border)'} 22%, var(--card))`,
                 }}
               >
-                {a.icon}
+                <QuickIcon action={a} />
               </span>
               {a.name}
               {lacks(a) && <span class="need">chưa có</span>}

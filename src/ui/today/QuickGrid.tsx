@@ -1,20 +1,9 @@
 import { useRef } from 'preact/hooks'
-import { DEFAULT_QUICK_ACTIONS } from '../../core/defaults'
 import type { Category, QuickAction } from '../../core/types'
-import { Icon, type IconName } from '../Icon'
+import { Icon } from '../Icon'
+import { QuickIcon } from '../QuickIcon'
 
 const LONG_PRESS_MS = 500
-
-/** Drawn glyphs for the built-in buttons; a button whose emoji was changed or that the user made keeps its emoji. */
-const DRAWN: Record<string, IconName> = {
-  'qa-meal': 'meal',
-  'qa-work': 'work',
-  'qa-activity': 'activity',
-  'qa-exercise': 'exercise',
-  'qa-water': 'water',
-}
-const drawnIcon = (a: QuickAction): IconName | undefined =>
-  DEFAULT_QUICK_ACTIONS.find((d) => d.id === a.id && d.icon === a.icon) && DRAWN[a.id]
 
 /**
  * Quick buttons as tiles: the icon sits in a circle tinted with its category colour. Tap = pick what happened
@@ -81,7 +70,6 @@ function Tile({
 }) {
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const held = useRef(false)
-  const drawn = drawnIcon(action)
   const clear = () => clearTimeout(timer.current)
   return (
     <button
@@ -107,7 +95,7 @@ function Tile({
         aria-hidden="true"
         style={color ? { background: `color-mix(in srgb, ${color} 28%, var(--card))` } : undefined}
       >
-        {drawn ? <Icon name={drawn} size={24} /> : action.icon}
+        <QuickIcon action={action} />
       </span>
       {action.name}
     </button>
