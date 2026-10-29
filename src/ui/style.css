@@ -169,6 +169,11 @@ html,
 body {
   overflow-x: hidden;
 }
+/* Pulling the page past its top edge shows the canvas: keep it the colour of the band. */
+html {
+  background: var(--hue);
+  overscroll-behavior: none;
+}
 
 h1 {
   font-size: 1.35rem;
@@ -221,7 +226,7 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: calc(10px + env(safe-area-inset-top)) 18px 12px;
+  padding: calc(6px + env(safe-area-inset-top)) 18px 8px;
   background: var(--hue);
 }
 .brand {
@@ -263,7 +268,7 @@ button {
   --accent: var(--hf);
   --on-accent: var(--hue);
   --accent-soft: rgb(255 255 255 / 0.3);
-  padding: 0 18px 26px;
+  padding: 0 18px 18px;
   background: var(--hue);
   color: var(--hf);
 }
@@ -273,28 +278,28 @@ button {
 }
 .page {
   flex: 1;
-  padding: 22px 14px calc(96px + env(safe-area-inset-bottom));
-  border-radius: 30px 30px 0 0;
+  padding: 18px 14px calc(96px + env(safe-area-inset-bottom));
+  border-radius: 26px 26px 0 0;
   background: var(--bg);
   color: var(--fg);
 }
 .bandtitle {
-  margin: 4px 0 14px;
+  margin: 2px 0 10px;
 }
 .bt-word {
-  font-size: clamp(2.8rem, 17vw, 4.25rem);
+  font-size: clamp(2.2rem, 12vw, 3rem);
   font-weight: 800;
   letter-spacing: -0.045em;
   line-height: 1;
 }
 .bt-time {
-  font-size: clamp(3.6rem, 19vw, 4.75rem);
+  font-size: clamp(2.6rem, 14vw, 3.5rem);
   letter-spacing: -0.06em;
 }
 .bt-sub {
-  margin-top: 6px;
+  margin-top: 2px;
   color: var(--hm);
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 500;
 }
 .bt-sub b {
@@ -322,10 +327,10 @@ button {
   align-items: flex-start;
 }
 .band-page {
-  padding-bottom: 20px;
+  padding-bottom: 14px;
 }
 .band-page .bt-word {
-  font-size: clamp(2.2rem, 12vw, 3rem);
+  font-size: clamp(1.9rem, 9vw, 2.4rem);
 }
 /* The big word in the band is the page title; the h1 below stays for screen readers only. */
 .page .screen {
@@ -342,7 +347,7 @@ button {
 .bt-strip {
   display: flex;
   gap: 4px;
-  margin-top: 14px;
+  margin-top: 10px;
 }
 .bt-strip i {
   flex: 1;
