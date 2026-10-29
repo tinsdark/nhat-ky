@@ -1,79 +1,151 @@
 /* =====================================================================
-   Design tokens. Same family as Sổ Tiền (cream paper, warm browns, big round
-   cards); the action colour is a deep green so the two apps are told apart.
+   Design tokens. The app is tinted by the part of the day (sáng, trưa, chiều, tối, đêm):
+   App.tsx sets data-period on <html>, and the band, the accent and every neutral follow it.
    Every colour in the file comes from here: dark mode only overrides this block.
    ===================================================================== */
 :root {
   color-scheme: light dark;
-  --bg: #f7f0de;
-  --card: #fffaf0;
-  --surface: #f1e7cc; /* inner boxes, inactive pills, hover */
-  --input-bg: #fffdf6;
-  --border: #e3d5b4;
-  --fg: #2b2418;
-  --muted: #6b5e45;
-  --accent: #2f5d50; /* actions, active tab, links */
-  --on-accent: #f4fbf7;
-  --accent-soft: #dcebe3; /* tinted card behind positive things */
+  --hue-l: #ff8a5b;
+  --hf-l: #2b1208;
+  --hm-l: #5c2e1a;
+  --ac-l: #bf4a12;
+  --hue-d: #4a2112;
+  --hf-d: #ffe7da;
+  --hm-d: #e2b5a0;
+  --ac-d: #ff9b72;
+  --hue: var(--hue-l); /* the colour of the current part of the day (data-period on <html>) */
+  --hf: var(--hf-l); /* text on --hue */
+  --hm: var(--hm-l); /* muted text on --hue */
+  --accent: var(--ac-l); /* actions, active tab, links: a deeper shade of the same hue */
+  --bg: color-mix(in srgb, var(--hue) 6%, #fffefd); /* the sheet */
+  --card: color-mix(in srgb, var(--hue) 2%, #fff);
+  --surface: color-mix(in srgb, var(--hue) 14%, #fff); /* inner boxes, inactive pills, hover */
+  --input-bg: #fff;
+  --border: color-mix(in srgb, var(--hue) 26%, #fff);
+  --fg: #1f1612;
+  --muted: #6a5a52;
+  --on-accent: #fff;
+  --accent-soft: color-mix(in srgb, var(--hue) 22%, #fff); /* tinted box behind positive things */
+  --band-card: rgb(255 255 255 / 0.55); /* panels sitting on the coloured band */
   --danger: #b5473a;
-  --danger-soft: #f7ded6;
-  --ok: #2f7d46;
+  --danger-soft: #fde4df;
+  --ok: #1f7a46;
   --warn: #a8660a;
-  --info: #3f6fa8; /* third series colour, distinct from the green accent and the amber warn */
+  --info: #2a5db0; /* third series colour, distinct from the accent and the amber warn */
   --warn-text: #7f4a00; /* warn colour for small text: stronger contrast on --bg */
   --warn-soft: #fbe9c4;
   --shadow: none;
-  --mask: rgb(50 32 10 / 0.45);
-  --radius: 20px;
+  --mask: rgb(30 15 8 / 0.45);
+  --radius: 24px;
 }
 
-/* Dark palette: warm brown, not black. By default when the device is dark; forced by Settings via data-theme. */
+:root[data-period='sang'] {
+  --hue-l: #ffc27a;
+  --hf-l: #2e1a05;
+  --hm-l: #6b4a1e;
+  --ac-l: #9a4d08;
+  --hue-d: #4a3416;
+  --hf-d: #ffe9cf;
+  --hm-d: #e8c79a;
+  --ac-d: #ffc27a;
+}
+:root[data-period='trua'] {
+  --hue-l: #6cc3f5;
+  --hf-l: #06243a;
+  --hm-l: #0f4a68;
+  --ac-l: #0b6fa8;
+  --hue-d: #0f3550;
+  --hf-d: #ddf1ff;
+  --hm-d: #9ccdeb;
+  --ac-d: #6cc3f5;
+}
+:root[data-period='chieu'] {
+  --hue-l: #ff8a5b;
+  --hf-l: #2b1208;
+  --hm-l: #5c2e1a;
+  --ac-l: #bf4a12;
+  --hue-d: #4a2112;
+  --hf-d: #ffe7da;
+  --hm-d: #e2b5a0;
+  --ac-d: #ff9b72;
+}
+:root[data-period='toi'] {
+  --hue-l: #9b87f0;
+  --hf-l: #190c45;
+  --hm-l: #2e2266;
+  --ac-l: #5b3fd0;
+  --hue-d: #2a2060;
+  --hf-d: #ece7ff;
+  --hm-d: #bdb2ee;
+  --ac-d: #b7a8ff;
+}
+:root[data-period='dem'] {
+  --band-card: rgb(255 255 255 / 0.12); /* the night band is dark in both themes */
+  --hue-l: #2f3475;
+  --hf-l: #ecedff;
+  --hm-l: #b8bceb;
+  --ac-l: #3b3fa8;
+  --hue-d: #12143a;
+  --hf-d: #e3e5ff;
+  --hm-d: #a5aad9;
+  --ac-d: #9aa2ff;
+}
+
+/* Dark palette: the same hue, deep. By default when the device is dark; forced by Settings via data-theme. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
-    --bg: #1f1a14;
-    --card: #2d251c;
-    --surface: #3b3024;
-    --input-bg: #261f17;
-    --border: #62513a;
-    --fg: #f4eadb;
-    --muted: #cdbda3;
-    --accent: #8fd0b9;
-    --on-accent: #10261f;
-    --accent-soft: #23372f;
+    --hue: var(--hue-d);
+    --hf: var(--hf-d);
+    --hm: var(--hm-d);
+    --accent: var(--ac-d);
+    --bg: color-mix(in srgb, var(--hue) 42%, #0c0b0b);
+    --card: color-mix(in srgb, var(--hue) 62%, #0c0b0b);
+    --surface: color-mix(in srgb, var(--hue) 82%, #0c0b0b);
+    --input-bg: color-mix(in srgb, var(--hue) 30%, #0c0b0b);
+    --border: color-mix(in srgb, var(--accent) 24%, var(--card));
+    --fg: #f6ede8;
+    --muted: #c9b3a8;
+    --on-accent: #140d0b;
+    --accent-soft: color-mix(in srgb, var(--accent) 22%, var(--bg));
+    --band-card: rgb(255 255 255 / 0.1);
     --danger: #ff8f80;
-    --danger-soft: #43221b;
+    --danger-soft: #4a2420;
     --ok: #7fd9a0;
     --warn: #f6bb4a;
-    --info: #7db4ee;
+    --info: #8fbbf2;
     --warn-text: #f6bb4a;
     --warn-soft: #40331a;
     --shadow: none;
-    --mask: rgb(10 5 0 / 0.65);
+    --mask: rgb(5 3 3 / 0.7);
   }
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #1f1a14;
-  --card: #2d251c;
-  --surface: #3b3024;
-  --input-bg: #261f17;
-  --border: #62513a;
-  --fg: #f4eadb;
-  --muted: #cdbda3;
-  --accent: #8fd0b9;
-  --on-accent: #10261f;
-  --accent-soft: #23372f;
+  --hue: var(--hue-d);
+  --hf: var(--hf-d);
+  --hm: var(--hm-d);
+  --accent: var(--ac-d);
+  --bg: color-mix(in srgb, var(--hue) 42%, #0c0b0b);
+  --card: color-mix(in srgb, var(--hue) 62%, #0c0b0b);
+  --surface: color-mix(in srgb, var(--hue) 82%, #0c0b0b);
+  --input-bg: color-mix(in srgb, var(--hue) 30%, #0c0b0b);
+  --border: color-mix(in srgb, var(--accent) 24%, var(--card));
+  --fg: #f6ede8;
+  --muted: #c9b3a8;
+  --on-accent: #140d0b;
+  --accent-soft: color-mix(in srgb, var(--accent) 22%, var(--bg));
+  --band-card: rgb(255 255 255 / 0.1);
   --danger: #ff8f80;
-  --danger-soft: #43221b;
+  --danger-soft: #4a2420;
   --ok: #7fd9a0;
   --warn: #f6bb4a;
-  --info: #7db4ee;
+  --info: #8fbbf2;
   --warn-text: #f6bb4a;
   --warn-soft: #40331a;
   --shadow: none;
-  --mask: rgb(10 5 0 / 0.65);
+  --mask: rgb(5 3 3 / 0.7);
 }
 
 :root[data-theme='light'] {
@@ -138,6 +210,8 @@ button {
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
+  background: var(--hue);
+  color: var(--hf);
 }
 .topbar {
   position: sticky;
@@ -147,26 +221,126 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
-  background: var(--bg);
+  padding: calc(10px + env(safe-area-inset-top)) 18px 12px;
+  background: var(--hue);
 }
 .brand {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-.brand img {
-  border-radius: 9px;
+.brand-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: var(--hf);
+  color: var(--hue);
 }
 .brand strong {
   display: block;
-  color: var(--accent);
-  font-size: 1.1rem;
+  color: var(--hf);
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
   line-height: 1.1;
 }
 .content {
   flex: 1;
-  padding: 4px 14px calc(84px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- band and page: the coloured top of the screen and the page that rises over it ---- */
+.band {
+  --card: var(--band-card);
+  --fg: var(--hf);
+  --muted: var(--hm);
+  --border: transparent;
+  --surface: rgb(0 0 0 / 0.08);
+  --accent: var(--hf);
+  --on-accent: var(--hue);
+  --accent-soft: rgb(255 255 255 / 0.3);
+  padding: 0 18px 26px;
+  background: var(--hue);
+  color: var(--hf);
+}
+.band-in {
+  max-width: 520px;
+  margin: 0 auto;
+}
+.page {
+  flex: 1;
+  padding: 22px 14px calc(96px + env(safe-area-inset-bottom));
+  border-radius: 30px 30px 0 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+.bandtitle {
+  margin: 4px 0 14px;
+}
+.bt-word {
+  font-size: clamp(2.8rem, 17vw, 4.25rem);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+.bt-sub {
+  margin-top: 6px;
+  color: var(--hm);
+  font-size: 1rem;
+  font-weight: 500;
+}
+.band-page {
+  padding-bottom: 20px;
+}
+.band-page .bt-word {
+  font-size: clamp(2.2rem, 12vw, 3rem);
+}
+/* The big word in the band is the page title; the h1 below stays for screen readers only. */
+.page .screen {
+  position: relative;
+}
+.page .screen > h1 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.bt-strip {
+  display: flex;
+  gap: 4px;
+  margin-top: 14px;
+}
+.bt-strip i {
+  flex: 1;
+  height: 5px;
+  border-radius: 3px;
+  background: rgb(0 0 0 / 0.14);
+}
+.bt-strip i.on {
+  background: var(--hf);
+}
+.band .datepill {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.band .datepill > button {
+  background: rgb(255 255 255 / 0.35);
+  color: var(--hf);
+}
+.band .datepill .badge {
+  background: color-mix(in srgb, var(--hf) 14%, transparent);
+  color: var(--hf);
+}
+.band .datepill .badge.link {
+  background: var(--hf);
+  color: var(--hue);
 }
 .screen,
 .login {
@@ -256,20 +430,21 @@ textarea {
   padding: 14px 0;
   margin: -14px 0;
 }
-.sync-synced {
-  color: var(--ok);
+.sync {
+  color: var(--hm);
 }
-.sync-syncing {
-  color: var(--accent);
-}
-.sync-offline {
-  color: var(--warn-text);
-}
+.sync-synced,
+.sync-syncing,
+.sync-offline,
 .sync-error {
-  color: var(--danger);
+  color: var(--hm);
+}
+.sync-error,
+.sync-offline {
+  font-weight: 700;
 }
 .sync-authRequired {
-  color: var(--warn-text);
+  color: var(--hf);
   text-decoration: underline dotted;
   text-underline-offset: 3px;
 }
@@ -1118,14 +1293,35 @@ table.grid.left td {
   text-align: center;
   margin-bottom: 18px;
 }
-.gate-hero img {
-  border-radius: 22px;
-  box-shadow: var(--shadow);
+.brand-mark.big {
+  margin: 0 auto;
+  width: 84px;
+  height: 84px;
+  border-radius: 28px;
 }
 .gate-hero h1 {
-  margin-top: 10px;
-  color: var(--accent);
-  font-size: 1.7rem;
+  margin-top: 14px;
+  color: var(--hf);
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+/* Login and lock screens are the coloured band all the way down. */
+body:has(.login) {
+  background: var(--hue);
+}
+.login {
+  color: var(--hf);
+}
+.login .muted {
+  color: var(--hm);
+}
+.login .panel {
+  background: var(--bg);
+  color: var(--fg);
+}
+.login .panel .muted {
+  color: var(--muted);
 }
 .gate-title {
   margin: 0 0 6px;
@@ -2214,8 +2410,8 @@ html:has(.sheet-backdrop, .fullscreen) {
   padding: 0 14px;
   border: 0;
   border-radius: 999px;
-  background: var(--accent);
-  color: var(--on-accent);
+  background: var(--hf);
+  color: var(--hue);
   font: inherit;
   font-size: 0.8rem;
   font-weight: 700;

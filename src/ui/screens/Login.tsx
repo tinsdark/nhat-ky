@@ -1,6 +1,7 @@
 import { useState } from 'preact/hooks'
 import { signIn } from '../../auth'
 import { engine } from '../../sync'
+import { Icon } from '../Icon'
 
 export function Login({ onDone, onSkip }: { onDone: () => void; onSkip: () => void }) {
   const [busy, setBusy] = useState(false)
@@ -23,7 +24,9 @@ export function Login({ onDone, onSkip }: { onDone: () => void; onSkip: () => vo
   return (
     <main class="login">
       <div class="gate-hero">
-        <img src={`${import.meta.env.BASE_URL}icon-192.png`} alt="" width="84" height="84" />
+        <span class="brand-mark big">
+          <Icon name="clock" size={44} />
+        </span>
         <h1>Nhật ký</h1>
         <p class="muted">
           Theo dõi giấc ngủ, ăn uống, công việc, thói quen và tìm ra nhịp sống hợp với mày.
