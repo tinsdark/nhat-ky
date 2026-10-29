@@ -1194,42 +1194,28 @@ table.grid.left td {
   color: var(--warn);
 }
 
-.hero-top {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.hero-top .ring {
-  flex: none;
-  width: 72px;
-  height: 72px;
-}
-.hero-title {
-  display: block;
-  font-size: 1.05rem;
-}
-.coreitems {
+.coreline {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
+  align-items: center;
+  gap: 2px 12px;
+  margin: 0 4px 14px;
+  font-size: 0.8125rem;
+}
+.coreline strong {
+  font-size: 0.9375rem;
 }
 .core {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 11px 4px 4px;
-  border-radius: 999px;
   color: var(--muted);
-  font-size: 0.8rem;
 }
-/* Not a button: an open circle says "still to do", the filled pill says "done". */
+/* Not a button: an open dot says "still to do", a check says "done". */
 .core::before {
   content: '';
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border: 1.5px solid var(--border);
   border-radius: 50%;
 }
@@ -1237,8 +1223,6 @@ table.grid.left td {
   display: none;
 }
 .core.done {
-  padding-left: 11px;
-  background: var(--accent-soft);
   color: var(--accent);
   font-weight: 600;
 }
@@ -1276,6 +1260,19 @@ table.grid.left td {
   border-radius: 50%;
   background: var(--surface);
   color: var(--accent);
+}
+.sleepcard.compact {
+  padding: 8px;
+}
+.sleepcard.compact .sleep-info,
+.sleepcard.compact .sleep-actions .ic {
+  display: none;
+}
+.sleepcard.compact .sleep-actions {
+  flex: 1;
+}
+.sleepcard.compact .sleep-actions .btn {
+  flex: 1;
 }
 .sleep-actions {
   display: flex;
@@ -1365,8 +1362,11 @@ table.grid.left td {
   font: inherit;
 }
 .scale5 .face {
-  font-size: 1.4rem;
-  line-height: 1.1;
+  display: flex;
+  color: var(--muted);
+}
+.scale5 button.on .face {
+  color: var(--accent);
 }
 .scale5 .num {
   color: var(--muted);
@@ -1968,11 +1968,6 @@ form.sheet > .row:last-child {
     stroke-dashoffset: 1;
   }
 }
-@keyframes ring-fill {
-  from {
-    stroke-dasharray: 0 999;
-  }
-}
 @keyframes pulse {
   0%,
   100% {
@@ -2056,10 +2051,7 @@ form.sheet > .row:last-child {
   animation: pop 0.3s var(--spring);
 }
 
-/* Tiến độ: vòng và thanh chạy từ 0 tới giá trị. */
-.ring circle:nth-of-type(2) {
-  animation: ring-fill 0.9s var(--ease) 0.15s both;
-}
+/* Tiến độ: thanh chạy từ 0 tới giá trị. */
 .meter div {
   transform-origin: left;
   animation: grow-x 0.8s var(--ease) 0.15s both;
@@ -2096,16 +2088,23 @@ body {
   outline-offset: 2px;
 }
 
-/* Thẻ tổng quan có chút chiều sâu; thanh tab mờ nền. */
-.hero {
-  background: linear-gradient(
-    165deg,
-    var(--card) 40%,
-    color-mix(in srgb, var(--accent-soft) 70%, var(--card))
-  );
+/* Thanh tab mờ nền. */
+/* Ghi nhanh on Hôm nay: flat tiles on the panel, no border or shadow of their own. */
+.today .quickgrid .quick {
+  min-height: 92px;
+  border-color: transparent;
+  background: var(--surface);
+  box-shadow: none;
 }
-.quick {
-  box-shadow: var(--shadow);
+.today .quickgrid .quick .ico {
+  background: var(--card);
+}
+.today .quickgrid .quick.add {
+  border: 1px dashed var(--border);
+  background: none;
+}
+.today .quickgrid .quick.add .ico {
+  background: none;
 }
 .tabbar {
   background: color-mix(in srgb, var(--card) 90%, transparent);

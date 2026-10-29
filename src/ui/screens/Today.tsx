@@ -238,6 +238,20 @@ export function Today() {
     .sort((a, b) => a.order - b.order)
     .filter((a) => !SLEEP_ACTIONS.has(a.id))
   const lastNight = prevNight?.[prevNight.length - 1]
+  // At bedtime (or while a night is open) sleep leads the screen; otherwise Ghi nhanh does.
+  const hour = new Date(now).getHours()
+  const night = hour >= 21 || hour < dayStartHour
+  const sleepFirst = night || !!openSleep
+  const sleepCard = (
+    <SleepCard
+      open={openSleep}
+      lastNight={lastNight}
+      now={now}
+      night={night}
+      onSleep={() => void pressSleep()}
+      onWake={() => void pressWake()}
+    />
+  )
 
   return (
     <section class="screen today">
@@ -270,23 +284,15 @@ export function Today() {
       ))}
       {sleepPrompt && <SleepPrompt {...sleepPrompt} onClose={() => setSleepPrompt(null)} />}
 
-      <Hero items={progress} isToday={isToday} />
-
       {isToday ? (
         <>
-          <SleepCard
-            open={openSleep}
-            lastNight={lastNight}
-            now={now}
-            onSleep={() => void pressSleep()}
-            onWake={() => void pressWake()}
-          />
           <RunningCard
             entries={running}
             categories={categories}
             onFinish={(e) => void finish(e)}
             onEdit={(e) => setForm(draftFromEntry(e))}
           />
+          {sleepFirst && sleepCard}
           <QuickGrid
             actions={actions}
             categories={categories}
@@ -295,6 +301,7 @@ export function Today() {
             onEdit={() => setManaging({ startNew: false })}
             onAdd={() => setManaging({ startNew: true })}
           />
+          {!sleepFirst && sleepCard}
           <CheckinCard entries={ownEntries ?? []} onRecord={(k, v) => void recordCheckin(k, v)} />
         </>
       ) : (
@@ -303,6 +310,8 @@ export function Today() {
           Muốn ghi thêm thì sang tab <a href={`#/backfill?d=${dateKey}&s=12:00`}>Ghi bù</a>.
         </p>
       )}
+
+      <Hero items={progress} />
 
       <Timeline
         rows={rows}

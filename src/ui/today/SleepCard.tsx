@@ -6,11 +6,13 @@ import { Icon } from '../Icon'
 /**
  * The one place for sleep: shows whether a night is open ("Đang ngủ từ 23:30"), how long last night
  * was, and the two buttons. Pressing is all it takes; times are saved automatically.
+ * Full size while sleeping or at night (then "Đi ngủ" leads); a slim row the rest of the day.
  */
 export function SleepCard({
   open,
   lastNight,
   now,
+  night,
   onSleep,
   onWake,
 }: {
@@ -18,6 +20,8 @@ export function SleepCard({
   /** The night that ended this morning, if recorded. */
   lastNight: Entry | undefined
   now: number
+  /** Bedtime window: the card grows and "Đi ngủ" becomes the primary button. */
+  night: boolean
   onSleep: () => void
   onWake: () => void
 }) {
@@ -28,7 +32,11 @@ export function SleepCard({
     ? Math.round((new Date(lastNight.end).getTime() - new Date(lastNight.start).getTime()) / 60_000)
     : null
   return (
-    <section class={open ? 'panel sleepcard sleeping' : 'panel sleepcard'}>
+    <section
+      class={['panel sleepcard', open && 'sleeping', !open && !night && 'compact']
+        .filter(Boolean)
+        .join(' ')}
+    >
       <div class="sleep-info">
         <span class="sleep-ico">
           <Icon name={open ? 'moon' : 'sun'} size={24} />
@@ -57,7 +65,7 @@ export function SleepCard({
       </div>
       <div class="sleep-actions">
         {!open && (
-          <button type="button" class="btn" onClick={onSleep}>
+          <button type="button" class={night ? 'btn btn-primary' : 'btn'} onClick={onSleep}>
             <Icon name="moon" size={18} /> Đi ngủ
           </button>
         )}

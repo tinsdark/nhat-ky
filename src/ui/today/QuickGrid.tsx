@@ -1,8 +1,20 @@
 import { useRef } from 'preact/hooks'
+import { DEFAULT_QUICK_ACTIONS } from '../../core/defaults'
 import type { Category, QuickAction } from '../../core/types'
-import { Icon } from '../Icon'
+import { Icon, type IconName } from '../Icon'
 
 const LONG_PRESS_MS = 500
+
+/** Drawn glyphs for the built-in buttons; a button whose emoji was changed or that the user made keeps its emoji. */
+const DRAWN: Record<string, IconName> = {
+  'qa-meal': 'meal',
+  'qa-work': 'work',
+  'qa-activity': 'activity',
+  'qa-exercise': 'exercise',
+  'qa-water': 'water',
+}
+const drawnIcon = (a: QuickAction): IconName | undefined =>
+  DEFAULT_QUICK_ACTIONS.find((d) => d.id === a.id && d.icon === a.icon) && DRAWN[a.id]
 
 /**
  * Quick buttons as tiles: the icon sits in a circle tinted with its category colour. Tap = pick what happened
@@ -52,9 +64,6 @@ export function QuickGrid({
           Thêm nút
         </button>
       </div>
-      <p class="muted hint">
-        Chạm để chọn việc (Uống nước: chọn lượng). Việc kéo dài thì bấm Bắt đầu, xong bấm Kết thúc.
-      </p>
     </section>
   )
 }
@@ -72,6 +81,7 @@ function Tile({
 }) {
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const held = useRef(false)
+  const drawn = drawnIcon(action)
   const clear = () => clearTimeout(timer.current)
   return (
     <button
@@ -94,9 +104,10 @@ function Tile({
     >
       <span
         class="ico"
-        style={color ? { background: `color-mix(in srgb, ${color} 22%, var(--card))` } : undefined}
+        aria-hidden="true"
+        style={color ? { background: `color-mix(in srgb, ${color} 28%, var(--card))` } : undefined}
       >
-        {action.icon}
+        {drawn ? <Icon name={drawn} size={24} /> : action.icon}
       </span>
       {action.name}
     </button>
