@@ -13,6 +13,8 @@ import { Today } from './screens/Today'
 import { Icon } from './Icon'
 import { SyncIndicator } from './SyncIndicator'
 import { applyUpdate, checkForUpdate, getUpdateState, subscribeUpdate } from '../pwa'
+import { periodOf } from './period'
+import { BandTitle } from './today/BandTitle'
 import { parseHash, TABS } from './route'
 
 const SKIP_KEY = 'nk_skipLogin'
@@ -42,6 +44,31 @@ export function App() {
     if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme
     else delete document.documentElement.dataset.theme
   }, [settings?.theme])
+  // The whole app is tinted by the part of the day; the status bar follows the same colour.
+  const [period, setPeriod] = useState(() => periodOf(new Date().getHours()))
+  useEffect(() => {
+    const tick = () => setPeriod(periodOf(new Date().getHours()))
+    document.addEventListener('visibilitychange', tick)
+    const t = setInterval(tick, 5 * 60_000)
+    return () => {
+      document.removeEventListener('visibilitychange', tick)
+      clearInterval(t)
+    }
+  }, [])
+  useEffect(() => {
+    document.documentElement.dataset.period = period
+    const sync = () => {
+      const hue = getComputedStyle(document.documentElement).getPropertyValue('--hue').trim()
+      if (hue)
+        document
+          .querySelectorAll('meta[name="theme-color"]')
+          .forEach((m) => m.setAttribute('content', hue))
+    }
+    sync()
+    const dark = matchMedia('(prefers-color-scheme: dark)')
+    dark.addEventListener('change', sync)
+    return () => dark.removeEventListener('change', sync)
+  }, [period, settings?.theme])
   const [locked, setLocked] = useState(() => appLock.isEnabled())
   useEffect(() => {
     let hiddenAt: number | null = null
@@ -103,7 +130,9 @@ export function App() {
     <div class="shell">
       <header class="topbar">
         <div class="brand">
-          <img src={`${import.meta.env.BASE_URL}icon-192.png`} alt="" width="34" height="34" />
+          <span class="brand-mark">
+            <Icon name="clock" size={22} />
+          </span>
           <div>
             <strong>Nhật ký</strong>
             <SyncIndicator onLogin={() => setGate(true)} />
@@ -125,18 +154,30 @@ export function App() {
         </div>
       )}
       <main class="content">
-        {tab === 'today' && <Today />}
-        {tab === 'backfill' && <Backfill />}
-        {tab === 'habits' && <Habits />}
-        {tab === 'stats' && <Stats />}
-        {tab === 'settings' && (
-          <Settings
-            onLogin={() => setGate(true)}
-            onSignedOut={() => {
-              writeSkip(false)
-              setGate(true)
-            }}
-          />
+        {tab === 'today' ? (
+          <Today />
+        ) : (
+          <>
+            <div class="band band-page">
+              <div class="band-in">
+                <BandTitle word={TABS.find((t) => t.id === tab)?.label ?? ''} />
+              </div>
+            </div>
+            <div class="page">
+              {tab === 'backfill' && <Backfill />}
+              {tab === 'habits' && <Habits />}
+              {tab === 'stats' && <Stats />}
+              {tab === 'settings' && (
+                <Settings
+                  onLogin={() => setGate(true)}
+                  onSignedOut={() => {
+                    writeSkip(false)
+                    setGate(true)
+                  }}
+                />
+              )}
+            </div>
+          </>
         )}
       </main>
       <nav class="tabbar">

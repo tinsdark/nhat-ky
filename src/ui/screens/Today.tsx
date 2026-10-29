@@ -1,6 +1,7 @@
 import { useState } from 'preact/hooks'
-import { addDays, toDateKey } from '../../core/date'
-import { copyToDay } from '../../core/entryForm'
+import { addDays, toDateKey, weekday } from '../../core/date'
+import { copyToDay, formatDuration } from '../../core/entryForm'
+import { WEEKDAY_NAMES } from '../../core/insights'
 import { dueReminders } from '../../core/reminders'
 import { reviewPrompt } from '../../core/review'
 import { finishPatch, isRunning, isTimedType, quickStartFields } from '../../core/running'
@@ -28,6 +29,8 @@ import { Icon } from '../Icon'
 import { ManageDefs } from '../ManageDefs'
 import { ReviewSheet } from '../ReviewSheet'
 import { estimatedNote, SleepPrompt } from '../SleepPrompt'
+import { PERIOD_LABEL, periodOf } from '../period'
+import { BandTitle } from '../today/BandTitle'
 import { CheckinCard } from '../today/CheckinCard'
 import { Hero } from '../today/Hero'
 import { QuickGrid } from '../today/QuickGrid'
@@ -242,6 +245,17 @@ export function Today() {
   const hour = new Date(now).getHours()
   const night = hour >= 21 || hour < dayStartHour
   const sleepFirst = night || !!openSleep
+  const lastNightMin = lastNight?.end
+    ? Math.round((new Date(lastNight.end).getTime() - new Date(lastNight.start).getTime()) / 60_000)
+    : null
+  // The sleep card says it itself while it leads the screen; otherwise the band carries one line.
+  const bandSub = !isToday
+    ? `${dateKey.slice(8)}/${dateKey.slice(5, 7)}`
+    : sleepFirst
+      ? ''
+      : lastNightMin
+        ? `đêm qua ngủ ${formatDuration(lastNightMin)}`
+        : ''
   const sleepCard = (
     <SleepCard
       open={openSleep}
@@ -254,166 +268,195 @@ export function Today() {
   )
 
   return (
-    <section class="screen today">
-      <DateNav dateKey={dateKey} todayKey={todayKey} onChange={setDateKey} />
-
-      {review && !reviewFor && (
-        <div class="timerbar">
-          <span>{review.kind === 'tonight' ? 'Chấm ngày hôm nay' : 'Hôm qua chưa chấm ngày'}</span>
-          <div class="actions">
-            {review.kind === 'yesterday' && (
-              <button type="button" class="btn small" onClick={() => markAsked(review.dateKey)}>
-                Bỏ qua
-              </button>
-            )}
-            <button type="button" class="btn btn-primary small" onClick={() => openReview(review)}>
-              Chấm
-            </button>
+    <>
+      <div class="band">
+        <div class="band-in">
+          <div class="band-row">
+            <DateNav dateKey={dateKey} todayKey={todayKey} onChange={setDateKey} />
+            <span class="band-count">
+              {progress.filter((i) => i.done).length}/{progress.length} mục
+            </span>
           </div>
-        </div>
-      )}
-      {reminders.map((h) => (
-        <div class="timerbar" key={h.id}>
-          <span>
-            Nhắc {h.reminderTime}: {h.name}
-          </span>
-          <button type="button" class="btn btn-primary small" onClick={() => tick(h)}>
-            Xong
-          </button>
-        </div>
-      ))}
-      {sleepPrompt && <SleepPrompt {...sleepPrompt} onClose={() => setSleepPrompt(null)} />}
-
-      {isToday ? (
-        <>
-          <RunningCard
-            entries={running}
-            categories={categories}
-            onFinish={(e) => void finish(e)}
-            onEdit={(e) => setForm(draftFromEntry(e))}
+          <BandTitle
+            word={isToday ? undefined : WEEKDAY_NAMES[weekday(dateKey)]!}
+            label={isToday ? PERIOD_LABEL[periodOf(hour)] : undefined}
+            sub={bandSub}
+            period={isToday ? periodOf(hour) : undefined}
           />
-          {sleepFirst && sleepCard}
-          <QuickGrid
-            actions={actions}
+          {isToday && (
+            <RunningCard
+              entries={running}
+              categories={categories}
+              onFinish={(e) => void finish(e)}
+              onEdit={(e) => setForm(draftFromEntry(e))}
+            />
+          )}
+          {isToday && sleepFirst && sleepCard}
+        </div>
+      </div>
+      <div class="page">
+        <section class="screen today">
+          {review && !reviewFor && (
+            <div class="timerbar">
+              <span>
+                {review.kind === 'tonight' ? 'Chấm ngày hôm nay' : 'Hôm qua chưa chấm ngày'}
+              </span>
+              <div class="actions">
+                {review.kind === 'yesterday' && (
+                  <button type="button" class="btn small" onClick={() => markAsked(review.dateKey)}>
+                    Bỏ qua
+                  </button>
+                )}
+                <button
+                  type="button"
+                  class="btn btn-primary small"
+                  onClick={() => openReview(review)}
+                >
+                  Chấm
+                </button>
+              </div>
+            </div>
+          )}
+          {reminders.map((h) => (
+            <div class="timerbar" key={h.id}>
+              <span>
+                Nhắc {h.reminderTime}: {h.name}
+              </span>
+              <button type="button" class="btn btn-primary small" onClick={() => tick(h)}>
+                Xong
+              </button>
+            </div>
+          ))}
+          {sleepPrompt && <SleepPrompt {...sleepPrompt} onClose={() => setSleepPrompt(null)} />}
+
+          {isToday ? (
+            <>
+              <QuickGrid
+                actions={actions}
+                categories={categories}
+                onTap={quickTap}
+                onHold={quickTap}
+                onEdit={() => setManaging({ startNew: false })}
+                onAdd={() => setManaging({ startNew: true })}
+              />
+              {!sleepFirst && sleepCard}
+              <CheckinCard
+                entries={ownEntries ?? []}
+                onRecord={(k, v) => void recordCheckin(k, v)}
+              />
+            </>
+          ) : (
+            <p class="muted hint pastnote">
+              <Icon name="edit" size={14} /> Đây là ngày đã qua: nút bấm nhanh chỉ dùng cho hôm nay.
+              Muốn ghi thêm thì sang tab <a href={`#/backfill?d=${dateKey}&s=12:00`}>Ghi bù</a>.
+            </p>
+          )}
+
+          <Hero items={progress} />
+
+          <Timeline
+            rows={rows}
             categories={categories}
-            onTap={quickTap}
-            onHold={quickTap}
-            onEdit={() => setManaging({ startNew: false })}
-            onAdd={() => setManaging({ startNew: true })}
+            tags={defs.tags}
+            dateKey={dateKey}
+            onOpen={setDetail}
+            onOpenGroup={setWaterList}
+            onSwipeDelete={swipeDelete}
+            onSwipeEdit={swipeEdit}
           />
-          {!sleepFirst && sleepCard}
-          <CheckinCard entries={ownEntries ?? []} onRecord={(k, v) => void recordCheckin(k, v)} />
-        </>
-      ) : (
-        <p class="muted hint pastnote">
-          <Icon name="edit" size={14} /> Đây là ngày đã qua: nút bấm nhanh chỉ dùng cho hôm nay.
-          Muốn ghi thêm thì sang tab <a href={`#/backfill?d=${dateKey}&s=12:00`}>Ghi bù</a>.
-        </p>
-      )}
 
-      <Hero items={progress} />
-
-      <Timeline
-        rows={rows}
-        categories={categories}
-        tags={defs.tags}
-        dateKey={dateKey}
-        onOpen={setDetail}
-        onOpenGroup={setWaterList}
-        onSwipeDelete={swipeDelete}
-        onSwipeEdit={swipeEdit}
-      />
-
-      {detail && (
-        <EntryDetail
-          entry={detail}
-          categories={categories}
-          tags={defs.tags}
-          canCopyToToday={!isToday}
-          onClose={() => setDetail(null)}
-          onEdit={() => {
-            setForm(draftFromEntry(detail))
-            setDetail(null)
-          }}
-          onDuplicate={() => {
-            setForm({ ...draftFromEntry(detail), id: undefined })
-            setDetail(null)
-          }}
-          onDelete={() => {
-            const id = detail.id
-            void softDeleteEntry(id)
-            setDetail(null)
-            setToast({ id: Date.now(), text: 'Đã xoá', onUndo: () => void restoreEntry(id) })
-          }}
-          onCopyToToday={async () => {
-            const copy = await createEntry(copyToDay(detail, todayKey, dayStartHour))
-            setDetail(null)
-            setToast({
-              id: Date.now(),
-              text: 'Đã chép sang hôm nay',
-              onEdit: () => setForm(draftFromEntry(copy)),
-              onUndo: () => void softDeleteEntry(copy.id),
-            })
-          }}
-        />
-      )}
-      {waterFor && (
-        <WaterPicker
-          sizes={settings.waterSizes}
-          last={lastWaterMl(ownEntries ?? [])}
-          onPick={(ml) => void recordWater(waterFor, ml)}
-          onClose={() => setWaterFor(null)}
-        />
-      )}
-      {waterList && (
-        <WaterList
-          entries={waterList}
-          onOpen={(e) => {
-            setWaterList(null)
-            setDetail(e)
-          }}
-          onDelete={swipeDelete}
-          onEdit={swipeEdit}
-          onClose={() => setWaterList(null)}
-        />
-      )}
-      {pickFor && (
-        <CategoryPicker
-          title={pickFor.name}
-          action={pickFor}
-          categories={categories}
-          onPick={(c) => {
-            if (isTimedType(pickFor.type)) void quickStart(pickFor, c)
-            else setForm(draftForCategory(pickFor, c))
-            setPickFor(null)
-          }}
-          onOther={() => {
-            setForm(draftForCategory(pickFor, null))
-            setPickFor(null)
-          }}
-          onClose={() => setPickFor(null)}
-        />
-      )}
-      {form && (
-        <EntryForm
-          draft={form}
-          categories={categories}
-          tags={defs.tags}
-          dayStartHour={dayStartHour}
-          onClose={() => setForm(null)}
-          onSaved={showSaved}
-        />
-      )}
-      {managing && (
-        <ManageDefs
-          initialTab="quick"
-          startNew={managing.startNew}
-          onClose={() => setManaging(null)}
-        />
-      )}
-      {reviewFor && <ReviewSheet dateKey={reviewFor} onClose={() => setReviewFor(null)} />}
-      {toast && <Toast toast={toast} onClose={() => setToast(null)} />}
-    </section>
+          {detail && (
+            <EntryDetail
+              entry={detail}
+              categories={categories}
+              tags={defs.tags}
+              canCopyToToday={!isToday}
+              onClose={() => setDetail(null)}
+              onEdit={() => {
+                setForm(draftFromEntry(detail))
+                setDetail(null)
+              }}
+              onDuplicate={() => {
+                setForm({ ...draftFromEntry(detail), id: undefined })
+                setDetail(null)
+              }}
+              onDelete={() => {
+                const id = detail.id
+                void softDeleteEntry(id)
+                setDetail(null)
+                setToast({ id: Date.now(), text: 'Đã xoá', onUndo: () => void restoreEntry(id) })
+              }}
+              onCopyToToday={async () => {
+                const copy = await createEntry(copyToDay(detail, todayKey, dayStartHour))
+                setDetail(null)
+                setToast({
+                  id: Date.now(),
+                  text: 'Đã chép sang hôm nay',
+                  onEdit: () => setForm(draftFromEntry(copy)),
+                  onUndo: () => void softDeleteEntry(copy.id),
+                })
+              }}
+            />
+          )}
+          {waterFor && (
+            <WaterPicker
+              sizes={settings.waterSizes}
+              last={lastWaterMl(ownEntries ?? [])}
+              onPick={(ml) => void recordWater(waterFor, ml)}
+              onClose={() => setWaterFor(null)}
+            />
+          )}
+          {waterList && (
+            <WaterList
+              entries={waterList}
+              onOpen={(e) => {
+                setWaterList(null)
+                setDetail(e)
+              }}
+              onDelete={swipeDelete}
+              onEdit={swipeEdit}
+              onClose={() => setWaterList(null)}
+            />
+          )}
+          {pickFor && (
+            <CategoryPicker
+              title={pickFor.name}
+              action={pickFor}
+              categories={categories}
+              onPick={(c) => {
+                if (isTimedType(pickFor.type)) void quickStart(pickFor, c)
+                else setForm(draftForCategory(pickFor, c))
+                setPickFor(null)
+              }}
+              onOther={() => {
+                setForm(draftForCategory(pickFor, null))
+                setPickFor(null)
+              }}
+              onClose={() => setPickFor(null)}
+            />
+          )}
+          {form && (
+            <EntryForm
+              draft={form}
+              categories={categories}
+              tags={defs.tags}
+              dayStartHour={dayStartHour}
+              onClose={() => setForm(null)}
+              onSaved={showSaved}
+            />
+          )}
+          {managing && (
+            <ManageDefs
+              initialTab="quick"
+              startNew={managing.startNew}
+              onClose={() => setManaging(null)}
+            />
+          )}
+          {reviewFor && <ReviewSheet dateKey={reviewFor} onClose={() => setReviewFor(null)} />}
+          {toast && <Toast toast={toast} onClose={() => setToast(null)} />}
+        </section>
+      </div>
+    </>
   )
 }
 
