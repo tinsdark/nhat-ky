@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { atTime, toDateKey, toHHmm } from './date'
-import { buildTimeline, coreProgress, groupWater } from './timeline'
+import { buildTimeline, coreProgress, groupCheckins, groupWater, latestCheckin } from './timeline'
 import type { Day, Entry } from './types'
 
 function entry(over: Partial<Entry> & Pick<Entry, 'start'>): Entry {
@@ -147,5 +147,36 @@ describe('groupWater', () => {
       buildTimeline([entry({ start: atTime('2026-11-02', '08:00'), type: 'water' })]),
     )
     expect(rows[0]).toMatchObject({ kind: 'water', ml: 0 })
+  })
+})
+
+describe('groupCheckins', () => {
+  const c = (hhmm: string, checkin: Record<string, number>) =>
+    entry({ start: atTime('2026-11-02', hhmm), type: 'note', payload: { checkin } })
+  it('collapses every check-in into one row at the first one and keeps the rest in order', () => {
+    const rows = groupCheckins(
+      buildTimeline([
+        c('09:25', { energy: 3 }),
+        c('09:26', { mood: 4 }),
+        entry({ start: atTime('2026-11-02', '10:00'), type: 'meal' }),
+        c('12:37', { energy: 2 }),
+      ]),
+    )
+    expect(rows.map((r) => r.kind)).toEqual(['checkin', 'entry', 'gap']) // the 2h gap before 12:37 stays
+    const g = rows[0]!
+    if (g.kind !== 'checkin') throw new Error('expected a checkin row')
+    expect(g.entries).toHaveLength(3)
+    expect(g.start).toBe(atTime('2026-11-02', '09:25'))
+  })
+  it('leaves plain notes and days without check-ins alone', () => {
+    const plain = buildTimeline([
+      entry({ start: atTime('2026-11-02', '09:00'), type: 'note', payload: {} }),
+    ])
+    expect(groupCheckins(plain)).toEqual(plain)
+  })
+  it('latestCheckin picks the newest energy and mood separately', () => {
+    const list = [c('09:00', { energy: 3 }), c('09:01', { mood: 5 }), c('12:00', { energy: 2 })]
+    expect(latestCheckin(list)).toEqual({ energy: 2, mood: 5 })
+    expect(latestCheckin([])).toEqual({ energy: null, mood: null })
   })
 })

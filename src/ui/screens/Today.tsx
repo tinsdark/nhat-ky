@@ -5,7 +5,7 @@ import { WEEKDAY_NAMES } from '../../core/insights'
 import { dueReminders } from '../../core/reminders'
 import { reviewPrompt } from '../../core/review'
 import { finishPatch, isRunning, isTimedType, quickStartFields } from '../../core/running'
-import { buildTimeline, coreProgress, groupWater } from '../../core/timeline'
+import { buildTimeline, coreProgress, groupCheckins, groupWater } from '../../core/timeline'
 import { lastWaterMl } from '../../core/water'
 import type { Category, Entry, Habit, QuickAction } from '../../core/types'
 import { tickHabit } from '../../data/habits'
@@ -38,7 +38,7 @@ import { RunningCard } from '../today/RunningCard'
 import { SleepCard } from '../today/SleepCard'
 import { Timeline } from '../today/Timeline'
 import { Toast, type ToastData } from '../Toast'
-import { WaterList } from '../WaterList'
+import { GroupList, groupLine, groupTitle } from '../GroupList'
 import { WaterPicker } from '../WaterPicker'
 import { useLive } from '../useLive'
 
@@ -77,7 +77,10 @@ export function Today() {
   const [detail, setDetail] = useState<Entry | null>(null)
   const [pickFor, setPickFor] = useState<QuickAction | null>(null)
   const [waterFor, setWaterFor] = useState<QuickAction | null>(null)
-  const [waterList, setWaterList] = useState<Entry[] | null>(null)
+  const [groupList, setGroupList] = useState<{
+    kind: 'water' | 'checkin'
+    entries: Entry[]
+  } | null>(null)
   const running = useLive(getRunningEntries, [])
   const [managing, setManaging] = useState<{ startNew: boolean } | null>(null)
   const [toast, setToast] = useState<ToastData | null>(null)
@@ -155,15 +158,15 @@ export function Today() {
   /** Swipe left on a row: soft delete with Hoàn tác. */
   const swipeDelete = (e: Entry) => {
     void softDeleteEntry(e.id)
-    setWaterList((list) => {
-      const rest = list?.filter((x) => x.id !== e.id) ?? null
-      return rest && rest.length > 0 ? rest : null
+    setGroupList((list) => {
+      const rest = list?.entries.filter((x) => x.id !== e.id) ?? []
+      return list && rest.length > 0 ? { ...list, entries: rest } : null
     })
     setToast({ id: Date.now(), text: 'Đã xoá', onUndo: () => void restoreEntry(e.id) })
   }
   /** Swipe right on a row: straight to the edit form. */
   const swipeEdit = (e: Entry) => {
-    setWaterList(null)
+    setGroupList(null)
     setForm(draftFromEntry(e))
   }
 
@@ -236,7 +239,7 @@ export function Today() {
 
   const progress = coreProgress(entries, day)
   // Newest first: what was just recorded is on top.
-  const rows = groupWater(buildTimeline(entries, isToday ? { now } : {})).reverse()
+  const rows = groupCheckins(groupWater(buildTimeline(entries, isToday ? { now } : {}))).reverse()
   const actions = [...defs.quickActions]
     .sort((a, b) => a.order - b.order)
     .filter((a) => !SLEEP_ACTIONS.has(a.id))
@@ -360,7 +363,7 @@ export function Today() {
             tags={defs.tags}
             dateKey={dateKey}
             onOpen={setDetail}
-            onOpenGroup={setWaterList}
+            onOpenGroup={(kind, list) => setGroupList({ kind, entries: list })}
             onSwipeDelete={swipeDelete}
             onSwipeEdit={swipeEdit}
           />
@@ -406,16 +409,18 @@ export function Today() {
               onClose={() => setWaterFor(null)}
             />
           )}
-          {waterList && (
-            <WaterList
-              entries={waterList}
+          {groupList && (
+            <GroupList
+              entries={groupList.entries}
+              title={groupTitle(groupList.kind, groupList.entries)}
+              line={groupLine(groupList.kind)}
               onOpen={(e) => {
-                setWaterList(null)
+                setGroupList(null)
                 setDetail(e)
               }}
               onDelete={swipeDelete}
               onEdit={swipeEdit}
-              onClose={() => setWaterList(null)}
+              onClose={() => setGroupList(null)}
             />
           )}
           {pickFor && (

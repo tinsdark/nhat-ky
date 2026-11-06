@@ -7,6 +7,8 @@ export type TimelineRow =
   | { kind: 'gap'; start: string; end: string }
   /** Every drink of the day as one row: where the first drink was, with the total. */
   | { kind: 'water'; entries: Entry[]; ml: number; start: string }
+  /** Every energy / mood check-in of the day as one row, placed where the first one was. */
+  | { kind: 'checkin'; entries: Entry[]; start: string }
 
 const ms = (ts: string) => new Date(ts).getTime()
 
@@ -64,6 +66,36 @@ export function groupWater(rows: TimelineRow[]): TimelineRow[] {
     } else out.push(r)
   }
   return out
+}
+
+const isCheckin = (e: Entry) => e.type === 'note' && !!e.payload.checkin
+
+/** Collapses the check-in rows of a built timeline into one row at the first check-in (display only). */
+export function groupCheckins(rows: TimelineRow[]): TimelineRow[] {
+  const all = rows.flatMap((r) => (r.kind === 'entry' && isCheckin(r.entry) ? [r.entry] : []))
+  if (all.length === 0) return rows
+  const group: TimelineRow = { kind: 'checkin', entries: all, start: all[0]!.start }
+  const out: TimelineRow[] = []
+  let placed = false
+  for (const r of rows) {
+    if (r.kind === 'entry' && isCheckin(r.entry)) {
+      if (!placed) out.push(group)
+      placed = true
+    } else out.push(r)
+  }
+  return out
+}
+
+/** The latest energy and mood (1–5) among check-ins, in time order; null when none was given. */
+export function latestCheckin(entries: Entry[]): { energy: number | null; mood: number | null } {
+  const last = (key: 'energy' | 'mood') => {
+    for (let i = entries.length - 1; i >= 0; i--) {
+      const v = (entries[i]!.payload.checkin as Record<string, unknown> | undefined)?.[key]
+      if (typeof v === 'number') return v
+    }
+    return null
+  }
+  return { energy: last('energy'), mood: last('mood') }
 }
 
 export interface CoreItem {

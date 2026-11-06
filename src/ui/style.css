@@ -478,8 +478,11 @@ textarea {
 }
 .sync-authRequired {
   color: var(--hf);
-  text-decoration: underline dotted;
-  text-underline-offset: 3px;
+  font-weight: 700;
+}
+.sync-authRequired::after {
+  content: '›';
+  font-size: 1.1em;
 }
 
 /* ---- tab bar ----------------------------------------------------- */
@@ -1062,10 +1065,13 @@ h2.sub {
 }
 
 .card.advice .fb {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 6px;
   margin-top: 8px;
+}
+.card.advice .fb button:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
 }
 .card.advice .fb button {
   min-height: 44px;
@@ -2091,6 +2097,22 @@ form.sheet > .row:last-child {
 .cards .card.advice strong {
   font-size: inherit;
   color: inherit;
+}
+/* an odd last card spans the row instead of sitting alone at half width */
+.cards:not(.three) > .card:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+/* five tabs: three on the first row, two wider on the second */
+.pills.stats-tabs {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+}
+.pills.stats-tabs button {
+  grid-column: span 2;
+  padding: 0 8px;
+}
+.pills.stats-tabs button:nth-child(n + 4) {
+  grid-column: span 3;
 }
 .screen .pills {
   margin-bottom: 12px;

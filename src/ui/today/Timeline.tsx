@@ -1,7 +1,7 @@
 import { formatDuration } from '../../core/entryForm'
 import { toHHmm } from '../../core/date'
 import { tagName } from '../../core/defs'
-import type { TimelineRow } from '../../core/timeline'
+import { latestCheckin, type TimelineRow } from '../../core/timeline'
 import { formatMl } from '../../core/water'
 import type { Category, Entry, Tag } from '../../core/types'
 import { Icon } from '../Icon'
@@ -10,6 +10,18 @@ import { SwipeRow } from '../SwipeRow'
 
 const colorOf = (cats: Category[], e: Entry) =>
   cats.find((c) => c.id === e.categoryId)?.color ?? 'var(--border)'
+/** "4 lần · năng lượng 3, tâm trạng 4" (the latest of each) */
+export function checkinSub(entries: Entry[]): string {
+  const { energy, mood } = latestCheckin(entries)
+  const latest = [
+    energy !== null ? `năng lượng ${energy}` : null,
+    mood !== null ? `tâm trạng ${mood}` : null,
+  ].filter(Boolean)
+  return [`${entries.length} lần`, latest.length ? `${latest.join(', ')}` : null]
+    .filter(Boolean)
+    .join(' · ')
+}
+
 const nameOf = (cats: Category[], e: Entry) => cats.find((c) => c.id === e.categoryId)?.name
 
 /** The day as a list: time column, colour dot, title and details; gaps over 2 hours link to Ghi bù. */
@@ -30,8 +42,8 @@ export function Timeline({
   tags: Tag[]
   dateKey: string
   onOpen: (e: Entry) => void
-  /** Opens the list behind a collapsed row (the day's water). */
-  onOpenGroup?: (entries: Entry[]) => void
+  /** Opens the list behind a collapsed row (the day's water or check-ins). */
+  onOpenGroup?: (kind: 'water' | 'checkin', entries: Entry[]) => void
   /** Swipe left / right on an entry row. Without both, rows are plain. */
   onSwipeDelete?: (e: Entry) => void
   onSwipeEdit?: (e: Entry) => void
@@ -39,7 +51,9 @@ export function Timeline({
   emptyText?: string
 }) {
   const count = rows.reduce(
-    (n, r) => n + (r.kind === 'entry' ? 1 : r.kind === 'water' ? r.entries.length : 0),
+    (n, r) =>
+      n +
+      (r.kind === 'entry' ? 1 : r.kind === 'water' || r.kind === 'checkin' ? r.entries.length : 0),
     0,
   )
   const entryButton = (r: Extract<TimelineRow, { kind: 'entry' }>) => (
@@ -96,7 +110,11 @@ export function Timeline({
               </li>
             ) : r.kind === 'water' ? (
               <li>
-                <button type="button" class="rowbtn" onClick={() => onOpenGroup?.(r.entries)}>
+                <button
+                  type="button"
+                  class="rowbtn"
+                  onClick={() => onOpenGroup?.('water', r.entries)}
+                >
                   <span class="when">
                     <strong>{toHHmm(r.start)}</strong>
                     {r.entries.length > 1 && (
@@ -109,6 +127,26 @@ export function Timeline({
                     <span class="sub">
                       {r.entries.length} lần · {formatMl(r.ml)}
                     </span>
+                  </span>
+                </button>
+              </li>
+            ) : r.kind === 'checkin' ? (
+              <li>
+                <button
+                  type="button"
+                  class="rowbtn"
+                  onClick={() => onOpenGroup?.('checkin', r.entries)}
+                >
+                  <span class="when">
+                    <strong>{toHHmm(r.start)}</strong>
+                    {r.entries.length > 1 && (
+                      <span class="muted">{toHHmm(r.entries[r.entries.length - 1]!.start)}</span>
+                    )}
+                  </span>
+                  <span class="bar" style={{ background: 'var(--border)' }} />
+                  <span class="grow">
+                    <span class="title">Check-in</span>
+                    <span class="sub">{checkinSub(r.entries)}</span>
                   </span>
                 </button>
               </li>
