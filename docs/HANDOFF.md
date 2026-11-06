@@ -151,3 +151,10 @@ Giao diện theo họ Sổ Tiền (giấy kem, thẻ bo 20px, pill chuyển mụ
 Hướng đề xuất (chưa chốt): thêm ô "Việc khác" vào lưới Hôm nay, mở form trống, giờ bắt đầu là bây giờ. Cần phân tích thêm trước khi làm: có nên giới hạn ở "ghi thời gian thực" (đúng nguyên tắc không timer); danh mục nào nên có nút mặc định; có cần ẩn bớt danh mục ít dùng.
 
 Cũng chưa quyết: nút "Vận động" chưa có trong 9 nút mặc định (máy đã có dữ liệu phải tự thêm; muốn chèn tự động thì cần migration), và `ManageDefs` chưa đổi sang kiểu giao diện mới.
+
+## Hoàn thiện sau P7 (6/11)
+
+- **Tương quan:** `findCorrelations` thêm bước `strataHold`: so cao/thấp riêng trong ngày thường và cuối tuần (theo ngày của kết quả), mọi nhóm đủ ≥ 3 ngày phải cùng chiều, ít nhất một nhóm đủ dữ liệu, và chênh lệch trung bình có trọng số vẫn ≥ `minAbsD`. Persona 150 ngày: 35 → 16 phát hiện (chỉ ngày làm việc: 8). Phát hiện kiểu "dậy muộn → ít deep work" do cuối tuần đã biến mất.
+- **Migration nút nhanh:** `migrateQuickActions` (`core/defs.ts`) + `migrateDefs` (`data/seed.ts`, chạy mỗi lần mở app sau `seedDefaults`). Chỉ đổi nút seed cũ chưa sửa (Ăn sáng/trưa/tối, Cà phê, Ra ngoài trời, Bắt đầu làm) sang Ăn uống / Hoạt động / Làm việc và thêm Vận động nếu chưa có nút vận động nào. Nút đã đổi tên/đổi danh mục giữ nguyên. Chạy lại không đổi gì.
+- **Test:** thêm test cho `data/insights.ts` (trước đó chưa có). Chưa có test cho `photos/process.ts` và `auth/gis.ts` (cần canvas/GIS thật, kiểm bằng tay trên máy thật).
+- Vẫn còn: T3.7 nghiệm thu trên điện thoại + Google thật.

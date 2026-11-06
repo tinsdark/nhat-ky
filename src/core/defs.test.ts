@@ -5,6 +5,7 @@ import {
   ENTRY_TYPES,
   NEW_QUICK_TYPE,
   entryTypeOptions,
+  migrateQuickActions,
   moveItem,
   newCustomType,
   nextOrder,
@@ -173,5 +174,63 @@ describe('applyDefDraft', () => {
         base,
       ),
     ).toEqual({ error: 'Giá trị không hợp lệ.' })
+  })
+})
+
+describe('migrateQuickActions', () => {
+  const old = (id: string, name: string, type: string, categoryId: string, order: number) => ({
+    id,
+    name,
+    icon: '•',
+    order,
+    type: type as never,
+    categoryId,
+    title: name,
+    value: null,
+    unit: '',
+  })
+  const oldSet = () => [
+    old('qa-wake', 'Thức dậy', 'sleep', 'cat-sleep', 1),
+    old('qa-sleep', 'Đi ngủ', 'sleep', 'cat-sleep', 2),
+    old('qa-breakfast', 'Ăn sáng', 'meal', 'cat-breakfast', 3),
+    old('qa-lunch', 'Ăn trưa', 'meal', 'cat-lunch', 4),
+    old('qa-dinner', 'Ăn tối', 'meal', 'cat-dinner', 5),
+    old('qa-work', 'Bắt đầu làm', 'work', 'cat-deep', 6),
+    { ...old('qa-water', 'Uống nước', 'water', 'cat-water', 7), value: 250, unit: 'ml' },
+    old('qa-coffee', 'Cà phê', 'meal', 'cat-drink', 8),
+    old('qa-outdoor', 'Ra ngoài trời', 'activity', 'cat-outdoor', 9),
+  ]
+
+  it('moves the old seeded set to the by-type set', () => {
+    const out = migrateQuickActions({ ...defs, quickActions: oldSet() })!
+    expect(out.quickActions.map((q) => q.name)).toEqual([
+      'Thức dậy',
+      'Đi ngủ',
+      'Ăn uống',
+      'Làm việc',
+      'Hoạt động',
+      'Vận động',
+      'Uống nước',
+    ])
+    expect(out.quickActions.map((q) => q.order)).toEqual([1, 2, 3, 4, 5, 6, 7])
+    expect(out.quickActions.find((q) => q.id === 'qa-water')?.value).toBe(250)
+  })
+  it('is idempotent and does nothing on a fresh install', () => {
+    const once = migrateQuickActions({ ...defs, quickActions: oldSet() })!
+    expect(migrateQuickActions(once)).toBeNull()
+    expect(migrateQuickActions(defs)).toBeNull()
+  })
+  it('keeps shortcuts the user edited', () => {
+    const list = oldSet().map((q) => (q.id === 'qa-lunch' ? { ...q, name: 'Cơm văn phòng' } : q))
+    const out = migrateQuickActions({ ...defs, quickActions: list })!
+    expect(out.quickActions.some((q) => q.name === 'Cơm văn phòng')).toBe(true)
+    // a meal shortcut survives, so no extra "Ăn uống" is added
+    expect(out.quickActions.some((q) => q.id === 'qa-meal')).toBe(false)
+  })
+  it('does not re-add Vận động when one exists, and leaves user-only shortcuts alone', () => {
+    const list = [...oldSet(), old('x-gym', 'Tập gym', 'exercise', 'cat-exercise', 10)]
+    const out = migrateQuickActions({ ...defs, quickActions: list })!
+    expect(out.quickActions.filter((q) => q.type === 'exercise')).toHaveLength(1)
+    expect(out.quickActions.some((q) => q.id === 'x-gym')).toBe(true)
   })
 })

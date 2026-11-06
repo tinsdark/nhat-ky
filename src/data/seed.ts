@@ -1,8 +1,9 @@
 import { defaultDefs } from '../core/defaults'
+import { migrateQuickActions } from '../core/defs'
 import { toDateKey } from '../core/date'
 import { DEFAULT_SETTINGS } from '../core/settings'
 import { db } from './db'
-import { getDeviceId } from './repository'
+import { getDefs, getDeviceId, saveDefs } from './repository'
 
 /** Older than any real edit, so a record pulled from Drive always wins the merge. */
 const SEED_STAMP = new Date(0).toISOString()
@@ -35,4 +36,11 @@ export async function seedDefaults(): Promise<void> {
       })
     }
   })
+}
+
+/** Moves installs that still carry the old seeded shortcuts to the by-type set. Runs every start; no-op once done. */
+export async function migrateDefs(): Promise<void> {
+  if (!(await db.defs.get('defs'))) return
+  const next = migrateQuickActions(await getDefs())
+  if (next) await saveDefs(next)
 }

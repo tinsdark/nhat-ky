@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { generateFakeData } from '../../dev/fakeData'
+import { generatePersonaMonth } from '../../dev/persona'
+import { defaultHabits } from '../defaults'
 import { addDays } from '../date'
 import { allMetrics, createMetricContext } from '../metrics'
 import { DEFAULT_SETTINGS } from '../settings'
@@ -104,5 +106,30 @@ describe('data gates', () => {
     // Mark every day as sick: nothing is left to compare.
     const none = run(60, 1, (days) => days.forEach((d) => (d.dayType = 'sick')))
     expect(none).toEqual([])
+  })
+})
+
+describe('weekday/weekend confound', () => {
+  const START = '2026-05-04'
+  const long = generatePersonaMonth({ startKey: START, days: 150, seed: 7 })
+  const end = addDays(START, 149)
+  const ctx = createMetricContext({
+    entries: long.entries,
+    days: long.days,
+    habits: defaultHabits(START),
+    settings: DEFAULT_SETTINGS,
+  })
+  const out = findCorrelations(ctx, allMetrics([]), { from: START, to: end })
+
+  it('does not report calendar-only effects (was 35 findings, 19 of them weekend artefacts)', () => {
+    expect(out.length).toBeLessThanOrEqual(20)
+    // Weekends have no deep work and a late wake-up; inside weekdays the link disappears.
+    expect(
+      out.find((f) => f.outcomeId === 'deep_work_hours' && f.factorId === 'wake_time'),
+    ).toBeUndefined()
+    expect(out.find((f) => f.factorId === 'work_hours' && f.outcomeId === 'mood')).toBeUndefined()
+  })
+  it('still keeps the effects that hold inside weekdays', () => {
+    expect(out.some((f) => f.factorId === 'exercised' && f.outcomeId === 'mood')).toBe(true)
   })
 })

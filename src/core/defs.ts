@@ -1,3 +1,4 @@
+import { DEFAULT_QUICK_ACTIONS } from './defaults'
 import type { Category, CustomType, Defs, EntryType, QuickAction, Tag } from './types'
 
 export const ENTRY_TYPES: { id: EntryType; label: string }[] = [
@@ -188,4 +189,43 @@ export function applyDefDraft(
       quickActions: upsertById(defs.quickActions, a),
     },
   }
+}
+
+/** The shortcuts older installs were seeded with, matched by id + name + type + category (icon and order may differ). */
+const OLD_SEEDED_SHORTCUTS: Record<string, Pick<QuickAction, 'name' | 'type' | 'categoryId'>> = {
+  'qa-breakfast': { name: 'Ăn sáng', type: 'meal', categoryId: 'cat-breakfast' },
+  'qa-lunch': { name: 'Ăn trưa', type: 'meal', categoryId: 'cat-lunch' },
+  'qa-dinner': { name: 'Ăn tối', type: 'meal', categoryId: 'cat-dinner' },
+  'qa-coffee': { name: 'Cà phê', type: 'meal', categoryId: 'cat-drink' },
+  'qa-outdoor': { name: 'Ra ngoài trời', type: 'activity', categoryId: 'cat-outdoor' },
+  'qa-work': { name: 'Bắt đầu làm', type: 'work', categoryId: 'cat-deep' },
+}
+
+/**
+ * Moves an install that still has the old seeded shortcuts (Ăn sáng, Ăn trưa, Cà phê, ...) to the by-type
+ * set (Ăn uống, Làm việc, Hoạt động, Vận động). Only shortcuts the user never edited are touched; renamed or
+ * retargeted ones stay as they are. Returns null when there is nothing to migrate, so it is safe to run
+ * on every start.
+ */
+export function migrateQuickActions(defs: Defs): Defs | null {
+  const isOld = (q: QuickAction) => {
+    const old = OLD_SEEDED_SHORTCUTS[q.id]
+    return !!old && q.name === old.name && q.type === old.type && q.categoryId === old.categoryId
+  }
+  if (!defs.quickActions.some(isOld)) return null
+
+  const fresh = (id: string) => ({ ...DEFAULT_QUICK_ACTIONS.find((q) => q.id === id)! })
+  const kept = defs.quickActions.filter((q) => !isOld(q) || q.id === 'qa-work')
+  const next = kept.map((q) => (isOld(q) ? fresh('qa-work') : q))
+  const has = (type: EntryType) => next.some((q) => q.type === type)
+  const removed = (type: EntryType) =>
+    defs.quickActions.some((q) => isOld(q) && q.id !== 'qa-work' && q.type === type)
+  if (removed('meal') && !has('meal')) next.push(fresh('qa-meal'))
+  if (removed('activity') && !has('activity')) next.push(fresh('qa-activity'))
+  if (!has('exercise')) next.push(fresh('qa-exercise'))
+
+  const quickActions = next
+    .sort((a, b) => a.order - b.order)
+    .map((q, i) => ({ ...q, order: i + 1 }))
+  return { ...defs, quickActions }
 }

@@ -1,5 +1,5 @@
 import { render } from 'preact'
-import { seedDefaults } from './data/seed'
+import { migrateDefs, seedDefaults } from './data/seed'
 import { App } from './ui/App'
 import { startBackup } from './backup'
 import './pwa'
@@ -14,10 +14,12 @@ for (const type of ['gesturestart', 'gesturechange', 'gestureend'])
   document.addEventListener(type, (e) => e.preventDefault())
 
 installDialogs()
-void seedDefaults().finally(() => {
-  render(<App />, document.getElementById('app')!)
-  startSync()
-  startPhotoQueue()
-  startBackup()
-})
+void seedDefaults()
+  .then(migrateDefs)
+  .finally(() => {
+    render(<App />, document.getElementById('app')!)
+    startSync()
+    startPhotoQueue()
+    startBackup()
+  })
 if (import.meta.env.DEV) void import('./dev/console')

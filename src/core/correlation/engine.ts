@@ -1,4 +1,4 @@
-import { addDays, dateKeyRange } from '../date'
+import { addDays, dateKeyRange, weekday } from '../date'
 import { countLoggedDays, readiness } from '../rules'
 import type { MetricContext } from '../metrics'
 import type { Metric } from '../metrics'
@@ -169,9 +169,39 @@ function halvesAgree(pairs: Pair[], low: Pair[], high: Pair[], sign: number): bo
 }
 
 /**
+ * The weekday/weekend calendar moves most factors and most outcomes together, so a raw high-vs-low
+ * comparison often only restates "it was the weekend". Compare inside each stratum of the outcome's day (Mon–Fri, Sat–Sun):
+ * every stratum that has ≥ 3 days in both groups must show the same direction, at least one must be
+ * testable, and the size-weighted average difference across strata must still be |d| ≥ minAbsD.
+ */
+function strataHold(
+  low: Pair[],
+  high: Pair[],
+  lag: number,
+  pooledSd: number,
+  sign: number,
+  minAbsD: number,
+) {
+  let weighted = 0
+  let weight = 0
+  for (const weekend of [false, true]) {
+    const inStratum = (p: Pair) => weekday(addDays(p.dateKey, lag)) >= 5 === weekend
+    const a = low.filter(inStratum)
+    const b = high.filter(inStratum)
+    if (a.length < 3 || b.length < 3) continue
+    const diff = mean(b.map((p) => p.y)) - mean(a.map((p) => p.y))
+    if (Math.sign(diff) !== sign) return false
+    const w = (a.length * b.length) / (a.length + b.length)
+    weighted += diff * w
+    weight += w
+  }
+  return weight > 0 && Math.abs(weighted / weight) / pooledSd >= minAbsD
+}
+
+/**
  * Looks for factors that go with better or worse days (SPEC 8.3). Same-day pairs need 28 logged days,
  * next-day pairs 60. Filters: each group ≥ minGroup days, |d| ≥ minAbsD, |t| ≥ minAbsT, both halves of
- * the period agree, sick/travel/holiday days dropped. Factors that move together are folded into
+ * the period agree, the direction holds within weekdays and weekends separately, sick/travel/holiday days dropped. Factors that move together are folded into
  * the strongest one. Sorted by confidence then |d|.
  */
 export function findCorrelations(ctx: MetricContext, metrics: Metric[], opts: Options): Finding[] {
@@ -224,6 +254,8 @@ export function findCorrelations(ctx: MetricContext, metrics: Metric[], opts: Op
         )
         if (!stat || Math.abs(stat.d) < minAbsD || Math.abs(stat.t) < minAbsT) continue
         if (!halvesAgree(pairs, g.low, g.high, Math.sign(stat.d))) continue
+        const pooledSd = (mean(g.high.map((p) => p.y)) - mean(g.low.map((p) => p.y))) / stat.d
+        if (!strataHold(g.low, g.high, lag, pooledSd, Math.sign(stat.d), minAbsD)) continue
         candidates.push({
           factorId: f.id,
           outcomeId: y.id,
