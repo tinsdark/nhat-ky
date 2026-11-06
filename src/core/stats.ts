@@ -36,6 +36,18 @@ export function weekCompare(metric: Metric, ctx: MetricContext, today: string): 
 }
 
 /** Trailing mean over the last `window` points, ignoring nulls; null where the window holds no value. */
+/** Drops the days before the first one that has data in any series, so a young log does not squash into a corner of a 90-day chart. */
+export function trimLeadingEmpty<T extends { raw: Point[]; avg: Point[] }>(series: T[]): T[] {
+  const first = Math.min(
+    ...series.map((s) => {
+      const i = s.raw.findIndex((p) => p.value !== null)
+      return i === -1 ? Infinity : i
+    }),
+  )
+  if (!Number.isFinite(first) || first === 0) return series
+  return series.map((s) => ({ ...s, raw: s.raw.slice(first), avg: s.avg.slice(first) }))
+}
+
 export function movingAverage(points: Point[], window = 7): Point[] {
   return points.map((p, i) => ({
     dateKey: p.dateKey,

@@ -8,6 +8,7 @@ import {
   formatMetric,
   labelWithScale,
   movingAverage,
+  trimLeadingEmpty,
   weekCompare,
   windowMean,
 } from './stats'
@@ -115,5 +116,22 @@ describe('formatChange', () => {
     expect(labelWithScale('Tâm trạng', '1–5')).toBe('Tâm trạng (1–5)')
     expect(labelWithScale('Điểm ngày', '1–10')).toBe('Điểm ngày (1–10)')
     expect(labelWithScale('Giờ làm', 'giờ')).toBe('Giờ làm')
+  })
+})
+
+describe('trimLeadingEmpty', () => {
+  const pts = (vs: (number | null)[]) => vs.map((value, i) => ({ dateKey: `d${i}`, value }))
+  it('cuts the days before the first value of any series', () => {
+    const a = { raw: pts([null, null, 1, 2]), avg: pts([null, null, 1, 1.5]) }
+    const b = { raw: pts([null, 5, null, 6]), avg: pts([null, 5, 5, 5.5]) }
+    const [ta, tb] = trimLeadingEmpty([a, b])
+    expect(ta!.raw).toHaveLength(3)
+    expect(tb!.raw[0]!.value).toBe(5)
+  })
+  it('leaves series with no data, or data from day one, as they are', () => {
+    const empty = { raw: pts([null, null]), avg: pts([null, null]) }
+    expect(trimLeadingEmpty([empty])).toEqual([empty])
+    const full = { raw: pts([1, 2]), avg: pts([1, 1.5]) }
+    expect(trimLeadingEmpty([full])[0]).toBe(full)
   })
 })

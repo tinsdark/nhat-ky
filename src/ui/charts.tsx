@@ -1,5 +1,5 @@
 import { weekday } from '../core/date'
-import type { Point } from '../core/stats'
+import { trimLeadingEmpty, type Point } from '../core/stats'
 
 const W = 340
 const H = 140
@@ -14,12 +14,13 @@ function scale(values: number[]): (v: number) => number {
 
 /** Raw days as dots, trailing average as a line. Each series is scaled to its own min–max. */
 export function TrendChart({
-  series,
+  series: allSeries,
   format = (v) => String(Math.round(v * 10) / 10).replace('.', ','),
 }: {
   series: { raw: Point[]; avg: Point[]; color: string; label: string }[]
   format?: (seriesIndex: number, v: number) => string
 }) {
+  const series = trimLeadingEmpty(allSeries)
   const range = series.map((s) => {
     const present = s.raw.map((p) => p.value).filter((v): v is number => v !== null)
     return present.length ? { min: Math.min(...present), max: Math.max(...present) } : null
