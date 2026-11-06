@@ -17,7 +17,7 @@ export function checkinSub(entries: Entry[]): string {
     energy !== null ? `năng lượng ${energy}` : null,
     mood !== null ? `tâm trạng ${mood}` : null,
   ].filter(Boolean)
-  return [`${entries.length} lần`, latest.length ? `${latest.join(', ')}` : null]
+  return [`${entries.length} lần`, latest.length ? latest.join(', ') : null]
     .filter(Boolean)
     .join(' · ')
 }
