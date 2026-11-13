@@ -2,6 +2,7 @@ import { csvToEntries, parseCsv, type CsvImport } from '../core/csv'
 import { newId } from '../core/defs'
 import { db } from '../data/db'
 import { getDefs, getDeviceId, getSettings, saveDefs } from '../data/repository'
+import { DEFAULT_TAG_COLOR } from '../core/defaults'
 
 export interface ImportResult {
   imported: number
@@ -23,7 +24,11 @@ export async function importCsv(text: string): Promise<ImportResult> {
     deviceId,
   })
 
-  const created = parsed.newTags.map((name) => ({ id: newId('tag'), name, color: '#6c6c70' }))
+  const created = parsed.newTags.map((name) => ({
+    id: newId('tag'),
+    name,
+    color: DEFAULT_TAG_COLOR,
+  }))
   if (created.length > 0) await saveDefs({ ...defs, tags: [...defs.tags, ...created] })
   const tagId = new Map(created.map((t) => [`name:${t.name}`, t.id]))
 

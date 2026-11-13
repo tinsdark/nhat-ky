@@ -1765,7 +1765,8 @@ body:has(.login) {
 .sheet .row > label {
   min-width: 0;
 }
-.sheet select {
+.sheet select,
+.screen select {
   appearance: none;
   background-image:
     linear-gradient(45deg, transparent 50%, var(--muted) 50%),
