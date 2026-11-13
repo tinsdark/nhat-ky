@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { db } from './db'
 import {
   createEntry,
@@ -264,5 +264,22 @@ describe('entries moved to another month', () => {
     await createEntry({ type: 'activity', start: '2026-11-01T04:30:00+07:00' }) // 01/11 with the cut at 4h, 31/10 with it at 5h
     await changeDayStartHour(5)
     expect((await db.meta.get('staleMonths'))?.value).toEqual(['2026-11'])
+  })
+})
+
+describe('createdAt order', () => {
+  beforeEach(async () => {
+    await Promise.all([db.entries.clear(), db.settings.clear(), db.meta.clear()])
+  })
+  afterEach(() => vi.useRealTimers())
+
+  it('entries created in the same millisecond still get increasing createdAt', async () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-11-13T10:00:00.000+07:00') })
+    const a = await createEntry({ type: 'note', start: '2026-11-13T10:00:00.000+07:00' })
+    const b = await createEntry({ type: 'note', start: '2026-11-13T10:00:00.000+07:00' })
+    const c = await createEntry({ type: 'note', start: '2026-11-13T10:00:00.000+07:00' })
+    expect(a.createdAt < b.createdAt && b.createdAt < c.createdAt).toBe(true)
+    // createdAt and updatedAt of a new entry stay equal, as before
+    expect(b.updatedAt).toBe(b.createdAt)
   })
 })

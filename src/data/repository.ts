@@ -103,8 +103,19 @@ export async function saveDefs(defs: Defs): Promise<void> {
   })
 }
 
+/**
+ * Creation time that never repeats on this device: two entries made in the same millisecond (a fast
+ * machine, a test) would tie on `createdAt`, and "the latest one" (e.g. un-ticking a habit) could pick
+ * the wrong entry. A tie is moved 1 ms forward.
+ */
+let lastCreatedMs = 0
+function creationStamp(): string {
+  lastCreatedMs = Math.max(Date.now(), lastCreatedMs + 1)
+  return toIso(lastCreatedMs)
+}
+
 export async function createEntry(input: NewEntry): Promise<Entry> {
-  const now = toIso()
+  const now = creationStamp()
   const settings = await getSettings()
   const { dayStartHour } = settings
   const entry: Entry = {
