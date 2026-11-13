@@ -226,7 +226,8 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: calc(6px + env(safe-area-inset-top)) 18px 8px;
+  /* Same left/right edges as the column below on wide screens. */
+  padding: calc(6px + env(safe-area-inset-top)) max(18px, calc((100% - 520px) / 2)) 8px;
   background: var(--hue);
 }
 .brand {
@@ -491,7 +492,8 @@ textarea {
   z-index: 3;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  padding-bottom: env(safe-area-inset-bottom);
+  /* Tabs stay inside the 520px column on wide screens; the bar's background is still full width. */
+  padding: 0 max(0px, calc((100% - 520px) / 2)) env(safe-area-inset-bottom);
   background: var(--card);
   border-top: 1px solid var(--border);
 }
@@ -2319,6 +2321,11 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+/* The top bar sits on the coloured band but is outside .band, so the accent is too close to its
+   background (2.8:1 at midday): use the band's text colour, which always contrasts with it. */
+.topbar :focus-visible {
+  outline-color: var(--hf);
+}
 
 /* Thanh tab mờ nền. */
 /* Quick tiles: flat on the panel, no border or shadow of their own. */
@@ -2353,7 +2360,8 @@ body {
     animation-duration: 0.001ms !important;
     animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
+    /* Press and selection feedback stays (a colour change is not movement); nothing travels. */
+    transition-duration: 0.12s !important;
   }
 }
 

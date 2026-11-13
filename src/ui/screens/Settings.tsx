@@ -52,7 +52,7 @@ export function Settings({
   return (
     <section class="screen settings">
       <h1>Cài đặt</h1>
-      <Pills options={SECTIONS} value={section} onChange={pick} />
+      <Pills label="Mục cài đặt" options={SECTIONS} value={section} onChange={pick} />
       {section === 'categories' && <Categories />}
       {section === 'goals' && <Goals settings={settings} />}
       {section === 'alerts' && <Alerts settings={settings} />}

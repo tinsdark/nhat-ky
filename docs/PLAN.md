@@ -191,3 +191,7 @@ Chi tiết, bằng chứng và tiêu chí xong: `docs/REVIEW-2026-11-13.md` mụ
 - [x] **T11.5 Dọn repo:** bỏ `docs/report/__pycache__` khỏi git + `.gitignore`. Giữ nguyên `docs/huong-dan-khoa-phong-to-so-tien.md` và PDF báo cáo (nội dung Đạt yêu cầu trước đây; xoá là việc khó đảo ngược, để Đạt tự xoá nếu muốn).
 - [x] **T11.6 Cập nhật HANDOFF, README, câu hỏi mở trong SPEC.**
 - [x] **T11.7 Cập nhật bản vá phụ thuộc** (13/11: preact 11.2, vite 8.3.8, dexie 4.4.7, vitest 5.1…; lint, test, build, smoke, tương phản, CSP chạy lại đều đạt). TypeScript 7 là bản major, chưa lên.
+
+## P12 — Rà soát front-end (13/11, bằng skill Impeccable)
+
+- [x] **T12.1 Rà soát + sửa front-end.** Detector 0 phát hiện; đo thật bằng Playwright: vòng focus bằng phím Tab (39 điểm dừng), tràn ngang/nút nhỏ/tab bị cắt ở 320/360/430px, bố cục desktop 1280px. Sửa 4 chỗ: vòng focus của nút đồng bộ trên thanh trên 2,79:1 → dùng màu chữ của dải (`.topbar :focus-visible`); thanh tab và thanh trên bám đúng cột 520px trên màn rộng; `Pills` dùng nhóm nút `aria-pressed` có nhãn thay cho `role=tab` thiếu tabpanel/phím mũi tên; `nav` có `aria-label`; `prefers-reduced-motion` giữ phản hồi màu 120 ms thay vì tắt hẳn chuyển tiếp.

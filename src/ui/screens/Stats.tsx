@@ -40,7 +40,13 @@ export function Stats() {
   return (
     <section class="screen">
       <h1>Thống kê</h1>
-      <Pills className="noprint" options={TABS} value={tab} onChange={setTab} />
+      <Pills
+        className="noprint"
+        label="Mục thống kê"
+        options={TABS}
+        value={tab}
+        onChange={setTab}
+      />
       {tab === 'overview' && <Overview data={data} />}
       {tab === 'food' && <Food data={data} />}
       {tab === 'time' && <Time data={data} />}

@@ -103,6 +103,7 @@ export function ManageDefs({
         </div>
         <div class="manage-tabs">
           <Pills
+            label="Loại danh sách"
             options={[
               { id: 'quick' as const, label: 'Nút nhanh' },
               { id: 'cat' as const, label: 'Danh mục' },
