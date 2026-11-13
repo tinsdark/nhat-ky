@@ -245,3 +245,24 @@ describe('write guards', () => {
     expect([s.waterTargetMl, s.sleepTargetHours]).toEqual([1111, 6])
   })
 })
+
+describe('entries moved to another month', () => {
+  beforeEach(async () => {
+    await Promise.all([db.entries.clear(), db.settings.clear(), db.meta.clear()])
+  })
+  it('updateEntry remembers the old month so sync rewrites its file', async () => {
+    const e = await createEntry({ type: 'activity', start: '2026-10-31T20:00:00+07:00' })
+    await updateEntry(e.id, { start: '2026-11-01T20:00:00+07:00' })
+    expect((await db.meta.get('staleMonths'))?.value).toEqual(['2026-10'])
+  })
+  it('a change inside the same month marks nothing', async () => {
+    const e = await createEntry({ type: 'activity', start: '2026-10-30T20:00:00+07:00' })
+    await updateEntry(e.id, { start: '2026-10-31T20:00:00+07:00' })
+    expect(await db.meta.get('staleMonths')).toBeUndefined()
+  })
+  it('changeDayStartHour marks months entries left', async () => {
+    await createEntry({ type: 'activity', start: '2026-11-01T04:30:00+07:00' }) // 01/11 with the cut at 4h, 31/10 with it at 5h
+    await changeDayStartHour(5)
+    expect((await db.meta.get('staleMonths'))?.value).toEqual(['2026-11'])
+  })
+})

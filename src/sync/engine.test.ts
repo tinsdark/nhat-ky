@@ -308,6 +308,18 @@ describe('entries that change month', () => {
     expect(drive.json('nk_2026-10.json').entries.map((e: Entry) => e.id)).toEqual(['other'])
     expect(drive.json('nk_2026-11.json').entries.map((e: Entry) => e.id)).toEqual(['e1'])
   })
+
+  it('a month marked stale is rewritten on the next sync, without waiting for another edit', async () => {
+    const drive = fakeDrive()
+    const a = device(drive)
+    await a.db.entries.put(entry('e1', '2026-10-31', t(1)))
+    await a.engine.run()
+    await a.db.entries.put(entry('e1', '2026-11-01', t(9)))
+    await a.db.meta.put({ key: 'staleMonths', value: ['2026-10'] })
+    await a.engine.run()
+    expect(drive.json('nk_2026-10.json').entries).toHaveLength(0)
+    expect(await a.db.meta.get('staleMonths')).toBeUndefined()
+  })
 })
 
 describe('defs and settings', () => {
@@ -583,5 +595,45 @@ describe('insights doc', () => {
     const b = device(drive)
     await b.engine.run()
     expect((await b.db.insights.get('insights'))?.weights).toEqual({ 'corr:bedtime': 0.5 })
+  })
+})
+
+describe('restore drill: a blank device', () => {
+  it('signs in and ends with every record, deletion and document of the old one', async () => {
+    const drive = fakeDrive()
+    const old = device(drive)
+    await old.db.entries.bulkPut([
+      entry('e1', '2026-10-30', t(1)),
+      entry('e2', '2026-11-02', t(2)),
+      entry('gone', '2026-11-03', t(3), { deleted: true }),
+    ])
+    await old.db.days.bulkPut([day('2026-10-30', t(1), { dayScore: 7 }), day('2026-11-02', t(2))])
+    await old.db.settings.put({
+      key: 'settings',
+      dayStartHour: 5,
+      updatedAt: t(4),
+      deviceId: 'A',
+      dirty: 1,
+    } as never)
+    await old.db.defs.put({
+      key: 'defs',
+      categories: [],
+      habits: [{ id: 'h1' }],
+      quickActions: [],
+      tags: [],
+      updatedAt: t(4),
+      deviceId: 'A',
+      dirty: 1,
+    } as never)
+    await old.engine.run()
+
+    const blank = device(drive)
+    await blank.engine.run()
+    expect((await blank.db.entries.toArray()).map((e) => e.id).sort()).toEqual(['e1', 'e2', 'gone'])
+    expect((await blank.db.entries.get('gone'))?.deleted).toBe(true)
+    expect((await blank.db.days.get('2026-10-30'))?.dayScore).toBe(7)
+    expect((await blank.db.settings.get('settings'))?.dayStartHour).toBe(5)
+    expect((await blank.db.defs.get('defs'))?.habits).toEqual([{ id: 'h1' }])
+    expect(await blank.db.entries.where('dirty').equals(1).count()).toBe(0)
   })
 })

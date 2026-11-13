@@ -3,7 +3,7 @@ import { toDateKey, toIso } from '../core/date'
 import { isOvertime } from '../core/overtime'
 import { runningEntries } from '../core/running'
 import type { Day, Defs, Entry, Settings } from '../core/types'
-import { db } from './db'
+import { db, STALE_MONTHS_KEY } from './db'
 
 export type NewEntry = Pick<Entry, 'type' | 'start'> &
   Partial<
@@ -43,6 +43,14 @@ function withOvertime(input: Entry, settings: Settings): Entry {
 function assertBlockOrder(entry: Pick<Entry, 'start' | 'end'>): void {
   if (entry.end !== null && new Date(entry.end).getTime() < new Date(entry.start).getTime())
     throw new Error(`Entry ends before it starts: ${entry.start} → ${entry.end}`)
+}
+
+/** Remembers `months` so the next sync rewrites their files without the moved entries. */
+async function markStaleMonths(months: Iterable<string>): Promise<void> {
+  const add = [...months]
+  if (add.length === 0) return
+  const cur = ((await db.meta.get(STALE_MONTHS_KEY))?.value as string[] | undefined) ?? []
+  await db.meta.put({ key: STALE_MONTHS_KEY, value: [...new Set([...cur, ...add])].sort() })
 }
 
 export async function getDeviceId(): Promise<string> {
@@ -139,6 +147,8 @@ export async function updateEntry(id: string, patch: Partial<NewEntry>): Promise
     }
     const settings = await getSettings()
     if (patch.start !== undefined) next.dateKey = toDateKey(next.start, settings.dayStartHour)
+    if (next.dateKey.slice(0, 7) !== current.dateKey.slice(0, 7))
+      await markStaleMonths([current.dateKey.slice(0, 7)])
     assertBlockOrder(next)
     const saved = withOvertime(next, settings)
     await db.entries.put(saved)
@@ -238,13 +248,19 @@ export async function changeDayStartHour(hour: number): Promise<number> {
   const stamp = toIso()
   let moved = 0
   await db.transaction('rw', db.entries, db.settings, db.meta, async () => {
-    const changed: Entry[] = []
+    const changed: (Entry & { oldKey: string })[] = []
     await db.entries.each((e) => {
       const dateKey = toDateKey(e.start, hour)
       if (dateKey !== e.dateKey)
-        changed.push({ ...e, dateKey, updatedAt: stamp, deviceId, dirty: 1 })
+        changed.push({ ...e, dateKey, updatedAt: stamp, deviceId, dirty: 1, oldKey: e.dateKey })
     })
-    await db.entries.bulkPut(changed)
+    await markStaleMonths(
+      changed
+        .filter((e) => e.oldKey.slice(0, 7) !== e.dateKey.slice(0, 7))
+        .map((e) => e.oldKey.slice(0, 7)),
+    )
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    await db.entries.bulkPut(changed.map(({ oldKey, ...e }) => e))
     moved = changed.length
     const next = { ...(await getSettings()), dayStartHour: hour }
     await db.settings.put({ ...next, key: 'settings', updatedAt: stamp, deviceId, dirty: 1 })

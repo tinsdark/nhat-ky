@@ -37,7 +37,12 @@ export class NhatKyDB extends Dexie {
     })
     // v2 only adds a table; nothing is migrated.
     this.version(2).stores({ insights: 'key' })
+    // Adding a version: real data exists since 1/11, so a new version needs an `.upgrade()` for any
+    // reshaped row, a case in db.test.ts that opens the previous schema with data, and Đạt's OK.
   }
 }
+
+/** meta key: months whose Drive file still holds a copy of an entry that moved to another month. */
+export const STALE_MONTHS_KEY = 'staleMonths'
 
 export const db = new NhatKyDB()

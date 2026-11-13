@@ -8,7 +8,7 @@ import { mergeDefs } from '../core/mergeDefs'
 import { mergeInsights } from '../core/mergeInsights'
 import { isDay, isDocStamp, isEntry } from '../core/validate'
 import type { Day, Defs, Entry, InsightStore } from '../core/types'
-import type { DocStamp, NhatKyDB } from '../data/db'
+import { STALE_MONTHS_KEY, type DocStamp, type NhatKyDB } from '../data/db'
 import { DriveError, type DriveClient } from '../drive/client'
 
 export type SyncDrive = Pick<
@@ -244,10 +244,20 @@ export function createSyncEngine({
     for (const e of await db.entries.where('dirty').equals(1).toArray())
       months.add(monthOf(e.dateKey))
     for (const d of await db.days.where('dirty').equals(1).toArray()) months.add(monthOf(d.dateKey))
+    // Months that still hold a copy of an entry moved elsewhere: rewrite them so the copy goes.
+    const stale = ((await db.meta.get(STALE_MONTHS_KEY))?.value as string[] | undefined) ?? []
+    for (const m of stale) if (remoteFiles.has(monthFileName(m))) months.add(m)
 
     for (const month of [...months].sort()) {
       await syncMonth(month, remoteFiles.get(monthFileName(month)) ?? null)
     }
+    if (stale.length > 0)
+      await db.transaction('rw', db.meta, async () => {
+        const now = ((await db.meta.get(STALE_MONTHS_KEY))?.value as string[] | undefined) ?? []
+        const left = now.filter((m) => !stale.includes(m))
+        if (left.length > 0) await db.meta.put({ key: STALE_MONTHS_KEY, value: left })
+        else await db.meta.delete(STALE_MONTHS_KEY)
+      })
     await syncDoc(DEFS_FILE, db.defs, 'defs', remoteFiles.get('nk_defs.json') ?? null)
     await syncDoc(
       'nk_settings.json',
