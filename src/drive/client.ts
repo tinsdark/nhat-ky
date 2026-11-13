@@ -107,9 +107,15 @@ export function createDriveClient({ fetch, getToken, invalidateToken }: DriveDep
   }
 
   return {
-    /** Files whose name starts with `prefix`. Reading any prefix is allowed; writes are guarded. */
+    /**
+     * Files whose name starts with `prefix`. Drive filters by prefix (`name contains` matches the start
+     * of a name), so photos are not listed on every sync. An empty answer is checked against the full
+     * list once, in case Drive's matching ever differs; the result is always re-filtered here.
+     */
     async listFiles(prefix = 'nk_'): Promise<DriveFile[]> {
-      return (await list('')).filter((f) => f.name.startsWith(prefix))
+      const byPrefix = (files: DriveFile[]) => files.filter((f) => f.name.startsWith(prefix))
+      const found = byPrefix(await list(` and name contains ${quote(prefix)}`))
+      return found.length > 0 ? found : byPrefix(await list(''))
     },
 
     async readJson<T>(name: string): Promise<T | null> {

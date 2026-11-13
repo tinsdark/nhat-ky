@@ -164,9 +164,9 @@ Chi tiết, bằng chứng và tiêu chí xong: `docs/REVIEW-2026-11-13.md` mụ
 
 ## P9 — Back-end: sync và Drive
 
-- [ ] **T9.1 Lọc file `nk_` ở phía Drive**, không tải danh sách mọi file (kể cả ảnh) mỗi lần sync.
-- [ ] **T9.2 Hẹn giờ sync theo `dirty`**: 60 giây khi có thay đổi, 5 phút khi không.
-- [ ] **T9.3 Merge `nk_insights.json` theo từng lời khuyên.**
+- [x] **T9.1 Lọc file `nk_` ở phía Drive**, không tải danh sách mọi file (kể cả ảnh) mỗi lần sync.
+- [x] **T9.2 Hẹn giờ sync theo `dirty`**: 60 giây khi có thay đổi, 5 phút khi không.
+- [x] **T9.3 Merge `nk_insights.json` theo từng lời khuyên.**
 - [ ] **T9.4 Dọn bản cũ ở file tháng khi mục đổi tháng.**
 - [ ] **T9.5 [Q] Khung migration Dexie + test nâng cấp từ dữ liệu v2.**
 - [ ] **T9.6 Tình trạng đồng bộ ở Cài đặt** (lần cuối, số mục chờ, lỗi gần nhất, nút Đồng bộ ngay).

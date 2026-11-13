@@ -5,8 +5,9 @@ import { AuthNetworkError, AuthRequiredError } from '../auth/token'
 import { toIso } from '../core/date'
 import { compareVersion, mergeRecords, type Versioned } from '../core/merge'
 import { mergeDefs } from '../core/mergeDefs'
+import { mergeInsights } from '../core/mergeInsights'
 import { isDay, isDocStamp, isEntry } from '../core/validate'
-import type { Day, Defs, Entry } from '../core/types'
+import type { Day, Defs, Entry, InsightStore } from '../core/types'
 import type { DocStamp, NhatKyDB } from '../data/db'
 import { DriveError, type DriveClient } from '../drive/client'
 
@@ -42,6 +43,13 @@ type DocRecord = DocStamp & { key: string }
 const MONTH_FILE = /^nk_(\d{4}-\d{2})\.json$/
 const MAX_CONFLICT_RETRIES = 3
 const DEFS_FILE = 'nk_defs.json'
+const INSIGHTS_FILE = 'nk_insights.json'
+
+/** Whole-file documents whose two diverged copies can be combined instead of one replacing the other. */
+const DOC_MERGE: Record<string, (winner: never, loser: never) => unknown> = {
+  [DEFS_FILE]: (w: Defs, l: Defs) => mergeDefs(w, l),
+  [INSIGHTS_FILE]: (w: InsightStore, l: InsightStore) => mergeInsights(w, l),
+}
 
 const monthOf = (dateKey: string) => dateKey.slice(0, 7)
 const monthFileName = (month: string) => `nk_${month}.json`
@@ -169,11 +177,12 @@ export function createSyncEngine({
     // before sign-in): the copy on Drive is the real one and must not be overwritten by it.
     const firstSync = remote !== null && (await getMt(name)) === null
 
-    // Both sides changed defs: keep what only the losing side added, then push the union as a new version.
-    if (name === DEFS_FILE && remote && local?.dirty === 1 && !firstSync) {
+    // Both sides changed the file: keep what only the losing side has, then push the result as a new version.
+    const merge = DOC_MERGE[name]
+    if (merge && remote && local?.dirty === 1 && !firstSync) {
       const remoteWins = compareVersion(remote, local) > 0
-      const winner = (remoteWins ? remote : local) as unknown as Defs
-      const merged = mergeDefs(winner, (remoteWins ? local : remote) as unknown as Defs)
+      const winner = remoteWins ? remote : local
+      const merged = merge(winner as never, (remoteWins ? local : remote) as never) as object
       if (merged !== winner) {
         local = {
           ...merged,
@@ -247,7 +256,7 @@ export function createSyncEngine({
       remoteFiles.get('nk_settings.json') ?? null,
     )
     await syncDoc(
-      'nk_insights.json',
+      INSIGHTS_FILE,
       db.insights,
       'insights',
       remoteFiles.get('nk_insights.json') ?? null,

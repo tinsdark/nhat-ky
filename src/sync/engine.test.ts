@@ -434,6 +434,45 @@ describe('defs and settings', () => {
     expect(ids((await a.db.defs.get('defs')) as never)).toEqual(['from-a', 'from-b'])
   })
 
+  it('both devices changed insights: feedback from each device survives', async () => {
+    const drive = fakeDrive()
+    const store = (items: unknown[], updatedAt: string, deviceId: string) => ({
+      key: 'insights' as const,
+      items,
+      weights: {},
+      lastRunDate: null,
+      experiments: [],
+      claudeNotes: [],
+      updatedAt,
+      deviceId,
+      dirty: 1 as const,
+    })
+    const item = (id: string, status: string, updatedAt: string) => ({ id, status, updatedAt })
+    const a = device(drive)
+    const b = device(drive)
+    await a.db.insights.put(
+      store([item('x', 'new', t(1)), item('y', 'new', t(1))], t(1), 'A') as never,
+    )
+    await a.engine.run()
+    await b.engine.run()
+    await a.db.insights.put(
+      store([item('x', 'hidden', t(5)), item('y', 'new', t(1))], t(5), 'A') as never,
+    )
+    await b.db.insights.put(
+      store([item('x', 'new', t(1)), item('y', 'helpful', t(9))], t(9), 'B') as never,
+    )
+    await a.engine.run()
+    await b.engine.run()
+    await a.engine.run()
+    const statuses = (r: { items: { id: string; status: string }[] }) =>
+      Object.fromEntries(r.items.map((i) => [i.id, i.status]))
+    expect(statuses(drive.json('nk_insights.json'))).toEqual({ x: 'hidden', y: 'helpful' })
+    expect(statuses((await a.db.insights.get('insights')) as never)).toEqual({
+      x: 'hidden',
+      y: 'helpful',
+    })
+  })
+
   it('after the first sync a newer local edit still wins', async () => {
     const drive = fakeDrive()
     drive.put('nk_settings.json', { dayStartHour: 4, updatedAt: t(1), deviceId: 'B' })
