@@ -159,7 +159,7 @@ Chi tiết, bằng chứng và tiêu chí xong: `docs/REVIEW-2026-11-13.md` mụ
 - [x] **T8.3 Dọn giấc ngủ trùng trong dữ liệu thật.** Chạy một lần mỗi máy (`data/maintenance.ts`), xoá mềm giấc mở trùng giờ ±2 phút với giấc khác.
 - [x] **T8.4 Lưu trữ bền.** `navigator.storage.persist()` + trạng thái ở Cài đặt → Dữ liệu.
 - [x] **T8.5 Bắt lỗi toàn cục.** Lỗi lưu → toast ở trên; nhật ký lỗi 50 dòng trong `meta`, xem/chép ở Cài đặt → Ứng dụng.
-- [x] **T8.6 Tương quan không bị lịch tuần làm nhiễu.** Kết quả Y trừ trung bình theo loại ngày (làm việc/nghỉ, của ngày yếu tố và ngày kết quả) trước khi so; mỗi loại ngày đủ dữ liệu phải cùng chiều. Persona 150 ngày: 35/27/29 → 9/7/8 phát hiện (chỉ ngày làm việc: 8/10/6); 2 quy luật cài sẵn vẫn tìm được.
+- [x] **T8.6 Tương quan không bị lịch tuần làm nhiễu.** Kết quả Y trừ trung bình theo loại ngày (làm việc/nghỉ, của ngày yếu tố và ngày kết quả) trước khi so; mỗi loại ngày đủ dữ liệu phải cùng chiều. Persona 150 ngày: 35/27/29 → 9/7/8 phát hiện (chỉ ngày làm việc: 8/10/6). Bộ test 60 ngày vẫn tìm đủ 2 quy luật cài sẵn. Cái giá: trên persona 150 ngày, quy luật ngủ đủ → năng lượng hôm sau vẫn được báo ở seed 11 và 23 (d 0,88 / 0,79) nhưng **không còn được báo ở seed 7** (d 0,61, dưới ngưỡng |t| ≥ 3,5): engine thận trọng hơn, đổi lại bớt báo nhầm.
 - [ ] **T8.7 Nghiệm thu T3.7 với Google thật** trên iPhone + PC theo `docs/NGHIEM-THU.md` (Đạt làm; cần máy thật).
 
 ## P9 — Back-end: sync và Drive
