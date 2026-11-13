@@ -149,3 +149,45 @@ Tham chiếu: repo `tinsdark/so-chi-tieu` (nền kem, thẻ bo tròn 20px, tab �
 - [x] **T7.16 Vuốt dòng để xoá/sửa.** Mọi dòng bản ghi trong "Đã ghi trong ngày" (Hôm nay, Ghi bù) và từng lần uống trong danh sách Nước: vuốt trái = xoá (xoá mềm + toast Hoàn tác ở trên), vuốt phải = mở thẳng form sửa; bấm vào dòng vẫn mở chi tiết. Dòng Nước gộp, dòng khoảng trống và thẻ "Đang làm" không vuốt. `core/swipe.ts` (phân loại cử chỉ, ngưỡng min(110px, 30% bề rộng), cuộn dọc không bị cướp) có test; `ui/SwipeRow.tsx` dùng pointer events, chỉ cảm ứng/bút.
 - [x] **T7.17 Xoá dữ liệu theo khoảng ngày.** Cài đặt → Dữ liệu → "Xoá dữ liệu theo ngày": Từ ngày (bỏ trống = từ đầu), Đến ngày (bắt buộc, không ở tương lai). Xoá các mục "Đã ghi trong ngày" và điểm chấm ngày trong khoảng, cả hai đầu; không đụng thói quen, danh mục, nút nhanh, cài đặt. Xem trước số lượng, gõ XOA mới bật nút, tự tải file sao lưu (khôi phục được bằng "Khôi phục từ JSON", không kèm ảnh) trước khi xoá. Xoá mềm có làm sạch nội dung để việc xoá đồng bộ sang máy khác; ảnh chỉ còn dùng bởi mục bị xoá cũng bị xoá. `core/purge.ts`, `data/purge.ts`, `ui/PurgeSection.tsx`.
 
+
+## P8 — Sửa lỗi dữ liệu, nghiệm thu thật (rà soát 13/11, xong trước 29/11)
+
+Chi tiết, bằng chứng và tiêu chí xong: `docs/REVIEW-2026-11-13.md` mục 3 và 5. [Q] = chờ Đạt quyết.
+
+- [ ] **T8.1 Ngày tự sang khi app mở qua giờ cắt ngày.** Hôm nay/Ghi bù đang xem "hôm nay" thì đi theo ngày mới (lỗi B1: qua 04:00 mất lưới Ghi nhanh và nút Thức dậy).
+- [ ] **T8.2 Chống ghi trùng khi bấm đúp.** `goToSleep`/`wakeUp` kiểm + tạo trong một transaction; nút ghi khoá trong lúc chờ (lỗi B2).
+- [ ] **T8.3 [Q] Dọn giấc ngủ trùng trong dữ liệu thật** (nếu có).
+- [ ] **T8.4 Lưu trữ bền.** `navigator.storage.persist()` + trạng thái ở Cài đặt → Dữ liệu.
+- [ ] **T8.5 Bắt lỗi toàn cục.** Lỗi lưu → toast ở trên; nhật ký lỗi 50 dòng trong `meta`, xem/chép ở Cài đặt → Ứng dụng.
+- [ ] **T8.6 [Q] Tương quan không bị lịch tuần làm nhiễu.** Phải xong trước ~29/11 (đủ 28 ngày dữ liệu thật).
+- [ ] **T8.7 Nghiệm thu T3.7 với Google thật** trên iPhone + PC theo kịch bản viết sẵn.
+
+## P9 — Back-end: sync và Drive
+
+- [ ] **T9.1 Lọc file `nk_` ở phía Drive**, không tải danh sách mọi file (kể cả ảnh) mỗi lần sync.
+- [ ] **T9.2 Hẹn giờ sync theo `dirty`**: 60 giây khi có thay đổi, 5 phút khi không.
+- [ ] **T9.3 Merge `nk_insights.json` theo từng lời khuyên.**
+- [ ] **T9.4 Dọn bản cũ ở file tháng khi mục đổi tháng.**
+- [ ] **T9.5 [Q] Khung migration Dexie + test nâng cấp từ dữ liệu v2.**
+- [ ] **T9.6 Tình trạng đồng bộ ở Cài đặt** (lần cuối, số mục chờ, lỗi gần nhất, nút Đồng bộ ngay).
+- [ ] **T9.7 Diễn tập khôi phục** (máy trắng, file sao lưu tuần).
+
+## P10 — Front-end đúng chuẩn
+
+- [ ] **T10.1 Đo tương phản** 5 tab × các buổi × 2 theme, sửa token trượt WCAG AA.
+- [ ] **T10.2 Dọn chữ < 13px.**
+- [ ] **T10.3 Giờ hiển thị theo UTC+7; `h1` cho Hôm nay.**
+- [ ] **T10.4 Quy ước nút ghi dữ liệu** (khoá khi chờ, lỗi báo ở trên) cho mọi màn.
+- [ ] **T10.5 [Q] `ManageDefs` giao diện mới; nút "Vận động" cho máy đã có dữ liệu.**
+- [ ] **T10.6 Tách chunk Thống kê/Cài đặt** — chỉ khi đo trên iPhone thấy chậm.
+- [ ] **T10.7 [Q] Chặn phóng to: giữ hay mở.**
+
+## P11 — Vận hành, kiểm thử tự động, tài liệu
+
+- [ ] **T11.1 CI cho PR** (lint + test + build).
+- [ ] **T11.2 CSP bằng `<meta>`**, kiểm đăng nhập/sync/ảnh/font trên Pages.
+- [ ] **T11.3 [Q] Test UI/e2e** cho các luồng chính và lỗi B1, B2.
+- [ ] **T11.4 Test cho `data/insights.ts`, `photos/process.ts`, `backup/importCsv.ts`.**
+- [ ] **T11.5 [Q] Dọn repo** (`__pycache__`, file của repo khác, PDF lớn).
+- [ ] **T11.6 Cập nhật HANDOFF, README, câu hỏi mở trong SPEC.**
+- [ ] **T11.7 Cập nhật bản vá phụ thuộc hằng tháng.**
