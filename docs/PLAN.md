@@ -174,8 +174,8 @@ Chi tiết, bằng chứng và tiêu chí xong: `docs/REVIEW-2026-11-13.md` mụ
 
 ## P10 — Front-end đúng chuẩn
 
-- [ ] **T10.1 Đo tương phản** 5 tab × các buổi × 2 theme, sửa token trượt WCAG AA.
-- [ ] **T10.2 Dọn chữ < 13px.**
+- [x] **T10.1 Đo tương phản** 5 tab × các buổi × 2 theme, sửa token trượt WCAG AA.
+- [x] **T10.2 Dọn chữ < 13px.**
 - [ ] **T10.3 Giờ hiển thị theo UTC+7; `h1` cho Hôm nay.**
 - [ ] **T10.4 Quy ước nút ghi dữ liệu** (khoá khi chờ, lỗi báo ở trên) cho mọi màn.
 - [ ] **T10.5 [Q] `ManageDefs` giao diện mới; nút "Vận động" cho máy đã có dữ liệu.**
