@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "e2e": "node e2e/smoke.cjs",
+    "e2e:contrast": "node e2e/contrast.cjs"
   },
   "dependencies": {
     "dexie": "^4.4.6",

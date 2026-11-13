@@ -10,4 +10,10 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   prettier,
   { languageOptions: { globals: globals.browser } },
+  // e2e/ holds Playwright scripts run with Node (CommonJS), outside the app bundle.
+  {
+    files: ['e2e/**/*.cjs'],
+    languageOptions: { sourceType: 'commonjs', globals: { ...globals.node, ...globals.browser } },
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
 )

@@ -184,10 +184,10 @@ Chi tiết, bằng chứng và tiêu chí xong: `docs/REVIEW-2026-11-13.md` mụ
 
 ## P11 — Vận hành, kiểm thử tự động, tài liệu
 
-- [ ] **T11.1 CI cho PR** (lint + test + build).
-- [ ] **T11.2 CSP bằng `<meta>`**, kiểm đăng nhập/sync/ảnh/font trên Pages.
-- [ ] **T11.3 [Q] Test UI/e2e** cho các luồng chính và lỗi B1, B2.
-- [ ] **T11.4 Test cho `data/insights.ts`, `photos/process.ts`, `backup/importCsv.ts`.**
+- [x] **T11.1 CI cho PR** (lint + test + build).
+- [x] **T11.2 CSP bằng `<meta>`**, kiểm đăng nhập/sync/ảnh/font trên Pages.
+- [x] **T11.3 Test e2e** `e2e/smoke.cjs` (B1, B2, 2 chạm, Bắt đầu/Kết thúc, giờ VN trên máy múi giờ khác) và `e2e/contrast.cjs`, chạy bằng Playwright có sẵn trên máy (`npm run e2e`), không thêm dependency, chưa đưa vào CI.
+- [x] **T11.4 Test cho `data/insights.ts`, `photos/process.ts`, `backup/importCsv.ts`.**
 - [ ] **T11.5 [Q] Dọn repo** (`__pycache__`, file của repo khác, PDF lớn).
 - [ ] **T11.6 Cập nhật HANDOFF, README, câu hỏi mở trong SPEC.**
 - [ ] **T11.7 Cập nhật bản vá phụ thuộc hằng tháng.**

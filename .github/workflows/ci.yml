@@ -1,0 +1,30 @@
+name: CI
+
+# Same gate as Deploy, without publishing: a PR or a working branch shows red before it reaches main.
+on:
+  pull_request:
+  push:
+    branches: ['claude/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npx prettier --check src e2e
+      - run: npm run test
+      - run: npm run build
