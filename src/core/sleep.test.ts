@@ -4,6 +4,7 @@ import {
   averageBedtime,
   bedtimeBefore,
   estimateBedtime,
+  duplicateOpenSleeps,
   findOpenNightSleep,
   justWoken,
 } from './sleep'
@@ -92,5 +93,28 @@ describe('estimateBedtime', () => {
     expect(estimateBedtime(afternoon, '23:30', 7.5)).toBe('2026-11-03T07:30:00.000+07:00')
     const justAfter = new Date('2026-11-03T01:00:00+07:00').getTime() // 1.5h of sleep: too short
     expect(estimateBedtime(justAfter, '23:30', 7.5)).toBe('2026-11-02T17:30:00.000+07:00')
+  })
+})
+
+describe('duplicateOpenSleeps', () => {
+  const e = (id: string, start: string, end: string | null, createdAt = start, payload = {}) =>
+    ({ ...sleep(start, end, payload), id, createdAt }) as Entry
+  it('drops the open twin of a closed night', () => {
+    const closed = e('a', '2026-11-02T23:30:00.000+07:00', '2026-11-03T07:00:00.000+07:00')
+    const twin = e('b', '2026-11-02T23:30:00.400+07:00', null)
+    expect(duplicateOpenSleeps([closed, twin])).toEqual(['b'])
+  })
+  it('two open twins keep the first created', () => {
+    const a = e('a', '2026-11-02T23:30:00.000+07:00', null, '2026-11-02T23:30:00.000+07:00')
+    const b = e('b', '2026-11-02T23:30:00.300+07:00', null, '2026-11-02T23:30:00.300+07:00')
+    expect(duplicateOpenSleeps([b, a])).toEqual(['b'])
+  })
+  it('leaves separate nights, naps and closed pairs alone', () => {
+    const n1 = e('a', '2026-11-01T23:30:00.000+07:00', null)
+    const n2 = e('b', '2026-11-02T23:30:00.000+07:00', null)
+    const nap = e('c', '2026-11-02T23:30:30.000+07:00', null, undefined, { nap: true })
+    const c1 = e('d', '2026-11-03T23:00:00.000+07:00', '2026-11-04T06:00:00.000+07:00')
+    const c2 = e('e', '2026-11-03T23:00:30.000+07:00', '2026-11-04T06:30:00.000+07:00')
+    expect(duplicateOpenSleeps([n1, n2, nap, c1, c2])).toEqual([])
   })
 })

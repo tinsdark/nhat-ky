@@ -156,7 +156,7 @@ Chi tiết, bằng chứng và tiêu chí xong: `docs/REVIEW-2026-11-13.md` mụ
 
 - [x] **T8.1 Ngày tự sang khi app mở qua giờ cắt ngày.** Hôm nay/Ghi bù đang xem "hôm nay" thì đi theo ngày mới (lỗi B1: qua 04:00 mất lưới Ghi nhanh và nút Thức dậy).
 - [x] **T8.2 Chống ghi trùng khi bấm đúp.** `goToSleep`/`wakeUp` kiểm + tạo trong một transaction; nút ghi khoá trong lúc chờ (lỗi B2).
-- [ ] **T8.3 [Q] Dọn giấc ngủ trùng trong dữ liệu thật** (nếu có).
+- [x] **T8.3 Dọn giấc ngủ trùng trong dữ liệu thật.** Chạy một lần mỗi máy (`data/maintenance.ts`), xoá mềm giấc mở trùng giờ ±2 phút với giấc khác.
 - [x] **T8.4 Lưu trữ bền.** `navigator.storage.persist()` + trạng thái ở Cài đặt → Dữ liệu.
 - [x] **T8.5 Bắt lỗi toàn cục.** Lỗi lưu → toast ở trên; nhật ký lỗi 50 dòng trong `meta`, xem/chép ở Cài đặt → Ứng dụng.
 - [ ] **T8.6 [Q] Tương quan không bị lịch tuần làm nhiễu.** Phải xong trước ~29/11 (đủ 28 ngày dữ liệu thật).

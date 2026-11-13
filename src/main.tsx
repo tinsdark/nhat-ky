@@ -1,5 +1,7 @@
 import { render } from 'preact'
 import { seedDefaults } from './data/seed'
+import { runMaintenance } from './data/maintenance'
+import { logError } from './data/errorLog'
 import { App } from './ui/App'
 import { startBackup } from './backup'
 import './pwa'
@@ -18,10 +20,12 @@ for (const type of ['gesturestart', 'gesturechange', 'gestureend'])
 installErrorHandlers()
 installDialogs()
 void requestPersistentStorage()
-void seedDefaults().finally(() => {
-  render(<App />, document.getElementById('app')!)
-  startSync()
-  startPhotoQueue()
-  startBackup()
-})
+void seedDefaults()
+  .then(() => runMaintenance().catch((err) => logError('maintenance', err)))
+  .finally(() => {
+    render(<App />, document.getElementById('app')!)
+    startSync()
+    startPhotoQueue()
+    startBackup()
+  })
 if (import.meta.env.DEV) void import('./dev/console')

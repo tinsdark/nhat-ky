@@ -79,3 +79,32 @@ export function justWoken(
       now - new Date(e.end).getTime() <= minutes * 60_000,
   )
 }
+
+/**
+ * Open nights left by a double-tap on "Đi ngủ" before taps were serialised: an open night sleep that
+ * starts within `withinMs` of another live sleep entry is a duplicate. Of each group, the one kept is
+ * the closed one if any, else the earliest created. Returns the ids to delete.
+ */
+export function duplicateOpenSleeps(entries: Entry[], withinMs = 2 * 60_000): string[] {
+  const nights = entries
+    .filter((e) => e.type === 'sleep' && !e.deleted && e.payload.nap !== true)
+    .sort((a, b) => a.start.localeCompare(b.start))
+  const doomed: string[] = []
+  let group: Entry[] = []
+  const flush = () => {
+    if (group.length > 1) {
+      const keep =
+        group.find((e) => e.end !== null) ??
+        [...group].sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0]!
+      for (const e of group) if (e !== keep && e.end === null) doomed.push(e.id)
+    }
+    group = []
+  }
+  for (const e of nights) {
+    const last = group[group.length - 1]
+    if (last && Date.parse(e.start) - Date.parse(last.start) > withinMs) flush()
+    group.push(e)
+  }
+  flush()
+  return doomed
+}
