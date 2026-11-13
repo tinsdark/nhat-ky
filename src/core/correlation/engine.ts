@@ -1,4 +1,4 @@
-import { addDays, dateKeyRange } from '../date'
+import { addDays, dateKeyRange, weekday } from '../date'
 import { countLoggedDays, readiness } from '../rules'
 import type { MetricContext } from '../metrics'
 import type { Metric } from '../metrics'
@@ -55,7 +55,10 @@ export interface Finding {
   kind: 'binary' | 'tertile'
   nLow: number
   nHigh: number
-  /** Mean outcome in the low group (binary: factor = 0; tertile: lowest third of the factor). */
+  /**
+   * Mean outcome in the low group (binary: factor = 0; tertile: lowest third of the factor), after
+   * adjusting for workday vs day off, so it compares like with like.
+   */
   meanLow: number
   meanHigh: number
   /** For tertile findings: factor range of each group. */
@@ -120,7 +123,43 @@ interface Pair {
   index: number
   dateKey: string
   x: number
+  /** Outcome, adjusted for the kind of day (see adjustForDayKind). */
   y: number
+  /** Kind of day of the factor and of the outcome, e.g. "w-e" = workday factor, weekend outcome. */
+  stratum: string
+}
+
+/**
+ * Workdays and days off differ in almost everything (wake time, work hours, mood), so comparing raw
+ * values mostly rediscovers the weekly calendar. Each outcome is centred on the mean of its kind of
+ * day before groups are compared: what is left is the difference within the same kind of day.
+ */
+function adjustForDayKind(pairs: Pair[]): Pair[] {
+  const sums = new Map<string, { sum: number; n: number }>()
+  for (const p of pairs) {
+    const s = sums.get(p.stratum) ?? { sum: 0, n: 0 }
+    s.sum += p.y
+    s.n++
+    sums.set(p.stratum, s)
+  }
+  const overall = mean(pairs.map((p) => p.y))
+  return pairs.map((p) => {
+    const s = sums.get(p.stratum)!
+    return { ...p, y: p.y - s.sum / s.n + overall }
+  })
+}
+
+/** Every kind of day with enough days in both groups must point the same way as the whole. */
+function strataAgree(low: Pair[], high: Pair[], sign: number): boolean {
+  const strata = new Set([...low, ...high].map((p) => p.stratum))
+  for (const s of strata) {
+    const a = low.filter((p) => p.stratum === s)
+    const b = high.filter((p) => p.stratum === s)
+    if (a.length < 3 || b.length < 3) continue
+    const diff = mean(b.map((p) => p.y)) - mean(a.map((p) => p.y))
+    if (diff !== 0 && Math.sign(diff) !== sign) return false
+  }
+  return true
 }
 
 interface Candidate extends Omit<Finding, 'alsoSeen'> {
@@ -187,6 +226,14 @@ export function findCorrelations(ctx: MetricContext, metrics: Metric[], opts: Op
   const lags: (0 | 1)[] = level === 'lag' ? [0, 1] : [0]
 
   const keys = dateKeyRange(from, to)
+  const workDays = new Set(ctx.settings.workDays)
+  const kindOf = (k: string) => {
+    const t = ctx.day(k)?.dayType
+    if (t === 'workday') return 'w'
+    if (t === 'weekend') return 'e'
+    return workDays.has(weekday(k)) ? 'w' : 'e'
+  }
+  const kinds = keys.map(kindOf)
   const excluded = new Set(keys.filter((k) => skip.has(ctx.day(k)?.dayType as DayType)))
   const series = new Map<string, (number | null)[]>()
   const seriesOf = (m: Metric) => {
@@ -208,14 +255,22 @@ export function findCorrelations(ctx: MetricContext, metrics: Metric[], opts: Op
         if (NOT_FACTORS[y.id]?.includes(f.id)) continue
         if (lag === 0 && y.id !== 'sleep_quality' && NIGHT_FACTORS.has(f.id)) continue
         const xs = seriesOf(f)
-        const pairs: Pair[] = []
+        const raw: Pair[] = []
         for (let i = 0; i + lag < keys.length; i++) {
           const x = xs[i]
           const yv = ys[i + lag]
           if (x === null || x === undefined || yv === null || yv === undefined) continue
           if (excluded.has(keys[i]!) || excluded.has(keys[i + lag]!)) continue
-          pairs.push({ index: i, dateKey: keys[i]!, x, y: yv })
+          raw.push({
+            index: i,
+            dateKey: keys[i]!,
+            x,
+            y: yv,
+            stratum: `${kinds[i]}-${kinds[i + lag]}`,
+          })
         }
+        if (raw.length === 0) continue
+        const pairs = adjustForDayKind(raw)
         const g = groups(pairs, minGroup)
         if (!g) continue
         const stat = effect(
@@ -224,6 +279,7 @@ export function findCorrelations(ctx: MetricContext, metrics: Metric[], opts: Op
         )
         if (!stat || Math.abs(stat.d) < minAbsD || Math.abs(stat.t) < minAbsT) continue
         if (!halvesAgree(pairs, g.low, g.high, Math.sign(stat.d))) continue
+        if (!strataAgree(g.low, g.high, Math.sign(stat.d))) continue
         candidates.push({
           factorId: f.id,
           outcomeId: y.id,
