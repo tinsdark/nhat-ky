@@ -160,7 +160,7 @@ Chi tiết, bằng chứng và tiêu chí xong: `docs/REVIEW-2026-11-13.md` mụ
 - [x] **T8.4 Lưu trữ bền.** `navigator.storage.persist()` + trạng thái ở Cài đặt → Dữ liệu.
 - [x] **T8.5 Bắt lỗi toàn cục.** Lỗi lưu → toast ở trên; nhật ký lỗi 50 dòng trong `meta`, xem/chép ở Cài đặt → Ứng dụng.
 - [x] **T8.6 Tương quan không bị lịch tuần làm nhiễu.** Kết quả Y trừ trung bình theo loại ngày (làm việc/nghỉ, của ngày yếu tố và ngày kết quả) trước khi so; mỗi loại ngày đủ dữ liệu phải cùng chiều. Persona 150 ngày: 35/27/29 → 9/7/8 phát hiện (chỉ ngày làm việc: 8/10/6); 2 quy luật cài sẵn vẫn tìm được.
-- [ ] **T8.7 Nghiệm thu T3.7 với Google thật** trên iPhone + PC theo kịch bản viết sẵn.
+- [ ] **T8.7 Nghiệm thu T3.7 với Google thật** trên iPhone + PC theo `docs/NGHIEM-THU.md` (Đạt làm; cần máy thật).
 
 ## P9 — Back-end: sync và Drive
 
@@ -189,5 +189,5 @@ Chi tiết, bằng chứng và tiêu chí xong: `docs/REVIEW-2026-11-13.md` mụ
 - [x] **T11.3 Test e2e** `e2e/smoke.cjs` (B1, B2, 2 chạm, Bắt đầu/Kết thúc, giờ VN trên máy múi giờ khác) và `e2e/contrast.cjs`, chạy bằng Playwright có sẵn trên máy (`npm run e2e`), không thêm dependency, chưa đưa vào CI.
 - [x] **T11.4 Test cho `data/insights.ts`, `photos/process.ts`, `backup/importCsv.ts`.**
 - [x] **T11.5 Dọn repo:** bỏ `docs/report/__pycache__` khỏi git + `.gitignore`. Giữ nguyên `docs/huong-dan-khoa-phong-to-so-tien.md` và PDF báo cáo (nội dung Đạt yêu cầu trước đây; xoá là việc khó đảo ngược, để Đạt tự xoá nếu muốn).
-- [ ] **T11.6 Cập nhật HANDOFF, README, câu hỏi mở trong SPEC.**
+- [x] **T11.6 Cập nhật HANDOFF, README, câu hỏi mở trong SPEC.**
 - [x] **T11.7 Cập nhật bản vá phụ thuộc** (13/11: preact 11.2, vite 8.3.8, dexie 4.4.7, vitest 5.1…; lint, test, build, smoke, tương phản, CSP chạy lại đều đạt). TypeScript 7 là bản major, chưa lên.

@@ -59,6 +59,7 @@ Local-first: UI chỉ đọc/ghi IndexedDB trên máy, nên mở app tức thì 
 3. Dữ liệu chia file theo tháng (xem Data model) nên mỗi lần sync chỉ đọc/ghi 1–2 file nhỏ.
 4. Xung đột: merge theo từng bản ghi, bản có `updatedAt` mới hơn thắng. Hai máy sửa cùng một bản ghi gần như không xảy ra với app một người.
 5. Dùng `modifiedTime` của file Drive để biết file có đổi không, tránh tải lại thừa.
+6. (13/11) Khi có thay đổi chờ đẩy thì 60 giây/lần, không có thì 5 phút/lần. Danh sách file lọc tiền tố `nk_` ngay phía Drive. `nk_defs.json` và `nk_insights.json` khi hai máy cùng sửa thì gộp (danh mục/thói quen; từng lời khuyên theo `updatedAt`) thay vì bản mới đè cả file. Mục đổi sang tháng khác thì file tháng cũ được ghi lại ở lượt sync kế.
 
 ## Data model
 
@@ -428,6 +429,7 @@ Với mỗi cặp *yếu tố X* × *kết quả Y*:
    - |d| ≥ 0,5.
    - **Kiểm tra nửa kia**: chia dữ liệu làm 2 nửa theo thời gian, cả 2 nửa phải cùng chiều.
    - Loại ngày có `dayType` = sick / travel / holiday.
+   - **So trong cùng loại ngày** (thêm 13/11, T8.6): ngày làm việc và ngày nghỉ khác nhau gần như mọi thứ, nên Y được trừ trung bình theo loại ngày (của ngày yếu tố và ngày kết quả, lấy `dayType` workday/weekend nếu có, không thì theo `workDays` trong Cài đặt) trước khi chia nhóm; mỗi loại ngày đủ dữ liệu phải cùng chiều. Trung bình hiển thị là trung bình đã hiệu chỉnh. Không có bước này, 150 ngày mẫu cho ~30 "quy luật", phần lớn chỉ là lịch tuần.
 6. **Độ tin cậy** hiển thị: Yếu (vừa qua ngưỡng) / Vừa (d ≥ 0,8 hoặc mỗi nhóm ≥ 15 ngày) / Mạnh (cả hai).
 
 Kết quả hiện dạng câu có số: "Ngày mày ngủ trước 23h30 (14 ngày), điểm ngày TB **7,4**; ngày ngủ muộn hơn (19 ngày) TB **6,1**. Độ tin cậy: Vừa."
@@ -576,7 +578,7 @@ Mốc: **21–31/10 build đủ P0–P3 và test bằng dữ liệu giả; từ 
 
 **Còn cần trả lời**
 
-- [ ] **1. Điện thoại iPhone hay Android?** Ảnh hưởng cách cài PWA, push ở phương án C, và đọc giờ chụp ảnh (iPhone hay lưu ảnh dạng HEIC).
+- [x] **1. Điện thoại iPhone hay Android?** iPhone (PWA thêm vào màn hình chính, xem `PRODUCT.md`). Ảnh HEIC: xem bước 8 của `docs/NGHIEM-THU.md`.
 - [ ] **3. Giờ cắt ngày 04:00** — xem ví dụ ở Data model, ổn chưa?
 - [ ] **4. Giờ làm chuẩn** 8:00–17:30, T2–T6 đúng không? Thứ 7 có đi làm không?
 - [ ] **5. Thêm chỉ số nào nữa không**: cân nặng, thời gian dùng điện thoại, ra ngoài trời buổi sáng, đọc sách?

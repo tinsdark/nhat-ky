@@ -1,6 +1,18 @@
-# HANDOFF — trạng thái làm việc (21/10/2026)
+# HANDOFF — trạng thái làm việc (cập nhật 13/11/2026)
 
-Ghi lại để phiên chat mới đọc và làm tiếp. Nguồn sự thật vẫn là `CLAUDE.md`, `docs/PLAN.md`, `docs/SPEC.md`; file này chỉ tóm tắt trạng thái và các quyết định đã chốt.
+Ghi lại để phiên chat mới đọc và làm tiếp. Nguồn sự thật vẫn là `CLAUDE.md`, `docs/PLAN.md`, `docs/SPEC.md`; file này chỉ tóm tắt trạng thái và các quyết định đã chốt. Mục mới nhất ở ngay dưới; phần sau là lịch sử từ 21/10.
+
+## Trạng thái 13/11 (rà soát + P8–P11, nhánh `claude/loving-hypatia-prt6oc`)
+
+Dữ liệu thật từ 1/11. Rà soát toàn bộ: `docs/REVIEW-2026-11-13.md`. Đạt bảo "sửa full, không cần hỏi", nên các mục [Q] trong rà soát được chọn theo đề xuất, ghi lý do trong PLAN.
+
+- **Đã sửa 2 lỗi thật:** qua 04:00 khi app mở thì Hôm nay kẹt ngày cũ, mất nút Thức dậy (`ui/useToday.ts`); bấm đúp Đi ngủ/Thức dậy ghi trùng (`data/sleep.ts` chạy tuần tự, `ui/useAction.ts` cho mọi nút ghi). Giấc ngủ mở bị trùng từ trước được dọn một lần (`data/maintenance.ts`).
+- **Tương quan:** so trong cùng loại ngày (làm việc/nghỉ), SPEC 8.3 đã ghi. Bật thật khi đủ 28 ngày (~29/11).
+- **Sync:** lọc `nk_` ở phía Drive (rơi về danh sách đủ nếu trống), 60 giây khi có dirty / 5 phút khi không, gộp `nk_insights.json` theo từng lời khuyên, dọn bản cũ ở file tháng (`meta.staleMonths`).
+- **Trên máy:** xin `storage.persist()`; nhật ký lỗi 50 dòng (`meta.errorLog`) + tình trạng đồng bộ ở Cài đặt → Ứng dụng; lỗi lưu báo ở phía trên.
+- **UI:** tương phản đạt AA ở 5 buổi × 2 theme (`npm run e2e:contrast`, cần `npm run dev`), chữ ≥ 13px (trừ nhãn 24 cột giờ), giờ hiển thị theo UTC+7, ManageDefs dùng Pills, nút Vận động thêm cho máy cũ sau lần sync đầu.
+- **Vận hành:** CSP trong bản build, CI cho PR (`.github/workflows/ci.yml`), `npm run e2e` (smoke, cần `vite preview` ở :4173), phụ thuộc lên bản vá mới.
+- **Còn lại:** nghiệm thu trên iPhone + Google thật theo `docs/NGHIEM-THU.md` (T8.7). Chưa ai chạy đăng nhập Google thật với CSP mới, nên bước 10 của kịch bản là bắt buộc trước khi tin bản này.
 
 ## Bối cảnh
 

@@ -12,13 +12,13 @@ const THEME_COLOR = '#2f5d50'
  */
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' https://accounts.google.com/gsi/",
+  "script-src 'self' https://accounts.google.com",
   // Inline style attributes are set by the components; Google's sign-in popup brings its own sheet.
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
   'font-src https://fonts.gstatic.com',
   "img-src 'self' blob: data:",
-  "connect-src 'self' https://www.googleapis.com https://accounts.google.com/gsi/ https://fonts.googleapis.com https://fonts.gstatic.com",
-  'frame-src https://accounts.google.com/gsi/',
+  "connect-src 'self' https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com https://fonts.googleapis.com https://fonts.gstatic.com",
+  'frame-src https://accounts.google.com',
   "worker-src 'self'",
   "manifest-src 'self'",
   "base-uri 'self'",
