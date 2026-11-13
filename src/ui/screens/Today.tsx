@@ -276,6 +276,7 @@ export function Today() {
     <>
       <div class="band">
         <div class="band-in">
+          <h1 class="sr-only">Hôm nay</h1>
           <div class="band-row">
             <DateNav dateKey={dateKey} todayKey={todayKey} onChange={setDateKey} />
             <span class="band-count">

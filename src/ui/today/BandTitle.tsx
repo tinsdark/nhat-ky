@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'preact/hooks'
+import { toHHmm } from '../../core/date'
 import { PERIODS, type Period } from '../period'
 
-const hhmm = () => new Date().toTimeString().slice(0, 5)
+const hhmm = () => toHHmm(Date.now()) // Vietnam time, like every other time in the app
 
 /** Current time as HH:mm, refreshed a few times a minute. */
 function Clock() {

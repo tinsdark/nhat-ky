@@ -2548,3 +2548,16 @@ html:has(.sheet-backdrop, .fullscreen) {
   font-size: 13px;
   overflow-wrap: anywhere;
 }
+
+/* Read by screen readers, not shown (the screen title on Hôm nay, where the big line is the time). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -176,11 +176,11 @@ Chi tiết, bằng chứng và tiêu chí xong: `docs/REVIEW-2026-11-13.md` mụ
 
 - [x] **T10.1 Đo tương phản** 5 tab × các buổi × 2 theme, sửa token trượt WCAG AA.
 - [x] **T10.2 Dọn chữ < 13px.**
-- [ ] **T10.3 Giờ hiển thị theo UTC+7; `h1` cho Hôm nay.**
-- [ ] **T10.4 Quy ước nút ghi dữ liệu** (khoá khi chờ, lỗi báo ở trên) cho mọi màn.
-- [ ] **T10.5 [Q] `ManageDefs` giao diện mới; nút "Vận động" cho máy đã có dữ liệu.**
-- [ ] **T10.6 Tách chunk Thống kê/Cài đặt** — chỉ khi đo trên iPhone thấy chậm.
-- [ ] **T10.7 [Q] Chặn phóng to: giữ hay mở.**
+- [x] **T10.3 Giờ hiển thị theo UTC+7; `h1` cho Hôm nay.** Không còn `getHours`/`toLocale*` trong UI.
+- [x] **T10.4 Quy ước nút ghi dữ liệu** (khoá khi chờ, lỗi báo ở trên): `ui/useAction.ts` cho Hôm nay, Ghi bù, form Ghi mới, form thói quen, Chấm ngày. Nút +1 thói quen cố ý không khoá (chạm hai lần = +2).
+- [x] **T10.5 `ManageDefs` dùng tab Pills như Cài đặt; nút "Vận động" thêm một lần cho máy đã có dữ liệu** (sau lần sync đầu, `addExerciseShortcut`).
+- [x] **T10.6 Tách chunk Thống kê/Cài đặt** — đã đo, không làm: CPU chậm 4× trên Chromium, FCP ~150 ms, dùng được ~300 ms (bản build, có service worker). Đo lại trên iPhone ở T8.7.
+- [x] **T10.7 Chặn phóng to: giữ** (quyết định cũ của Đạt, ngoại lệ có chủ ý với WCAG 1.4.4; chữ ≥ 13px và tương phản AA bù lại).
 
 ## P11 — Vận hành, kiểm thử tự động, tài liệu
 

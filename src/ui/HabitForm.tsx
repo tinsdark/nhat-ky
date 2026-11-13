@@ -5,6 +5,7 @@ import { newHabitId, upsertHabit } from '../data/habits'
 import { getDefs } from '../data/repository'
 import { Choice } from './Choice'
 import { useLive } from './useLive'
+import { useAction } from './useAction'
 
 const DAY_LABELS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
 
@@ -50,6 +51,7 @@ export function HabitForm({
   // New habits only ask for name, schedule and reminder; the rest has sensible defaults.
   const [advanced, setAdvanced] = useState(habit !== null)
   const [error, setError] = useState('')
+  const action = useAction()
 
   const save = async () => {
     const value = Number(target.replace(',', '.'))
@@ -81,6 +83,8 @@ export function HabitForm({
     })
     onClose()
   }
+  // A double tap on Lưu must not create the habit twice (a new id is drawn on each save).
+  const submit = action('habitForm', save)
 
   return (
     <div class="sheet-backdrop" onClick={onClose}>
@@ -89,7 +93,7 @@ export function HabitForm({
         onClick={(e) => e.stopPropagation()}
         onSubmit={(e) => {
           e.preventDefault()
-          void save()
+          submit()
         }}
       >
         <h2>{habit ? 'Sửa thói quen' : 'Thói quen mới'}</h2>

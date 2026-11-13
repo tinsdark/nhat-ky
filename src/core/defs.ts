@@ -189,3 +189,13 @@ export function applyDefDraft(
     },
   }
 }
+
+/**
+ * Devices seeded before "Vận động" was a default shortcut lack it (HANDOFF). Returns the defs with the
+ * default exercise shortcut appended, or null when a shortcut for that type already exists.
+ */
+export function withExerciseShortcut(defs: Defs, shortcut: QuickAction): Defs | null {
+  if (defs.quickActions.some((a) => a.type === 'exercise' || a.id === shortcut.id)) return null
+  const order = Math.max(0, ...defs.quickActions.map((a) => a.order)) + 1
+  return { ...defs, quickActions: [...defs.quickActions, { ...shortcut, order }] }
+}
