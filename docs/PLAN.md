@@ -159,7 +159,7 @@ Chi tiết, bằng chứng và tiêu chí xong: `docs/REVIEW-2026-11-13.md` mụ
 - [x] **T8.3 Dọn giấc ngủ trùng trong dữ liệu thật.** Chạy một lần mỗi máy (`data/maintenance.ts`), xoá mềm giấc mở trùng giờ ±2 phút với giấc khác.
 - [x] **T8.4 Lưu trữ bền.** `navigator.storage.persist()` + trạng thái ở Cài đặt → Dữ liệu.
 - [x] **T8.5 Bắt lỗi toàn cục.** Lỗi lưu → toast ở trên; nhật ký lỗi 50 dòng trong `meta`, xem/chép ở Cài đặt → Ứng dụng.
-- [x] **T8.6 Tương quan không bị lịch tuần làm nhiễu.** Kết quả Y trừ trung bình theo loại ngày (làm việc/nghỉ, của ngày yếu tố và ngày kết quả) trước khi so; mỗi loại ngày đủ dữ liệu phải cùng chiều. Persona 150 ngày: 35/27/29 → 9/7/8 phát hiện (chỉ ngày làm việc: 8/10/6); 2 quy luật cài sẵn vẫn tìm được.
+- [x] **T8.6 Tương quan không bị lịch tuần làm nhiễu.** Kết quả Y trừ trung bình theo loại ngày (làm việc/nghỉ, của ngày yếu tố và ngày kết quả) trước khi so; mỗi loại ngày đủ dữ liệu phải cùng chiều. Persona 150 ngày: 35/27/29 → 9/7/8 phát hiện (chỉ ngày làm việc: 8/10/6). Bộ test 60 ngày vẫn tìm đủ 2 quy luật cài sẵn. Cái giá: trên persona 150 ngày, quy luật ngủ đủ → năng lượng hôm sau vẫn được báo ở seed 11 và 23 (d 0,88 / 0,79) nhưng **không còn được báo ở seed 7** (d 0,61, dưới ngưỡng |t| ≥ 3,5): engine thận trọng hơn, đổi lại bớt báo nhầm.
 - [ ] **T8.7 Nghiệm thu T3.7 với Google thật** trên iPhone + PC theo `docs/NGHIEM-THU.md` (Đạt làm; cần máy thật).
 
 ## P9 — Back-end: sync và Drive
@@ -191,3 +191,7 @@ Chi tiết, bằng chứng và tiêu chí xong: `docs/REVIEW-2026-11-13.md` mụ
 - [x] **T11.5 Dọn repo:** bỏ `docs/report/__pycache__` khỏi git + `.gitignore`. Giữ nguyên `docs/huong-dan-khoa-phong-to-so-tien.md` và PDF báo cáo (nội dung Đạt yêu cầu trước đây; xoá là việc khó đảo ngược, để Đạt tự xoá nếu muốn).
 - [x] **T11.6 Cập nhật HANDOFF, README, câu hỏi mở trong SPEC.**
 - [x] **T11.7 Cập nhật bản vá phụ thuộc** (13/11: preact 11.2, vite 8.3.8, dexie 4.4.7, vitest 5.1…; lint, test, build, smoke, tương phản, CSP chạy lại đều đạt). TypeScript 7 là bản major, chưa lên.
+
+## P12 — Rà soát front-end (13/11, bằng skill Impeccable)
+
+- [x] **T12.1 Rà soát + sửa front-end.** Detector 0 phát hiện; đo thật bằng Playwright: vòng focus bằng phím Tab (39 điểm dừng), tràn ngang/nút nhỏ/tab bị cắt ở 320/360/430px, bố cục desktop 1280px. Sửa 4 chỗ: vòng focus của nút đồng bộ trên thanh trên 2,79:1 → dùng màu chữ của dải (`.topbar :focus-visible`); thanh tab và thanh trên bám đúng cột 520px trên màn rộng; `Pills` dùng nhóm nút `aria-pressed` có nhãn thay cho `role=tab` thiếu tabpanel/phím mũi tên; `nav` có `aria-label`; `prefers-reduced-motion` giữ phản hồi màu 120 ms thay vì tắt hẳn chuyển tiếp.

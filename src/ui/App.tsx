@@ -200,7 +200,7 @@ export function App() {
           </>
         )}
       </main>
-      <nav class="tabbar">
+      <nav class="tabbar" aria-label="Các màn chính">
         {TABS.map((t) => (
           <a
             href={`#/${t.id}`}

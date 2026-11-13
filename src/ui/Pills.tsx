@@ -4,19 +4,21 @@ export function Pills<T extends string>({
   value,
   onChange,
   className = '',
+  label,
 }: {
   options: { id: T; label: string }[]
   value: T
   onChange: (v: T) => void
   className?: string
+  /** Names the group for screen readers, e.g. "Mục cài đặt". */
+  label: string
 }) {
   return (
-    <div class={`pills ${className}`} role="tablist">
+    <div class={`pills ${className}`} role="group" aria-label={label}>
       {options.map((o) => (
         <button
           type="button"
-          role="tab"
-          aria-selected={o.id === value}
+          aria-pressed={o.id === value}
           class={o.id === value ? 'on' : ''}
           onClick={() => onChange(o.id)}
         >
