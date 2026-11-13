@@ -26,6 +26,18 @@ describe('sleep flow', () => {
     expect(await db.entries.count()).toBe(1)
   })
 
+  it('two taps at the same moment open one night only', async () => {
+    const [a, b] = await Promise.all([goToSleep(), goToSleep()])
+    expect([a, b].filter(Boolean)).toHaveLength(1)
+    expect(await db.entries.count()).toBe(1)
+  })
+
+  it('two Thức dậy taps at the same moment close the night and add nothing', async () => {
+    await goToSleep()
+    await Promise.all([wakeUp(), wakeUp()])
+    expect(await db.entries.count()).toBe(1)
+  })
+
   it('wakeUp with no "Đi ngủ" records an estimated night instead of asking', async () => {
     const { entry, estimated } = await wakeUp()
     expect(estimated).toBe(true)

@@ -149,3 +149,45 @@ Tham chiếu: repo `tinsdark/so-chi-tieu` (nền kem, thẻ bo tròn 20px, tab �
 - [x] **T7.16 Vuốt dòng để xoá/sửa.** Mọi dòng bản ghi trong "Đã ghi trong ngày" (Hôm nay, Ghi bù) và từng lần uống trong danh sách Nước: vuốt trái = xoá (xoá mềm + toast Hoàn tác ở trên), vuốt phải = mở thẳng form sửa; bấm vào dòng vẫn mở chi tiết. Dòng Nước gộp, dòng khoảng trống và thẻ "Đang làm" không vuốt. `core/swipe.ts` (phân loại cử chỉ, ngưỡng min(110px, 30% bề rộng), cuộn dọc không bị cướp) có test; `ui/SwipeRow.tsx` dùng pointer events, chỉ cảm ứng/bút.
 - [x] **T7.17 Xoá dữ liệu theo khoảng ngày.** Cài đặt → Dữ liệu → "Xoá dữ liệu theo ngày": Từ ngày (bỏ trống = từ đầu), Đến ngày (bắt buộc, không ở tương lai). Xoá các mục "Đã ghi trong ngày" và điểm chấm ngày trong khoảng, cả hai đầu; không đụng thói quen, danh mục, nút nhanh, cài đặt. Xem trước số lượng, gõ XOA mới bật nút, tự tải file sao lưu (khôi phục được bằng "Khôi phục từ JSON", không kèm ảnh) trước khi xoá. Xoá mềm có làm sạch nội dung để việc xoá đồng bộ sang máy khác; ảnh chỉ còn dùng bởi mục bị xoá cũng bị xoá. `core/purge.ts`, `data/purge.ts`, `ui/PurgeSection.tsx`.
 
+
+## P8 — Sửa lỗi dữ liệu, nghiệm thu thật (rà soát 13/11, xong trước 29/11)
+
+Chi tiết, bằng chứng và tiêu chí xong: `docs/REVIEW-2026-11-13.md` mục 3 và 5. [Q] = chờ Đạt quyết.
+
+- [x] **T8.1 Ngày tự sang khi app mở qua giờ cắt ngày.** Hôm nay/Ghi bù đang xem "hôm nay" thì đi theo ngày mới (lỗi B1: qua 04:00 mất lưới Ghi nhanh và nút Thức dậy).
+- [x] **T8.2 Chống ghi trùng khi bấm đúp.** `goToSleep`/`wakeUp` kiểm + tạo trong một transaction; nút ghi khoá trong lúc chờ (lỗi B2).
+- [x] **T8.3 Dọn giấc ngủ trùng trong dữ liệu thật.** Chạy một lần mỗi máy (`data/maintenance.ts`), xoá mềm giấc mở trùng giờ ±2 phút với giấc khác.
+- [x] **T8.4 Lưu trữ bền.** `navigator.storage.persist()` + trạng thái ở Cài đặt → Dữ liệu.
+- [x] **T8.5 Bắt lỗi toàn cục.** Lỗi lưu → toast ở trên; nhật ký lỗi 50 dòng trong `meta`, xem/chép ở Cài đặt → Ứng dụng.
+- [x] **T8.6 Tương quan không bị lịch tuần làm nhiễu.** Kết quả Y trừ trung bình theo loại ngày (làm việc/nghỉ, của ngày yếu tố và ngày kết quả) trước khi so; mỗi loại ngày đủ dữ liệu phải cùng chiều. Persona 150 ngày: 35/27/29 → 9/7/8 phát hiện (chỉ ngày làm việc: 8/10/6); 2 quy luật cài sẵn vẫn tìm được.
+- [ ] **T8.7 Nghiệm thu T3.7 với Google thật** trên iPhone + PC theo `docs/NGHIEM-THU.md` (Đạt làm; cần máy thật).
+
+## P9 — Back-end: sync và Drive
+
+- [x] **T9.1 Lọc file `nk_` ở phía Drive**, không tải danh sách mọi file (kể cả ảnh) mỗi lần sync.
+- [x] **T9.2 Hẹn giờ sync theo `dirty`**: 60 giây khi có thay đổi, 5 phút khi không.
+- [x] **T9.3 Merge `nk_insights.json` theo từng lời khuyên.**
+- [x] **T9.4 Dọn bản cũ ở file tháng khi mục đổi tháng.**
+- [x] **T9.5 Khung migration Dexie + test nâng cấp** (`data/db.test.ts`, quy ước ghi trong `db.ts`).
+- [x] **T9.6 Tình trạng đồng bộ ở Cài đặt** (lần cuối, số mục chờ, lỗi gần nhất, nút Đồng bộ ngay).
+- [x] **T9.7 Diễn tập khôi phục** (máy trắng, file sao lưu tuần).
+
+## P10 — Front-end đúng chuẩn
+
+- [x] **T10.1 Đo tương phản** 5 tab × các buổi × 2 theme, sửa token trượt WCAG AA.
+- [x] **T10.2 Dọn chữ < 13px.**
+- [x] **T10.3 Giờ hiển thị theo UTC+7; `h1` cho Hôm nay.** Không còn `getHours`/`toLocale*` trong UI.
+- [x] **T10.4 Quy ước nút ghi dữ liệu** (khoá khi chờ, lỗi báo ở trên): `ui/useAction.ts` cho Hôm nay, Ghi bù, form Ghi mới, form thói quen, Chấm ngày. Nút +1 thói quen cố ý không khoá (chạm hai lần = +2).
+- [x] **T10.5 `ManageDefs` dùng tab Pills như Cài đặt; nút "Vận động" thêm một lần cho máy đã có dữ liệu** (sau lần sync đầu, `addExerciseShortcut`).
+- [x] **T10.6 Tách chunk Thống kê/Cài đặt** — đã đo, không làm: CPU chậm 4× trên Chromium, FCP ~150 ms, dùng được ~300 ms (bản build, có service worker). Đo lại trên iPhone ở T8.7.
+- [x] **T10.7 Chặn phóng to: giữ** (quyết định cũ của Đạt, ngoại lệ có chủ ý với WCAG 1.4.4; chữ ≥ 13px và tương phản AA bù lại).
+
+## P11 — Vận hành, kiểm thử tự động, tài liệu
+
+- [x] **T11.1 CI cho PR** (lint + test + build).
+- [x] **T11.2 CSP bằng `<meta>`**, kiểm đăng nhập/sync/ảnh/font trên Pages.
+- [x] **T11.3 Test e2e** `e2e/smoke.cjs` (B1, B2, 2 chạm, Bắt đầu/Kết thúc, giờ VN trên máy múi giờ khác) và `e2e/contrast.cjs`, chạy bằng Playwright có sẵn trên máy (`npm run e2e`), không thêm dependency, chưa đưa vào CI.
+- [x] **T11.4 Test cho `data/insights.ts`, `photos/process.ts`, `backup/importCsv.ts`.**
+- [x] **T11.5 Dọn repo:** bỏ `docs/report/__pycache__` khỏi git + `.gitignore`. Giữ nguyên `docs/huong-dan-khoa-phong-to-so-tien.md` và PDF báo cáo (nội dung Đạt yêu cầu trước đây; xoá là việc khó đảo ngược, để Đạt tự xoá nếu muốn).
+- [x] **T11.6 Cập nhật HANDOFF, README, câu hỏi mở trong SPEC.**
+- [x] **T11.7 Cập nhật bản vá phụ thuộc** (13/11: preact 11.2, vite 8.3.8, dexie 4.4.7, vitest 5.1…; lint, test, build, smoke, tương phản, CSP chạy lại đều đạt). TypeScript 7 là bản major, chưa lên.

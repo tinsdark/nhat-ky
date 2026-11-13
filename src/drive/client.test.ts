@@ -12,7 +12,7 @@ interface FakeFile {
 }
 
 /** In-memory Drive speaking just enough of the v3 REST API. */
-function fakeDrive(opts: { pageLimit?: number } = {}) {
+function fakeDrive(opts: { pageLimit?: number; ignoreContains?: boolean } = {}) {
   const files = new Map<string, FakeFile>()
   const calls: { method: string; url: string }[] = []
   let validToken = 'tok1'
@@ -35,11 +35,14 @@ function fakeDrive(opts: { pageLimit?: number } = {}) {
       const q = u.searchParams.get('q') ?? ''
       const nameMatch = q.match(/name='((?:[^'\\]|\\.)*)'/)
       const name = nameMatch?.[1].replace(/\\(.)/g, '$1')
+      // Drive's `name contains` matches a prefix of the name.
+      const prefix = q.match(/name contains '([^']*)'/)?.[1]
       const all = [...files.values()].filter(
         (f) =>
           !f.trashed &&
           f.parents.includes('appDataFolder') &&
-          (name === undefined || f.name === name),
+          (name === undefined || f.name === name) &&
+          (prefix === undefined || (!opts.ignoreContains && f.name.startsWith(prefix))),
       )
       const size = opts.pageLimit ?? 1000
       const start = Number(u.searchParams.get('pageToken') ?? 0)
@@ -98,7 +101,7 @@ function fakeDrive(opts: { pageLimit?: number } = {}) {
   }
 }
 
-function setup(opts?: { pageLimit?: number }) {
+function setup(opts?: { pageLimit?: number; ignoreContains?: boolean }) {
   const drive = fakeDrive(opts)
   let token = 'tok1'
   const getToken = vi.fn(async () => token)
@@ -118,6 +121,21 @@ describe('listFiles', () => {
     drive.seed('nk_not-in-appdata.json', '{}', ['root'])
     expect((await client.listFiles()).map((f) => f.name)).toEqual(['nk_2026-10.json'])
     expect((await client.listFiles('nkp_')).map((f) => f.name)).toEqual(['nkp_a.webp'])
+  })
+
+  it('asks Drive for the prefix instead of listing every file', async () => {
+    const { drive, client } = setup()
+    drive.seed('nk_2026-10.json', '{}')
+    for (let i = 0; i < 5; i++) drive.seed(`nkp_${i}.webp`, '')
+    expect((await client.listFiles()).map((f) => f.name)).toEqual(['nk_2026-10.json'])
+    const list = drive.calls.find((c) => c.method === 'GET')!
+    expect(new URL(list.url).searchParams.get('q')).toContain("name contains 'nk_'")
+  })
+
+  it('falls back to the full list when the prefix query finds nothing', async () => {
+    const { drive, client } = setup({ ignoreContains: true })
+    drive.seed('nk_2026-10.json', '{}')
+    expect((await client.listFiles()).map((f) => f.name)).toEqual(['nk_2026-10.json'])
   })
 
   it('follows pagination', async () => {

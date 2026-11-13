@@ -1,3 +1,5 @@
+import { useRef } from 'preact/hooks'
+import { useReadableText } from './readable'
 import { weekday } from '../core/date'
 import type { Point } from '../core/stats'
 
@@ -128,6 +130,8 @@ export function WeekdayBars({
 
 /** Month grid, Monday first; each day shaded by value within the month's min–max. */
 export function MonthCalendar({ month, points }: { month: string; points: Point[] }) {
+  const grid = useRef<HTMLDivElement>(null)
+  useReadableText(grid, [month, points])
   const byKey = new Map(points.map((p) => [p.dateKey, p.value]))
   const inMonth = points
     .filter((p) => p.dateKey.startsWith(month) && p.value !== null)
@@ -147,7 +151,7 @@ export function MonthCalendar({ month, points }: { month: string; points: Point[
   const fmt = (n: number) => String(Math.round(n * 10) / 10).replace('.', ',')
   return (
     <>
-      <div class="month">
+      <div class="month" ref={grid}>
         {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((l) => (
           <span class="mh">{l}</span>
         ))}
@@ -164,10 +168,10 @@ export function MonthCalendar({ month, points }: { month: string; points: Point[
                   ? undefined
                   : {
                       background: `color-mix(in srgb, var(--accent) ${Math.round(t * 100)}%, var(--bg))`,
-                      // Dark fill needs light text and the other way round, in both themes.
-                      color: t > 0.55 ? 'var(--on-accent)' : 'var(--fg)',
                     }
               }
+              // Text colour picked from the computed fill (useReadableText).
+              data-readable={v === null ? undefined : ''}
             >
               {Number(k.slice(8))}
             </span>

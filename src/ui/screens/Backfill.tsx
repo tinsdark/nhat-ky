@@ -22,6 +22,8 @@ import { parseHashQuery } from '../route'
 import { Timeline } from '../today/Timeline'
 import { Toast, type ToastData } from '../Toast'
 import { useLive } from '../useLive'
+import { todayOf, useNow, useViewedDay } from '../useToday'
+import { useAction } from '../useAction'
 
 /** Sleep has two quick buttons on Hôm nay; here one "Ngủ đêm" preset replaces both. */
 const SLEEP_ACTIONS = new Set(['qa-sleep', 'qa-wake'])
@@ -35,8 +37,8 @@ export function Backfill() {
   const settings = useLive(getSettings, [])
   const defs = useLive(getDefs, [])
   const dayStartHour = settings?.dayStartHour ?? 4
-  const todayKey = toDateKey(Date.now(), dayStartHour)
-  const [dateKey, setDateKey] = useState(todayKey)
+  const todayKey = todayOf(useNow(), dayStartHour)
+  const [dateKey, setDateKey] = useViewedDay(todayKey)
   const ownEntries = useLive(() => getEntriesByDateKey(dateKey), [dateKey])
   // "Ngủ đêm qua": the night before this day, which started on the previous logical day.
   const prevNight = useLive(async () => {
@@ -50,6 +52,7 @@ export function Backfill() {
   const [detail, setDetail] = useState<Entry | null>(null)
   const [toast, setToast] = useState<ToastData | null>(null)
   const [pickFor, setPickFor] = useState<QuickAction | null>(null)
+  const action = useAction()
 
   // A gap on Hôm nay sends the user here with the day and the hours filled in.
   useEffect(() => {
@@ -254,7 +257,7 @@ export function Backfill() {
             setDetail(null)
             setToast({ id: Date.now(), text: 'Đã xoá', onUndo: () => void restoreEntry(id) })
           }}
-          onCopyToToday={async () => {
+          onCopyToToday={action('copyToToday', async () => {
             const copy = await createEntry({
               ...copyToDay(detail, todayKey, dayStartHour),
               source: 'backfill',
@@ -265,7 +268,7 @@ export function Backfill() {
               text: 'Đã chép sang hôm nay',
               onUndo: () => void softDeleteEntry(copy.id),
             })
-          }}
+          })}
         />
       )}
       {pickFor && (

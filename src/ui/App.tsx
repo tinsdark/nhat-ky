@@ -4,6 +4,7 @@ import { appLock, shouldRelock } from '../lock'
 import { LockScreen } from './LockScreen'
 import { getSettings } from '../data/repository'
 import { DATA_ERROR_EVENT, useLive } from './useLive'
+import { APP_ERROR_EVENT } from './errors'
 import { Login } from './screens/Login'
 import { Backfill } from './screens/Backfill'
 import { Habits } from './screens/Habits'
@@ -14,6 +15,7 @@ import { Icon } from './Icon'
 import { SyncIndicator } from './SyncIndicator'
 import { applyUpdate, checkForUpdate, getUpdateState, subscribeUpdate } from '../pwa'
 import { periodOf } from './period'
+import { vnHour } from '../core/date'
 import { BandTitle } from './today/BandTitle'
 import { parseHash, TABS } from './route'
 
@@ -45,9 +47,9 @@ export function App() {
     else delete document.documentElement.dataset.theme
   }, [settings?.theme])
   // The whole app is tinted by the part of the day; the status bar follows the same colour.
-  const [period, setPeriod] = useState(() => periodOf(new Date().getHours()))
+  const [period, setPeriod] = useState(() => periodOf(vnHour()))
   useEffect(() => {
-    const tick = () => setPeriod(periodOf(new Date().getHours()))
+    const tick = () => setPeriod(periodOf(vnHour()))
     document.addEventListener('visibilitychange', tick)
     const t = setInterval(tick, 5 * 60_000)
     return () => {
@@ -88,6 +90,19 @@ export function App() {
     window.addEventListener(DATA_ERROR_EVENT, on)
     return () => window.removeEventListener(DATA_ERROR_EVENT, on)
   }, [])
+  // A failed save says so at the top of the screen for a few seconds.
+  const [appError, setAppError] = useState<{ id: number; text: string } | null>(null)
+  useEffect(() => {
+    const on = (e: Event) =>
+      setAppError({ id: Date.now(), text: (e as CustomEvent<string>).detail })
+    window.addEventListener(APP_ERROR_EVENT, on)
+    return () => window.removeEventListener(APP_ERROR_EVENT, on)
+  }, [])
+  useEffect(() => {
+    if (!appError) return
+    const t = setTimeout(() => setAppError(null), 6000)
+    return () => clearTimeout(t)
+  }, [appError?.id])
   const [update, setUpdate] = useState(getUpdateState())
   useEffect(() => subscribeUpdate(setUpdate), [])
   // A home-screen app can stay open for days: look for a new version whenever it comes back to the front.
@@ -151,6 +166,11 @@ export function App() {
             tải lại app
           </button>
           ; nếu vẫn lỗi, dữ liệu trên Drive không bị ảnh hưởng.
+        </div>
+      )}
+      {appError && (
+        <div class="notice-line" role="alert">
+          {appError.text} Chi tiết ở Cài đặt → Ứng dụng → Nhật ký lỗi.
         </div>
       )}
       <main class="content">

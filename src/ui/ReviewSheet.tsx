@@ -4,6 +4,7 @@ import { isMet, isScheduled, valuesByDate } from '../core/habits'
 import { tickHabit } from '../data/habits'
 import { getDay, getDefs, getEntriesByDateKey, getSettings, saveDay } from '../data/repository'
 import { useLive } from './useLive'
+import { useAction } from './useAction'
 import { Choice, scale } from './Choice'
 
 const DAY_TYPES: { id: DayType; label: string }[] = [
@@ -21,6 +22,7 @@ export function ReviewSheet({ dateKey, onClose }: { dateKey: string; onClose: ()
   const [focus, setFocus] = useState<Rating | null>(null)
   const [dayScore, setDayScore] = useState<number | null>(null)
   const [highlight, setHighlight] = useState('')
+  const action = useAction()
   const [dayType, setDayType] = useState<DayType | null>(null)
 
   useEffect(() => {
@@ -64,6 +66,7 @@ export function ReviewSheet({ dateKey, onClose }: { dateKey: string; onClose: ()
     })
     onClose()
   }
+  const submit = action('review', save)
 
   const rating = (set: (r: Rating | null) => void) => (n: number | undefined) =>
     set((n ?? null) as Rating | null)
@@ -75,7 +78,7 @@ export function ReviewSheet({ dateKey, onClose }: { dateKey: string; onClose: ()
         onClick={(e) => e.stopPropagation()}
         onSubmit={(e) => {
           e.preventDefault()
-          void save()
+          submit()
         }}
       >
         <h2>

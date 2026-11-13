@@ -8,7 +8,7 @@
   --hue-l: #ff8a5b;
   --hf-l: #2b1208;
   --hm-l: #5c2e1a;
-  --ac-l: #bf4a12;
+  --ac-l: #a8400f;
   --hue-d: #4a2112;
   --hf-d: #ffe7da;
   --hm-d: #e2b5a0;
@@ -23,7 +23,7 @@
   --input-bg: #fff;
   --border: color-mix(in srgb, var(--hue) 26%, #fff);
   --fg: #1f1612;
-  --muted: #6a5a52;
+  --muted: #5f4f47;
   --on-accent: #fff;
   --accent-soft: color-mix(in srgb, var(--hue) 22%, #fff); /* tinted box behind positive things */
   --band-card: rgb(255 255 255 / 0.55); /* panels sitting on the coloured band */
@@ -63,7 +63,7 @@
   --hue-l: #ff8a5b;
   --hf-l: #2b1208;
   --hm-l: #5c2e1a;
-  --ac-l: #bf4a12;
+  --ac-l: #a8400f;
   --hue-d: #4a2112;
   --hf-d: #ffe7da;
   --hm-d: #e2b5a0;
@@ -83,7 +83,7 @@
   --band-card: rgb(255 255 255 / 0.12); /* the night band is dark in both themes */
   --hue-l: #2f3475;
   --hf-l: #ecedff;
-  --hm-l: #b8bceb;
+  --hm-l: #c8cbf2;
   --ac-l: #3b3fa8;
   --hue-d: #12143a;
   --hf-d: #e3e5ff;
@@ -428,7 +428,7 @@ button {
   min-height: 44px;
   padding: 0 12px;
   border-radius: 999px;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 .icon-btn {
   display: inline-flex;
@@ -505,7 +505,7 @@ textarea {
   margin: 5px 4px;
   border-radius: 14px;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-decoration: none;
 }
@@ -603,7 +603,7 @@ textarea {
 .rows .sub {
   display: block;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 .rows .end {
   color: var(--muted);
@@ -695,7 +695,7 @@ textarea {
   flex-direction: column;
   flex: 1;
   gap: 4px;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   color: var(--muted);
 }
 .sheet input,
@@ -774,13 +774,13 @@ textarea {
 .group legend {
   padding: 0 6px;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 .field .lbl {
   display: block;
   margin-bottom: 4px;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 .choice {
   display: flex;
@@ -845,7 +845,7 @@ h2.sub {
   text-align: left;
 }
 .habit-name .muted {
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 .tick {
   display: inline-flex;
@@ -866,7 +866,7 @@ h2.sub {
   color: var(--bg);
 }
 .auto {
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 .habit-detail {
   padding-top: 8px;
@@ -954,7 +954,7 @@ h2.sub {
 .month .mh {
   text-align: center;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 .month .md {
   display: flex;
@@ -1044,7 +1044,7 @@ h2.sub {
   flex-direction: column;
   flex: 1;
   gap: 4px;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   color: var(--muted);
 }
 .settings input {
@@ -1075,7 +1075,7 @@ h2.sub {
   background: var(--bg);
   color: var(--fg);
   font: inherit;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 .filebtn {
@@ -1121,7 +1121,7 @@ details.card summary {
   background: var(--surface);
   border: 1px solid var(--border);
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .fullscreen {
@@ -1189,7 +1189,7 @@ details.card summary {
 table.grid {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   text-align: center;
 }
 table.grid th,
@@ -1265,7 +1265,7 @@ table.grid th {
   margin-top: 8px;
 }
 .hours .hl {
-  font-size: 0.6rem;
+  font-size: 0.6rem; /* 24 hour columns: the one place below 13px, it cannot fit otherwise */
   color: var(--muted);
   text-align: center;
 }
@@ -1493,7 +1493,7 @@ body:has(.login) {
   display: block;
 }
 .sleep-info .muted {
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 .sleep-ico {
   display: flex;
@@ -1585,7 +1585,7 @@ body:has(.login) {
 .scale-row .muted {
   display: block;
   margin-bottom: 6px;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 .scale5 {
   display: grid;
@@ -1683,7 +1683,7 @@ body:has(.login) {
   border: 1px dashed var(--border);
   border-radius: 14px;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   text-decoration: none;
 }
 .empty {
@@ -1719,7 +1719,7 @@ body:has(.login) {
 
 .rows .sub {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 400;
 }
 .sleep-actions {
@@ -1745,7 +1745,7 @@ body:has(.login) {
 .quick .need {
   margin-top: -2px;
   color: var(--accent);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 .panel > .hint {
@@ -1850,7 +1850,7 @@ form.sheet > .row:last-child {
   padding: 1px 8px;
   border-radius: 999px;
   background: var(--warn-soft);
-  color: var(--warn);
+  color: var(--warn-text);
   font-size: 0.8125rem;
   font-weight: 700;
 }
@@ -2446,7 +2446,7 @@ html:has(.sheet-backdrop, .fullscreen) {
   background: var(--hf);
   color: var(--hue);
   font: inherit;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -2464,7 +2464,7 @@ html:has(.sheet-backdrop, .fullscreen) {
 }
 
 .delta {
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 .delta.good {
@@ -2532,4 +2532,32 @@ html:has(.sheet-backdrop, .fullscreen) {
 }
 .warn-box p {
   margin: 0;
+}
+
+/* Nhật ký lỗi (Cài đặt → Ứng dụng) */
+.errlog {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.errlog li {
+  display: grid;
+  gap: 2px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+/* Read by screen readers, not shown (the screen title on Hôm nay, where the big line is the time). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }

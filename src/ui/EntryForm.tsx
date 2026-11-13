@@ -19,6 +19,7 @@ import { PhotoError, photos, pokePhotoQueue, processPhoto } from '../photos'
 import { PayloadFields, type Payload } from './PayloadFields'
 import { Thumb } from './PhotoViews'
 import { useLive } from './useLive'
+import { useAction } from './useAction'
 
 export interface FormDraft {
   /** Set when editing an existing entry. */
@@ -94,6 +95,7 @@ export function EntryForm({
   const added = useRef<string[]>([])
   const saved = useRef(false)
   const [error, setError] = useState('')
+  const action = useAction()
   const [history, setHistory] = useState<Entry[]>([])
   useEffect(() => {
     void getEntriesInRange(addDays(draft.dateKey, -60), draft.dateKey).then(setHistory)
@@ -196,6 +198,8 @@ export function EntryForm({
     if (photoIds.length > 0) pokePhotoQueue()
     onSaved(result, !draft.id)
   }
+  // A double tap on Lưu must not record the entry twice.
+  const submit = action('entryForm', save)
 
   return (
     <div class="sheet-backdrop" onClick={close}>
@@ -204,7 +208,7 @@ export function EntryForm({
         onClick={(e) => e.stopPropagation()}
         onSubmit={(e) => {
           e.preventDefault()
-          void save()
+          submit()
         }}
       >
         <h2>{draft.id ? 'Sửa' : 'Ghi mới'}</h2>

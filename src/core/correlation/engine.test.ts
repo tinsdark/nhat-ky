@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { generateFakeData } from '../../dev/fakeData'
 import { addDays } from '../date'
-import { allMetrics, createMetricContext } from '../metrics'
+import { allMetrics, createMetricContext, METRICS } from '../metrics'
+import { defaultHabits } from '../defaults'
+import { generatePersonaMonth } from '../../dev/persona'
 import { DEFAULT_SETTINGS } from '../settings'
 import type { Day } from '../types'
-import { confidenceOf, effect, findCorrelations, pearson } from './index'
+import { confidenceOf, effect, findCorrelations, lookback, pearson } from './index'
 
 describe('effect / pearson / confidence', () => {
   it('cohen d and welch t of two groups', () => {
@@ -104,5 +106,23 @@ describe('data gates', () => {
     // Mark every day as sick: nothing is left to compare.
     const none = run(60, 1, (days) => days.forEach((d) => (d.dayType = 'sick')))
     expect(none).toEqual([])
+  })
+})
+
+describe('weekly calendar is not a finding', () => {
+  it('150 persona days: findings stay near the workdays-only count', () => {
+    for (const seed of [7, 11, 23]) {
+      const data = generatePersonaMonth({ startKey: '2026-05-04', days: 150, seed })
+      const ctx = createMetricContext({
+        entries: data.entries,
+        days: data.days,
+        habits: defaultHabits('2026-05-04'),
+        settings: DEFAULT_SETTINGS,
+      })
+      // Before the day-kind adjustment these seeds gave 35, 27 and 29 findings (workdays only: 8, 10, 6).
+      expect(
+        findCorrelations(ctx, METRICS, lookback(addDays('2026-05-04', 149), 150)).length,
+      ).toBeLessThanOrEqual(12)
+    }
   })
 })

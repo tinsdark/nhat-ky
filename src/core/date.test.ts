@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { addDays, addMonths, dateKeyRange, toDateKey, toIso, weekday } from './date'
+import {
+  addDays,
+  addMonths,
+  dateKeyRange,
+  followToday,
+  toDateKey,
+  toIso,
+  vnHour,
+  weekday,
+} from './date'
 
 describe('toDateKey', () => {
   it('00:40 Tue belongs to Monday night', () => {
@@ -82,6 +91,25 @@ describe('toIso', () => {
     const iso = toIso(new Date('2026-10-19T17:40:00Z'))
     expect(iso).toBe('2026-10-20T00:40:00.000+07:00')
     expect(new Date(iso).getTime()).toBe(Date.parse('2026-10-19T17:40:00Z'))
+  })
+})
+
+describe('vnHour', () => {
+  it('reads the hour in UTC+7', () => {
+    expect(vnHour(new Date('2026-10-19T17:40:00Z'))).toBe(0)
+    expect(vnHour(new Date('2026-10-19T08:59:00Z'))).toBe(15)
+  })
+})
+
+describe('followToday', () => {
+  it('a screen on today follows the new day', () => {
+    expect(followToday('2026-11-12', '2026-11-12', '2026-11-13')).toBe('2026-11-13')
+  })
+  it('a screen on another day stays', () => {
+    expect(followToday('2026-11-10', '2026-11-12', '2026-11-13')).toBe('2026-11-10')
+  })
+  it('no change when today did not move', () => {
+    expect(followToday('2026-11-12', '2026-11-12', '2026-11-12')).toBe('2026-11-12')
   })
 })
 

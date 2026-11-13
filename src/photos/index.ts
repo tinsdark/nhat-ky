@@ -2,6 +2,7 @@ import { downloadBlob, deleteFile, uploadBlob } from '../drive'
 import { hasSession } from '../auth'
 import { db } from '../data/db'
 import { getSettings } from '../data/repository'
+import { logError } from '../data/errorLog'
 import { createPhotoStore } from './store'
 
 export { PhotoError, processPhoto } from './process'
@@ -20,7 +21,7 @@ async function runQueue(): Promise<void> {
   try {
     await photos.runQueue({ canUpload: () => !photosWifiOnly || onWifiOrUnknown() })
   } catch (err) {
-    console.warn('photo queue', err) // stays queued; the next trigger retries
+    void logError('photo queue', err) // stays queued; the next trigger retries
   }
 }
 
@@ -36,7 +37,7 @@ export function startPhotoQueue(): void {
       if (photoFullMonths > 0 && hasSession() && navigator.onLine)
         await photos.pruneFull(photoFullMonths)
     })
-    .catch((err) => console.warn('photo maintenance', err))
+    .catch((err) => logError('photo maintenance', err))
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') pokePhotoQueue()
   })

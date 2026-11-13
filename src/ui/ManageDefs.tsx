@@ -13,7 +13,7 @@ import {
 } from '../core/defs'
 import type { Category, CustomType, Defs, EntryType, QuickAction, Tag } from '../core/types'
 import { getDefs, saveDefs } from '../data/repository'
-import { Choice } from './Choice'
+import { Pills } from './Pills'
 import { QuickIcon } from './QuickIcon'
 import { useLive } from './useLive'
 
@@ -102,16 +102,15 @@ export function ManageDefs({
           </button>
         </div>
         <div class="manage-tabs">
-          <Choice
-            label=""
+          <Pills
             options={[
-              { id: 'quick', label: 'Nút nhanh' },
-              { id: 'cat', label: 'Danh mục' },
-              { id: 'type', label: 'Loại' },
-              { id: 'tag', label: 'Tag' },
+              { id: 'quick' as const, label: 'Nút nhanh' },
+              { id: 'cat' as const, label: 'Danh mục' },
+              { id: 'type' as const, label: 'Loại' },
+              { id: 'tag' as const, label: 'Tag' },
             ]}
             value={tab}
-            onChange={(v) => v && setTab(v)}
+            onChange={setTab}
           />
         </div>
         <div class="manage-body">

@@ -5,9 +5,10 @@ import { AuthNetworkError, AuthRequiredError } from '../auth/token'
 import { toIso } from '../core/date'
 import { compareVersion, mergeRecords, type Versioned } from '../core/merge'
 import { mergeDefs } from '../core/mergeDefs'
+import { mergeInsights } from '../core/mergeInsights'
 import { isDay, isDocStamp, isEntry } from '../core/validate'
-import type { Day, Defs, Entry } from '../core/types'
-import type { DocStamp, NhatKyDB } from '../data/db'
+import type { Day, Defs, Entry, InsightStore } from '../core/types'
+import { STALE_MONTHS_KEY, type DocStamp, type NhatKyDB } from '../data/db'
 import { DriveError, type DriveClient } from '../drive/client'
 
 export type SyncDrive = Pick<
@@ -42,6 +43,13 @@ type DocRecord = DocStamp & { key: string }
 const MONTH_FILE = /^nk_(\d{4}-\d{2})\.json$/
 const MAX_CONFLICT_RETRIES = 3
 const DEFS_FILE = 'nk_defs.json'
+const INSIGHTS_FILE = 'nk_insights.json'
+
+/** Whole-file documents whose two diverged copies can be combined instead of one replacing the other. */
+const DOC_MERGE: Record<string, (winner: never, loser: never) => unknown> = {
+  [DEFS_FILE]: (w: Defs, l: Defs) => mergeDefs(w, l),
+  [INSIGHTS_FILE]: (w: InsightStore, l: InsightStore) => mergeInsights(w, l),
+}
 
 const monthOf = (dateKey: string) => dateKey.slice(0, 7)
 const monthFileName = (month: string) => `nk_${month}.json`
@@ -53,7 +61,16 @@ function strip(record: object, ...keys: string[]): Record<string, unknown> {
   return copy
 }
 
-export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive }): SyncEngine {
+export function createSyncEngine({
+  db,
+  drive,
+  onError,
+}: {
+  db: NhatKyDB
+  drive: SyncDrive
+  /** Unexpected failures (not offline, not signed out), for the device error log. */
+  onError?: (err: unknown) => void
+}): SyncEngine {
   let status: SyncStatus = { state: 'idle', lastSyncAt: null, error: null }
   const listeners = new Set<(s: SyncStatus) => void>()
   let running: Promise<void> | null = null
@@ -160,11 +177,12 @@ export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive
     // before sign-in): the copy on Drive is the real one and must not be overwritten by it.
     const firstSync = remote !== null && (await getMt(name)) === null
 
-    // Both sides changed defs: keep what only the losing side added, then push the union as a new version.
-    if (name === DEFS_FILE && remote && local?.dirty === 1 && !firstSync) {
+    // Both sides changed the file: keep what only the losing side has, then push the result as a new version.
+    const merge = DOC_MERGE[name]
+    if (merge && remote && local?.dirty === 1 && !firstSync) {
       const remoteWins = compareVersion(remote, local) > 0
-      const winner = (remoteWins ? remote : local) as unknown as Defs
-      const merged = mergeDefs(winner, (remoteWins ? local : remote) as unknown as Defs)
+      const winner = remoteWins ? remote : local
+      const merged = merge(winner as never, (remoteWins ? local : remote) as never) as object
       if (merged !== winner) {
         local = {
           ...merged,
@@ -226,10 +244,20 @@ export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive
     for (const e of await db.entries.where('dirty').equals(1).toArray())
       months.add(monthOf(e.dateKey))
     for (const d of await db.days.where('dirty').equals(1).toArray()) months.add(monthOf(d.dateKey))
+    // Months that still hold a copy of an entry moved elsewhere: rewrite them so the copy goes.
+    const stale = ((await db.meta.get(STALE_MONTHS_KEY))?.value as string[] | undefined) ?? []
+    for (const m of stale) if (remoteFiles.has(monthFileName(m))) months.add(m)
 
     for (const month of [...months].sort()) {
       await syncMonth(month, remoteFiles.get(monthFileName(month)) ?? null)
     }
+    if (stale.length > 0)
+      await db.transaction('rw', db.meta, async () => {
+        const now = ((await db.meta.get(STALE_MONTHS_KEY))?.value as string[] | undefined) ?? []
+        const left = now.filter((m) => !stale.includes(m))
+        if (left.length > 0) await db.meta.put({ key: STALE_MONTHS_KEY, value: left })
+        else await db.meta.delete(STALE_MONTHS_KEY)
+      })
     await syncDoc(DEFS_FILE, db.defs, 'defs', remoteFiles.get('nk_defs.json') ?? null)
     await syncDoc(
       'nk_settings.json',
@@ -238,7 +266,7 @@ export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive
       remoteFiles.get('nk_settings.json') ?? null,
     )
     await syncDoc(
-      'nk_insights.json',
+      INSIGHTS_FILE,
       db.insights,
       'insights',
       remoteFiles.get('nk_insights.json') ?? null,
@@ -262,6 +290,7 @@ export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive
       ) {
         setStatus({ state: 'offline' })
       } else {
+        onError?.(err)
         setStatus({ state: 'error', error: err instanceof Error ? err.message : String(err) })
       }
       return false

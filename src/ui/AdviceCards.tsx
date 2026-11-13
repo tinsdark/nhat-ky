@@ -4,6 +4,7 @@ import { dailyPicks } from '../core/insights'
 import { settleExperiments, startExperiment } from '../data/experiments'
 import { getInsightStore, giveFeedback, refreshInsights } from '../data/insights'
 import { getSettings } from '../data/repository'
+import { logError } from '../data/errorLog'
 import { useLive } from './useLive'
 
 export function AdviceCards({ emptyText }: { emptyText: string }) {
@@ -12,7 +13,7 @@ export function AdviceCards({ emptyText }: { emptyText: string }) {
   useEffect(() => {
     void refreshInsights()
       .then(settleExperiments)
-      .catch((err) => console.warn('insights', err))
+      .catch((err) => logError('insights', err))
   }, [])
 
   if (!store || !settings) return null

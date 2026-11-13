@@ -69,3 +69,16 @@ export function atTime(
 export function toHHmm(ts: string | number | Date): string {
   return toIso(new Date(ts)).slice(11, 16)
 }
+
+/** Hour 0–23 of a timestamp in Vietnam time, whatever time zone the device is set to. */
+export function vnHour(ts: number | Date = Date.now()): number {
+  return Number(toIso(ts).slice(11, 13))
+}
+
+/**
+ * The day a screen should show once "today" moves from `prevToday` to `nextToday` (the day cut passed
+ * while the app stayed open): a screen that was on today follows it, one on another day stays put.
+ */
+export function followToday(viewed: string, prevToday: string, nextToday: string): string {
+  return viewed === prevToday ? nextToday : viewed
+}

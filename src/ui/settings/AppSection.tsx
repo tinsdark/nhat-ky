@@ -3,9 +3,11 @@ import { hasSession, signOut } from '../../auth'
 import { appLock } from '../../lock'
 import { applyUpdate, checkForUpdate, getUpdateState, subscribeUpdate } from '../../pwa'
 import { engine } from '../../sync'
+import { toHHmm, toIso } from '../../core/date'
 import { Choice } from '../Choice'
 import { Icon } from '../Icon'
 import { Section, SetRow } from './fields'
+import { ErrorLogSection, SyncHealth } from './Diagnostics'
 
 const build = new Date(__BUILD_TIME__)
 
@@ -61,6 +63,7 @@ export function AppSection({
             </p>
           </>
         )}
+        <SyncHealth />
       </Section>
 
       <Section
@@ -95,8 +98,8 @@ export function AppSection({
       <Section title="Về app">
         <SetRow title="Nhật ký" hint="Theo dõi đồng hồ sinh hoạt. Không theo dõi tiền.">
           <span class="muted">
-            Bản dựng {build.toLocaleDateString('vi-VN')}{' '}
-            {build.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+            Bản dựng {toIso(build).slice(8, 10)}/{toIso(build).slice(5, 7)}/
+            {toIso(build).slice(0, 4)} {toHHmm(build)}
           </span>
         </SetRow>
         <div class="btnlist">
@@ -126,6 +129,7 @@ export function AppSection({
                 : 'Bản mới sẽ không tự áp dụng, bấm nút khi muốn cập nhật.'}
         </p>
       </Section>
+      <ErrorLogSection />
     </>
   )
 }

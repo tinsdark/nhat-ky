@@ -19,6 +19,8 @@ npm run dev        # http://localhost:5173
 npm run test       # vitest
 npm run build
 npm run lint
+npm run e2e           # smoke trên bản build (cần `npx vite preview --port 4173`), Playwright có sẵn trên máy
+npm run e2e:contrast  # tương phản theo buổi × theme (cần `npm run dev`)
 ```
 
 Không thêm dependency mới ngoài danh sách trên mà không hỏi Đạt.

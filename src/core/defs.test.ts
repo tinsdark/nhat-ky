@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defaultDefs } from './defaults'
+import { DEFAULT_QUICK_ACTIONS, defaultDefs } from './defaults'
 import {
   applyDefDraft,
   ENTRY_TYPES,
@@ -17,6 +17,7 @@ import {
   typeLabel,
   upsertById,
   validateQuickAction,
+  withExerciseShortcut,
 } from './defs'
 
 const defs = defaultDefs('2026-11-01')
@@ -173,5 +174,19 @@ describe('applyDefDraft', () => {
         base,
       ),
     ).toEqual({ error: 'Giá trị không hợp lệ.' })
+  })
+})
+
+describe('withExerciseShortcut', () => {
+  const shortcut = DEFAULT_QUICK_ACTIONS.find((a) => a.id === 'qa-exercise')!
+  it('adds the exercise shortcut at the end when the device has none', () => {
+    const old = { ...defs, quickActions: defs.quickActions.filter((a) => a.type !== 'exercise') }
+    const next = withExerciseShortcut(old, shortcut)!
+    const added = next.quickActions[next.quickActions.length - 1]!
+    expect(added.type).toBe('exercise')
+    expect(added.order).toBe(Math.max(...old.quickActions.map((a) => a.order)) + 1)
+  })
+  it('leaves defs alone when any exercise shortcut exists', () => {
+    expect(withExerciseShortcut(defs, shortcut)).toBeNull()
   })
 })
