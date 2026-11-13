@@ -188,6 +188,6 @@ Chi tiết, bằng chứng và tiêu chí xong: `docs/REVIEW-2026-11-13.md` mụ
 - [x] **T11.2 CSP bằng `<meta>`**, kiểm đăng nhập/sync/ảnh/font trên Pages.
 - [x] **T11.3 Test e2e** `e2e/smoke.cjs` (B1, B2, 2 chạm, Bắt đầu/Kết thúc, giờ VN trên máy múi giờ khác) và `e2e/contrast.cjs`, chạy bằng Playwright có sẵn trên máy (`npm run e2e`), không thêm dependency, chưa đưa vào CI.
 - [x] **T11.4 Test cho `data/insights.ts`, `photos/process.ts`, `backup/importCsv.ts`.**
-- [ ] **T11.5 [Q] Dọn repo** (`__pycache__`, file của repo khác, PDF lớn).
+- [x] **T11.5 Dọn repo:** bỏ `docs/report/__pycache__` khỏi git + `.gitignore`. Giữ nguyên `docs/huong-dan-khoa-phong-to-so-tien.md` và PDF báo cáo (nội dung Đạt yêu cầu trước đây; xoá là việc khó đảo ngược, để Đạt tự xoá nếu muốn).
 - [ ] **T11.6 Cập nhật HANDOFF, README, câu hỏi mở trong SPEC.**
-- [ ] **T11.7 Cập nhật bản vá phụ thuộc hằng tháng.**
+- [x] **T11.7 Cập nhật bản vá phụ thuộc** (13/11: preact 11.2, vite 8.3.8, dexie 4.4.7, vitest 5.1…; lint, test, build, smoke, tương phản, CSP chạy lại đều đạt). TypeScript 7 là bản major, chưa lên.
