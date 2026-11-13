@@ -1,7 +1,14 @@
 import type { Category, CategoryGroup, Defs, EntryType, Habit, QuickAction } from './types'
 
 // Ids are fixed strings (not UUIDs) so two devices that both seed produce the same records.
-const WORK_COLOR = '#3b4a9e'
+/**
+ * Colours are stored on categories and tags as literal hex (the user picks any colour with a colour
+ * input), so they cannot be CSS tokens; these are the defaults for new items, defined once.
+ */
+export const WORK_COLOR = '#3b4a9e'
+/** New categories start in the work colour; new tags start neutral grey. */
+export const DEFAULT_CATEGORY_COLOR = WORK_COLOR
+export const DEFAULT_TAG_COLOR = '#6c6c70'
 const GROWTH_COLOR = '#2e7d32'
 const PERSONAL_COLOR = '#ef6c00'
 const MEAL_COLOR = '#c2185b'

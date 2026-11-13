@@ -20,6 +20,7 @@ import { PayloadFields, type Payload } from './PayloadFields'
 import { Thumb } from './PhotoViews'
 import { useLive } from './useLive'
 import { useAction } from './useAction'
+import { DEFAULT_TAG_COLOR } from '../core/defaults'
 
 export interface FormDraft {
   /** Set when editing an existing entry. */
@@ -389,7 +390,7 @@ export function EntryForm({
                 const name = newTag.trim()
                 if (!name) return
                 const existing = tags.find((t) => t.name.toLowerCase() === name.toLowerCase())
-                const tag = existing ?? { id: newId('tag'), name, color: '#6c6c70' }
+                const tag = existing ?? { id: newId('tag'), name, color: DEFAULT_TAG_COLOR }
                 if (!existing) {
                   const defs = await getDefs()
                   await saveDefs({ ...defs, tags: [...defs.tags, tag] })

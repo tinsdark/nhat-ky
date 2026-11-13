@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defaultDefs } from './defaults'
+import { DEFAULT_CATEGORY_COLOR, DEFAULT_TAG_COLOR, defaultDefs, WORK_COLOR } from './defaults'
 
 describe('defaultDefs', () => {
   const defs = defaultDefs('2026-11-01')
@@ -33,5 +33,14 @@ describe('defaultDefs', () => {
   it('returns fresh copies so callers cannot mutate the constants', () => {
     defs.categories[0]!.name = 'x'
     expect(defaultDefs('2026-11-01').categories[0]!.name).toBe('Deep work')
+  })
+})
+
+describe('default colours', () => {
+  it('keep the values already stored on real data', () => {
+    // Existing categories and tags carry these hex values; new ones must match them.
+    expect(WORK_COLOR).toBe('#3b4a9e')
+    expect(DEFAULT_CATEGORY_COLOR).toBe(WORK_COLOR)
+    expect(DEFAULT_TAG_COLOR).toBe('#6c6c70')
   })
 })

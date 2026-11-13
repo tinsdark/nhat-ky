@@ -16,6 +16,7 @@ import { getDefs, saveDefs } from '../data/repository'
 import { Pills } from './Pills'
 import { QuickIcon } from './QuickIcon'
 import { useLive } from './useLive'
+import { DEFAULT_CATEGORY_COLOR, DEFAULT_TAG_COLOR } from '../core/defaults'
 
 type Tab = 'cat' | 'quick' | 'tag' | 'type'
 
@@ -82,14 +83,17 @@ export function ManageDefs({
         id: newId('cat'),
         name: '',
         entryType: 'activity',
-        color: '#3b4a9e',
+        color: DEFAULT_CATEGORY_COLOR,
         icon: '📌',
         order: nextOrder(defs.categories),
         archived: false,
       }),
     },
     type: { label: '+ Loại mới', item: () => newCustomType('', '📌') },
-    tag: { label: '+ Tag mới', item: () => ({ id: newId('tag'), name: '', color: '#6c6c70' }) },
+    tag: {
+      label: '+ Tag mới',
+      item: () => ({ id: newId('tag'), name: '', color: DEFAULT_TAG_COLOR }),
+    },
   }
 
   return (
@@ -377,7 +381,7 @@ function DefEditor({
             Màu
             <input
               type="color"
-              value={str('color') || '#3b4a9e'}
+              value={str('color') || DEFAULT_CATEGORY_COLOR}
               onInput={(e) => set('color', e.currentTarget.value)}
             />
           </label>
