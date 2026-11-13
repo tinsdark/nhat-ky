@@ -2,12 +2,14 @@ import { hasSession, onAuthRequired } from '../auth'
 import { db } from '../data/db'
 import { getModifiedTime, listFiles, readJson, writeJson } from '../drive'
 import { createSyncEngine } from './engine'
+import { logError } from '../data/errorLog'
 
 export type { SyncStatus } from './engine'
 
 export const engine = createSyncEngine({
   db,
   drive: { listFiles, readJson, writeJson, getModifiedTime },
+  onError: (err) => void logError('sync', err),
 })
 
 const POLL_MS = 60_000

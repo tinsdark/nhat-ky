@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'preact/hooks'
 import { engine, type SyncStatus } from '../sync'
 import { Icon } from './Icon'
+import { toHHmm } from '../core/date'
 
 const LABEL: Record<SyncStatus['state'], string> = {
   idle: 'Chưa đồng bộ',
@@ -10,9 +11,6 @@ const LABEL: Record<SyncStatus['state'], string> = {
   authRequired: 'Chưa đăng nhập, dữ liệu chỉ lưu trên máy',
   error: 'Lỗi đồng bộ, bấm để thử lại',
 }
-
-const hhmm = (iso: string) =>
-  new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
 
 /** The status line under the brand: colour says the state, tapping syncs (or asks to sign in). */
 export function SyncIndicator({ onLogin }: { onLogin: () => void }) {
@@ -25,7 +23,7 @@ export function SyncIndicator({ onLogin }: { onLogin: () => void }) {
   const needLogin = status.state === 'authRequired'
   const text =
     status.state === 'synced' && status.lastSyncAt
-      ? `Đã đồng bộ lúc ${hhmm(status.lastSyncAt)}`
+      ? `Đã đồng bộ lúc ${toHHmm(status.lastSyncAt)}`
       : LABEL[status.state]
   return (
     <button

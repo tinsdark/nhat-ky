@@ -5,6 +5,7 @@ import { BackupSection } from '../BackupSection'
 import { Choice } from '../Choice'
 import { PurgeSection } from '../PurgeSection'
 import { Section, SetRow } from './fields'
+import { StorageSection } from './Diagnostics'
 
 const DevPanel = import.meta.env.DEV ? lazy(() => import('../DevPanel')) : null
 const save = (patch: Partial<Settings>) => void saveSettings(patch)
@@ -40,6 +41,7 @@ export function DataSection({ settings }: { settings: Settings }) {
           />
         </SetRow>
       </Section>
+      <StorageSection />
       <BackupSection dayStartHour={settings.dayStartHour} />
       <PurgeSection dayStartHour={settings.dayStartHour} />
       {DevPanel && (

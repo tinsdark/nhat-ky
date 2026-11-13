@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks'
-import { addDays, toDateKey, weekday } from '../../core/date'
+import { addDays, toDateKey, vnHour, weekday } from '../../core/date'
 import { copyToDay, formatDuration } from '../../core/entryForm'
 import { WEEKDAY_NAMES } from '../../core/insights'
 import { dueReminders } from '../../core/reminders'
@@ -41,6 +41,8 @@ import { Toast, type ToastData } from '../Toast'
 import { WaterList } from '../WaterList'
 import { WaterPicker } from '../WaterPicker'
 import { useLive } from '../useLive'
+import { todayOf, useNow, useViewedDay } from '../useToday'
+import { useAction } from '../useAction'
 
 /** Sleep has its own card, so these two buttons are not shown as tiles. */
 const SLEEP_ACTIONS = new Set(['qa-sleep', 'qa-wake'])
@@ -49,8 +51,9 @@ export function Today() {
   const settings = useLive(getSettings, [])
   const defs = useLive(getDefs, [])
   const dayStartHour = settings?.dayStartHour ?? 4
-  const todayKey = toDateKey(Date.now(), dayStartHour)
-  const [dateKey, setDateKey] = useState(todayKey)
+  const now = useNow()
+  const todayKey = todayOf(now, dayStartHour)
+  const [dateKey, setDateKey] = useViewedDay(todayKey)
   const isToday = dateKey === todayKey
   const ownEntries = useLive(() => getEntriesByDateKey(dateKey), [dateKey])
   // The night that ended this morning started on the previous logical day; it still belongs on this day's timeline.
@@ -81,11 +84,11 @@ export function Today() {
   const running = useLive(getRunningEntries, [])
   const [managing, setManaging] = useState<{ startNew: boolean } | null>(null)
   const [toast, setToast] = useState<ToastData | null>(null)
+  const action = useAction()
 
   if (!settings || !defs || !entries || !running) return null
 
   const categories = defs.categories
-  const now = Date.now()
   const nowIso = () => new Date().toISOString()
 
   const draftFor = (a: QuickAction): FormDraft => ({
@@ -124,10 +127,11 @@ export function Today() {
    * Second tap of a shortcut for a timed type: the category is all that is needed, so the block starts
    * now without opening the form (2 taps from Hôm nay). The toast offers Sửa and Hoàn tác.
    */
-  const quickStart = async (a: QuickAction, c: Category) =>
-    showSaved(await createEntry(quickStartFields(a, c, nowIso())), true)
+  const quickStart = action('quickStart', async (a: QuickAction, c: Category) =>
+    showSaved(await createEntry(quickStartFields(a, c, nowIso())), true),
+  )
 
-  const finish = async (e: Entry) => {
+  const finish = action('finish', async (e: Entry) => {
     const patch = finishPatch(e, nowIso())
     if (!patch) return setForm(draftFromEntry(e))
     const done = await updateEntry(e.id, patch)
@@ -136,21 +140,21 @@ export function Today() {
       text: `Đã kết thúc: ${done.title}`,
       onEdit: () => setForm(draftFromEntry(done)),
     })
-  }
+  })
 
-  const pressSleep = async () => {
+  const pressSleep = action('goToSleep', async () => {
     const entry = await goToSleep()
     setToast({
       id: Date.now(),
       text: entry ? 'Chúc ngủ ngon' : 'Đang có giấc ngủ chưa đóng, bấm Thức dậy',
       onUndo: entry ? () => void softDeleteEntry(entry.id) : undefined,
     })
-  }
+  })
 
-  const pressWake = async () => {
+  const pressWake = action('wakeUp', async () => {
     const { entry, estimated } = await wakeUp()
     setSleepPrompt({ id: entry.id, note: estimated ? estimatedNote(entry.start) : undefined })
-  }
+  })
 
   /** Swipe left on a row: soft delete with Hoàn tác. */
   const swipeDelete = (e: Entry) => {
@@ -170,7 +174,7 @@ export function Today() {
   const quickTap = (a: QuickAction) => (a.type === 'water' ? setWaterFor(a) : setPickFor(a))
 
   /** One drink of `ml`: the amount is chosen each time, since cups and bottles differ. */
-  const recordWater = async (a: QuickAction, ml: number) => {
+  const recordWater = action('water', async (a: QuickAction, ml: number) => {
     const entry = await createEntry({
       type: 'water',
       start: nowIso(),
@@ -187,9 +191,9 @@ export function Today() {
       onEdit: () => setForm(draftFromEntry(entry)),
       onUndo: () => void softDeleteEntry(entry.id),
     })
-  }
+  })
 
-  const recordCheckin = async (kind: 'energy' | 'mood', value: number) => {
+  const recordCheckin = action('checkin', async (kind: 'energy' | 'mood', value: number) => {
     const entry = await createEntry({
       type: 'note',
       start: nowIso(),
@@ -202,10 +206,11 @@ export function Today() {
       text: `Đã ghi: ${kind === 'energy' ? 'năng lượng' : 'tâm trạng'} ${value}/5`,
       onUndo: () => void softDeleteEntry(entry.id),
     })
-  }
+  })
 
-  const tick = (h: Habit) =>
-    void tickHabit(h, todayKey, dayStartHour, h.kind === 'duration' ? 10 : undefined)
+  const tick = action('tickHabit', (h: Habit) =>
+    tickHabit(h, todayKey, dayStartHour, h.kind === 'duration' ? 10 : undefined),
+  )
 
   const review = reviewPrompt({
     now,
@@ -242,7 +247,7 @@ export function Today() {
     .filter((a) => !SLEEP_ACTIONS.has(a.id))
   const lastNight = prevNight?.[prevNight.length - 1]
   // At bedtime (or while a night is open) sleep leads the screen; otherwise Ghi nhanh does.
-  const hour = new Date(now).getHours()
+  const hour = vnHour(now)
   const night = hour >= 21 || hour < dayStartHour
   const sleepFirst = night || !!openSleep
   const lastNightMin = lastNight?.end
@@ -262,8 +267,8 @@ export function Today() {
       lastNight={lastNight}
       now={now}
       night={night}
-      onSleep={() => void pressSleep()}
-      onWake={() => void pressWake()}
+      onSleep={pressSleep}
+      onWake={pressWake}
     />
   )
 
@@ -287,7 +292,7 @@ export function Today() {
             <RunningCard
               entries={running}
               categories={categories}
-              onFinish={(e) => void finish(e)}
+              onFinish={finish}
               onEdit={(e) => setForm(draftFromEntry(e))}
             />
           )}
@@ -340,10 +345,7 @@ export function Today() {
                 onAdd={() => setManaging({ startNew: true })}
               />
               {!sleepFirst && sleepCard}
-              <CheckinCard
-                entries={ownEntries ?? []}
-                onRecord={(k, v) => void recordCheckin(k, v)}
-              />
+              <CheckinCard entries={ownEntries ?? []} onRecord={recordCheckin} />
             </>
           ) : (
             <p class="muted hint pastnote">
@@ -386,7 +388,7 @@ export function Today() {
                 setDetail(null)
                 setToast({ id: Date.now(), text: 'Đã xoá', onUndo: () => void restoreEntry(id) })
               }}
-              onCopyToToday={async () => {
+              onCopyToToday={action('copyToToday', async () => {
                 const copy = await createEntry(copyToDay(detail, todayKey, dayStartHour))
                 setDetail(null)
                 setToast({
@@ -395,14 +397,14 @@ export function Today() {
                   onEdit: () => setForm(draftFromEntry(copy)),
                   onUndo: () => void softDeleteEntry(copy.id),
                 })
-              }}
+              })}
             />
           )}
           {waterFor && (
             <WaterPicker
               sizes={settings.waterSizes}
               last={lastWaterMl(ownEntries ?? [])}
-              onPick={(ml) => void recordWater(waterFor, ml)}
+              onPick={(ml) => recordWater(waterFor, ml)}
               onClose={() => setWaterFor(null)}
             />
           )}
@@ -424,7 +426,7 @@ export function Today() {
               action={pickFor}
               categories={categories}
               onPick={(c) => {
-                if (isTimedType(pickFor.type)) void quickStart(pickFor, c)
+                if (isTimedType(pickFor.type)) quickStart(pickFor, c)
                 else setForm(draftForCategory(pickFor, c))
                 setPickFor(null)
               }}

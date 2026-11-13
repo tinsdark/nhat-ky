@@ -1,5 +1,5 @@
 import { addDays, toDateKey, toIso } from '../core/date'
-import { averageBedtime, estimateBedtime, findOpenNightSleep } from '../core/sleep'
+import { averageBedtime, estimateBedtime, findOpenNightSleep, justWoken } from '../core/sleep'
 import type { Entry, Rating } from '../core/types'
 import { db } from './db'
 import { createEntry, getSettings, updateEntry } from './repository'
@@ -28,14 +28,27 @@ export async function suggestBedtime(): Promise<string | null> {
 }
 
 /** "Đi ngủ": an open entry with only `start`. Returns null when a night sleep is already open. */
-export async function goToSleep(): Promise<Entry | null> {
-  if (await getOpenSleep()) return null
-  return createEntry({
-    type: 'sleep',
-    start: toIso(),
-    categoryId: SLEEP_CATEGORY,
-    title: 'Đi ngủ',
-    source: 'quick',
+/**
+ * Runs sleep presses one after another: each checks for an open night and then writes, so two quick
+ * taps (a double-tap) must not both see "no open night" and record twice.
+ */
+let queue: Promise<unknown> = Promise.resolve()
+function serial<T>(fn: () => Promise<T>): Promise<T> {
+  const run = queue.then(fn, fn)
+  queue = run.catch(() => {})
+  return run
+}
+
+export function goToSleep(): Promise<Entry | null> {
+  return serial(async () => {
+    if (await getOpenSleep()) return null
+    return createEntry({
+      type: 'sleep',
+      start: toIso(),
+      categoryId: SLEEP_CATEGORY,
+      title: 'Đi ngủ',
+      source: 'quick',
+    })
   })
 }
 
@@ -43,13 +56,20 @@ export async function goToSleep(): Promise<Entry | null> {
  * "Thức dậy": closes the open night sleep. With none open (the "Đi ngủ" press was forgotten) it
  * records a night anyway, with an estimated bedtime and `payload.estimated`: no question is asked.
  */
-export async function wakeUp(): Promise<{ entry: Entry; estimated: boolean }> {
-  const open = await getOpenSleep()
+export function wakeUp(): Promise<{ entry: Entry; estimated: boolean }> {
+  return serial(wakeUpNow)
+}
+
+async function wakeUpNow(): Promise<{ entry: Entry; estimated: boolean }> {
+  const recent = await getRecentSleep()
+  const open = findOpenNightSleep(recent, Date.now())
   if (open)
     return {
       entry: await updateEntry(open.id, { end: toIso(), title: 'Ngủ đêm' }),
       estimated: false,
     }
+  const repeat = justWoken(recent, Date.now())
+  if (repeat) return { entry: repeat, estimated: repeat.payload.estimated === true }
   const { sleepTargetHours } = await getSettings()
   const now = Date.now()
   const entry = await createEntry({

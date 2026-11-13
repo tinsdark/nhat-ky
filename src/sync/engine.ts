@@ -53,7 +53,16 @@ function strip(record: object, ...keys: string[]): Record<string, unknown> {
   return copy
 }
 
-export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive }): SyncEngine {
+export function createSyncEngine({
+  db,
+  drive,
+  onError,
+}: {
+  db: NhatKyDB
+  drive: SyncDrive
+  /** Unexpected failures (not offline, not signed out), for the device error log. */
+  onError?: (err: unknown) => void
+}): SyncEngine {
   let status: SyncStatus = { state: 'idle', lastSyncAt: null, error: null }
   const listeners = new Set<(s: SyncStatus) => void>()
   let running: Promise<void> | null = null
@@ -262,6 +271,7 @@ export function createSyncEngine({ db, drive }: { db: NhatKyDB; drive: SyncDrive
       ) {
         setStatus({ state: 'offline' })
       } else {
+        onError?.(err)
         setStatus({ state: 'error', error: err instanceof Error ? err.message : String(err) })
       }
       return false

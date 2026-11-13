@@ -3,6 +3,7 @@ import { BACKUP_PREFIX, backupDue, backupName, backupsToDelete } from '../core/b
 import { toIso } from '../core/date'
 import { deleteFile, listFiles, writeJson } from '../drive'
 import { buildSnapshot } from './snapshot'
+import { logError } from '../data/errorLog'
 
 export { buildSnapshot, parseSnapshot, restoreSnapshot, SnapshotError } from './snapshot'
 
@@ -31,7 +32,7 @@ export function startBackup(): void {
   const check = () => {
     if (!hasSession() || !navigator.onLine) return
     runBackup(Date.now(), { listFiles, writeJson, deleteFile }).catch((err) =>
-      console.warn('backup', err),
+      logError('backup', err),
     )
   }
   check()

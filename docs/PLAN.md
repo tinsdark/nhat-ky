@@ -154,11 +154,11 @@ Tham chiếu: repo `tinsdark/so-chi-tieu` (nền kem, thẻ bo tròn 20px, tab �
 
 Chi tiết, bằng chứng và tiêu chí xong: `docs/REVIEW-2026-11-13.md` mục 3 và 5. [Q] = chờ Đạt quyết.
 
-- [ ] **T8.1 Ngày tự sang khi app mở qua giờ cắt ngày.** Hôm nay/Ghi bù đang xem "hôm nay" thì đi theo ngày mới (lỗi B1: qua 04:00 mất lưới Ghi nhanh và nút Thức dậy).
-- [ ] **T8.2 Chống ghi trùng khi bấm đúp.** `goToSleep`/`wakeUp` kiểm + tạo trong một transaction; nút ghi khoá trong lúc chờ (lỗi B2).
+- [x] **T8.1 Ngày tự sang khi app mở qua giờ cắt ngày.** Hôm nay/Ghi bù đang xem "hôm nay" thì đi theo ngày mới (lỗi B1: qua 04:00 mất lưới Ghi nhanh và nút Thức dậy).
+- [x] **T8.2 Chống ghi trùng khi bấm đúp.** `goToSleep`/`wakeUp` kiểm + tạo trong một transaction; nút ghi khoá trong lúc chờ (lỗi B2).
 - [ ] **T8.3 [Q] Dọn giấc ngủ trùng trong dữ liệu thật** (nếu có).
-- [ ] **T8.4 Lưu trữ bền.** `navigator.storage.persist()` + trạng thái ở Cài đặt → Dữ liệu.
-- [ ] **T8.5 Bắt lỗi toàn cục.** Lỗi lưu → toast ở trên; nhật ký lỗi 50 dòng trong `meta`, xem/chép ở Cài đặt → Ứng dụng.
+- [x] **T8.4 Lưu trữ bền.** `navigator.storage.persist()` + trạng thái ở Cài đặt → Dữ liệu.
+- [x] **T8.5 Bắt lỗi toàn cục.** Lỗi lưu → toast ở trên; nhật ký lỗi 50 dòng trong `meta`, xem/chép ở Cài đặt → Ứng dụng.
 - [ ] **T8.6 [Q] Tương quan không bị lịch tuần làm nhiễu.** Phải xong trước ~29/11 (đủ 28 ngày dữ liệu thật).
 - [ ] **T8.7 Nghiệm thu T3.7 với Google thật** trên iPhone + PC theo kịch bản viết sẵn.
 

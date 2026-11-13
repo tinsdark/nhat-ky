@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { atTime } from './date'
-import { averageBedtime, bedtimeBefore, estimateBedtime, findOpenNightSleep } from './sleep'
+import {
+  averageBedtime,
+  bedtimeBefore,
+  estimateBedtime,
+  findOpenNightSleep,
+  justWoken,
+} from './sleep'
 import type { Entry } from './types'
 
 const sleep = (start: string, end: string | null, payload = {}): Entry =>
@@ -50,6 +56,25 @@ describe('findOpenNightSleep', () => {
     expect(findOpenNightSleep([sleep('2026-10-30T23:30:00.000+07:00', null)], now)).toBeUndefined()
     // forgotten "Thức dậy" from yesterday morning: 20h old, over the 16h cap
     expect(findOpenNightSleep([sleep('2026-11-02T11:00:00.000+07:00', null)], now)).toBeUndefined()
+  })
+})
+
+describe('justWoken', () => {
+  const now = new Date('2026-11-03T07:05:00+07:00').getTime()
+  it('finds the night that ended minutes ago', () => {
+    const night = sleep('2026-11-02T23:30:00.000+07:00', '2026-11-03T07:00:00.000+07:00')
+    expect(justWoken([night], now)).toBe(night)
+  })
+  it('ignores older wake-ups and naps', () => {
+    expect(
+      justWoken([sleep('2026-11-02T23:30:00.000+07:00', '2026-11-03T06:30:00.000+07:00')], now),
+    ).toBeUndefined()
+    expect(
+      justWoken(
+        [sleep('2026-11-03T06:00:00.000+07:00', '2026-11-03T07:00:00.000+07:00', { nap: true })],
+        now,
+      ),
+    ).toBeUndefined()
   })
 })
 

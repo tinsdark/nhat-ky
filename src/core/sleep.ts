@@ -59,3 +59,23 @@ export function estimateBedtime(now: number, usual: string | null, targetHours: 
   }
   return toIso(now - targetHours * 3_600_000)
 }
+
+/** A second "Thức dậy" this soon after the first is the same wake-up (a double tap), not a new night. */
+export const REPEAT_WAKE_MINUTES = 10
+
+/** The night sleep that ended within the last `minutes`, if any. */
+export function justWoken(
+  entries: Entry[],
+  now: number,
+  minutes = REPEAT_WAKE_MINUTES,
+): Entry | undefined {
+  return entries.find(
+    (e) =>
+      e.type === 'sleep' &&
+      !e.deleted &&
+      e.payload.nap !== true &&
+      e.end !== null &&
+      now - new Date(e.end).getTime() >= 0 &&
+      now - new Date(e.end).getTime() <= minutes * 60_000,
+  )
+}
